@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+{% endblock %}
+{% block title %}{{ run_detail.run_id }}{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h2>{{ run_detail }}</h2>
+
+    <table id="sample_table" class="display" style="width:100%">
+      <thead>
+      <tr>
+        <th>Sample ID</th>
+        <th>Date Created</th>
+        <th>Date Modified</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for project in project_list %}
+        {% if run_detail.project_id == project %}
+          {% for sample in sample_list %}
+            {% if sample.run_id == run_detail %}
+              <tr>
+                <td>
+                  <a
+                    href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk_project=project.pk pk_run=run_detail.pk pk=sample.pk %}">
+                    {{ sample.sample_id }}
+                  </a>
+                </td>
+                <td>
+                  {{ sample.created }}
+                </td>
+                <td>
+                  {{ sample.modified }}
+                </td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock content %}
+
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#sample_table').DataTable();
+    });
+  </script>
+{% endblock %}

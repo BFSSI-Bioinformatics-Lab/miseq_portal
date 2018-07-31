@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+{% endblock %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <h2>Projects</h2>
+    <div class="list-group">
+
+      <table id="project_table" class="display">
+        <thead>
+        <tr>
+          <th>Project ID</th>
+          <th>Date Created</th>
+          <th>Date Modified</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for project in project_list %}
+          <tr>
+            <td>
+              <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' project.pk %}">
+                {{ project.project_id }}
+              </a>
+            </td>
+            <td>
+              {{ project.created }}
+            </td>
+            <td>
+              {{ project.modified }}
+            </td>
+          </tr>
+        {% endfor %}
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+
+{% endblock content %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      $('#project_table').DataTable();
+    });
+  </script>
+{% endblock %}
