@@ -72,7 +72,9 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'miseq_portal.users.apps.UsersAppConfig',
     'core.apps.CoreConfig',
-    'miseq_viewer.apps.MiseqViewerConfig'
+    'miseq_viewer.apps.MiseqViewerConfig',
+    'miseq_uploader.apps.MiseqUploaderConfig',
+    'sample_search.apps.SampleSearchConfig'
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -240,3 +242,4 @@ SOCIALACCOUNT_ADAPTER = 'miseq_portal.users.adapters.SocialAccountAdapter'
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+APPEND_SLASH = False
