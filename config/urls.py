@@ -14,15 +14,18 @@ urlpatterns = [
                   ),
                   # Django Admin, use {% url 'admin:index' %}
                   path(settings.ADMIN_URL, admin.site.urls),
+
                   # User management
                   path(
                       "users/",
                       include("miseq_portal.users.urls", namespace="users"),
                   ),
                   path("accounts/", include("allauth.urls")),
-                  # Your stuff: custom urls includes go here
-                  path("miseq_viewer/", include("miseq_portal.miseq_viewer.urls"))
 
+                  # Your stuff: custom urls includes go here
+                  path("miseq_viewer/", include("miseq_portal.miseq_viewer.urls")),
+                  path("miseq_uploader/", include("miseq_portal.miseq_uploader.urls")),
+                  path("sample_search/", include("miseq_portal.sample_search.urls"))
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
