@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Upload{% endblock %}
+
+{% block content %}
+
+  <h1>Upload Run Information</h1>
+  <form action="{% url "miseq_uploader:run_submitted" %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+  </form>
+
+
+{% endblock content %}
+
+
