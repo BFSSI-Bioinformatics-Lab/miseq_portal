@@ -43,20 +43,25 @@
             aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <a class="navbar-brand" href="{% url 'home' %}">BFSSI-Portal</a>
+    <a class="navbar-brand" href="{% url 'home' %}">MiSeq-Portal</a>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
           <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'about' %}">About</a>
-        </li>
         {% if request.user.is_authenticated %}
           <li class="nav-item">
             {# URL provided by django-allauth/account/urls.py #}
+            <a class="nav-link" href="{% url 'sample_search:sample_search' %}">{% trans "Sample Search" %}</a>
+          </li>
+          <li class="nav-item">
+            {# URL provided by django-allauth/account/urls.py #}
             <a class="nav-link" href="{% url 'miseq_viewer:miseq_viewer_projects' %}">{% trans "MiSeq Viewer" %}</a>
+          </li>
+          <li class="nav-item">
+            {# URL provided by django-allauth/account/urls.py #}
+            <a class="nav-link" href="{% url 'miseq_uploader:miseq_uploader' %}">{% trans "MiSeq Uploader" %}</a>
           </li>
           <li class="nav-item">
             {# URL provided by django-allauth/account/urls.py #}
