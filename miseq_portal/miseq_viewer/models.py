@@ -26,6 +26,14 @@ def validate_sample_id(value: str, length: int = 15):
         raise ValidationError(f"ID component of Sample ID ('{components[2]}') does not equal expected 'XXXXXX' format")
 
 
+def upload_samplesheet(instance, filename):
+    return f'uploads/projects/{instance.project_id}/runs/{instance.run_id}/{filename}'
+
+
+def upload_reads(instance, filename):
+    return f'uploads/projects/{instance.project_id}/runs/{instance.run_id}/sample/{instance.sample_id}/{filename}'
+
+
 # Create your models here.
 class Project(TimeStampedModel):
     """
@@ -46,7 +54,7 @@ class Run(TimeStampedModel):
     project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/SampleSheet.csv
-    # sample_sheet = models.FileField()
+    sample_sheet = models.FileField(upload_to=upload_samplesheet, blank=True)
 
     # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/SampleSheet.csv
     # interop_dir = models.FilePathField(path=None, allow_folders=True, allow_files=False)
@@ -65,14 +73,11 @@ class Sample(TimeStampedModel):
     project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
     run_id = models.ForeignKey(Run, on_delete=models.CASCADE)
 
+    fwd_reads = models.FileField(upload_to=upload_reads, blank=True)
+    rev_reads = models.FileField(upload_to=upload_reads, blank=True)
+
     # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/samples/<sample_id>/*.fasta
     # assembly = models.FileField(upload_to='')
-
-    # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/samples/<sample_id>/*_R1*.fastq.gz
-    # fwd_reads = models.FileField(upload_to='')
-
-    # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/samples/<sample_id>/*_R2*.fastq.gz
-    # rev_reads = models.FileField(upload_to='')
 
     def __str__(self):
         return f"{self.sample_id}"
