@@ -6,7 +6,7 @@
 {% block content %}
 
   <h1>Upload Run Information</h1>
-  <form action="{% url "miseq_uploader:miseq_uploader" %}" method="post">
+  <form action="{% url "miseq_uploader:miseq_uploader" %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {% if form.non_field_errors %}
       <div class="form-group text-error">
