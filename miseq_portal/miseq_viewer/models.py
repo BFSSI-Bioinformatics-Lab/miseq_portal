@@ -42,7 +42,7 @@ class Project(TimeStampedModel):
     project_id = models.CharField(max_length=256, unique=True)
 
     def __str__(self):
-        return f"{self.project_id}"
+        return self.project_id
 
 
 class Run(TimeStampedModel):
@@ -60,7 +60,7 @@ class Run(TimeStampedModel):
     # interop_dir = models.FilePathField(path=None, allow_folders=True, allow_files=False)
 
     def __str__(self):
-        return f"{self.run_id}"
+        return self.run_id
 
 
 class Sample(TimeStampedModel):
@@ -80,4 +80,4 @@ class Sample(TimeStampedModel):
     # assembly = models.FileField(upload_to='')
 
     def __str__(self):
-        return f"{self.sample_id}"
+        return self.sample_id
