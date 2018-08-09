@@ -4,6 +4,7 @@ from miseq_uploader.views import (
     sample_form_view,
     create_project_view,
     project_created_view,
+    miseq_form_view,
     miseq_uploader_view,
     run_form_view,
     run_submitted_view
@@ -25,4 +26,6 @@ urlpatterns = [
     # Samples
     path("sample_uploader", view=sample_form_view, name="sample_uploader"),
 
+    # MiSeq Directory Upload
+    path("miseq_directory_uploader", view=miseq_form_view, name="miseq_form"),
 ]
