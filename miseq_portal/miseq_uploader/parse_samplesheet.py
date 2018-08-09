@@ -32,8 +32,14 @@ def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
     :param samplesheet: Path to SampleSheet.csv
     :return: pandas df of SampleSheet.csv with head section stripped away
     """
-    # TODO: Verify that it's always 21 rows that need to be skipped. Will need to change approach if it varies.
-    df = pd.read_csv(samplesheet, sep=",", index_col=False, skiprows=21)
+    counter = 1
+    with open(str(samplesheet)) as f:
+        for line in f:
+            if '[Data]' in line:
+                break
+            else:
+                counter += 1
+    df = pd.read_csv(samplesheet, sep=",", index_col=False, skiprows=counter)
     return df
 
 
@@ -45,6 +51,11 @@ def get_sample_id_list(samplesheet_df: pd.DataFrame) -> list:
     """
     sample_id_list = list(samplesheet_df['Sample_ID'])
     return sample_id_list
+
+
+def get_sample_name_dictionary(df: pd.DataFrame):
+    sample_name_dictionary = df.set_index('Sample_ID').to_dict()['Sample_Name']
+    return sample_name_dictionary
 
 
 def group_by_project(samplesheet_df: pd.DataFrame) -> dict:
@@ -123,11 +134,15 @@ def parse_samplesheet(samplesheet: Path) -> dict:
     for sample_id in sample_id_list:
         validate_sample_id(value=sample_id)
 
+    # Get Sample Names
+    sample_name_dictionary = get_sample_name_dictionary(df=df)
+
     # Create dict to store all information
     samplesheet_dict = dict()
     samplesheet_dict['df'] = df
     samplesheet_dict['sample_id_list'] = sample_id_list
     samplesheet_dict['project_dict'] = project_dict
     samplesheet_dict['run_id'] = run_id
+    samplesheet_dict['sample_name_dict'] = sample_name_dictionary  # TODO: test this
 
     return samplesheet_dict
