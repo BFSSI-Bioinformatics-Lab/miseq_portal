@@ -1,15 +1,55 @@
 {% extends "base.html" %}
 {% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
+        integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+
+
+{% endblock %}
+
 {% block title %}{{ sample_detail }}{% endblock %}
 
 {% block content %}
-<div class="container">
-  <h2>{{ sample_detail }}</h2>
+  <div class="page-header">
+    <h1>{{ sample_detail }}</h1>
+  </div>
 
-    <p>R1:</p>
-    <p>R2:</p>
-    <p>Assembly:</p>
+  <table id="sample_detail" class="display" style="width:100%">
+    <thead>
+    <tr>
+      <th>Forward Reads (R1)</th>
+      <th>Reverse Reads (R2)</th>
+      <th>Date Created</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>
+        <a class="btn btn-primary btn-block" href="{{ sample_detail.fwd_reads.url }}" role="button"><i
+          class="fas fa-download"></i> Download
+        </a>
+      </td>
+      <td>
+        <a class="btn btn-primary btn-block" href="{{ sample_detail.rev_reads.url }}" role="button"><i
+          class="fas fa-download"></i> Download
+        </a>
+      </td>
+      <td>{{ sample_detail.created }}</td>
+    </tr>
+    </tbody>
+  </table>
 
-</div>
 {% endblock content %}
 
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#sample_detail').DataTable();
+    });
+  </script>
+{% endblock %}
