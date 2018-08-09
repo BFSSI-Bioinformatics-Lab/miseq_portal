@@ -2,10 +2,6 @@ import pandas as pd
 from pathlib import Path
 
 
-# TODO: Query Sample_IDs against database to ensure they don't already exist
-# TODO: Query Sample_Project to see if it already exists; if not, create new one
-
-
 def validate_samplesheet_header(header: list) -> bool:
     """
     Validates that column names match expected values
