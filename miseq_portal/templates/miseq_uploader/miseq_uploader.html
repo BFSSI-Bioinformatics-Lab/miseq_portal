@@ -1,37 +1,60 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}Upload{% endblock %}
+{% block title %}Uploader{% endblock %}
 
 {% block content %}
 
-  <h1>Upload Run Information</h1>
-  <form action="{% url "miseq_uploader:miseq_uploader" %}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {% if form.non_field_errors %}
-      <div class="form-group text-error">
-        {{ form.non_field_errors }}
+  <div class="page-header">
+    <h1>Manual MiSeq Upload</h1>
+  </div>
+
+  <div class="alert alert-info" role="alert">
+    <p>Use this page to manually add <strong>Projects</strong>, <strong>Runs</strong> and <strong>Samples</strong>
+      to the MiSeq-Portal database</p>
+  </div>
+
+    <h3>MiSeq Directory Upload <span class="badge badge-danger">Admin only</span></h3>
+    <div class="list-group">
+    <a href="{% url 'miseq_uploader:miseq_form' %}"
+       class="list-group-item list-group-item-action flex-column align-items-start">
+      <div class="d-flex w-100 justify-content-between">
+        <h4 class="mb-1">Upload MiSeq Run</h4>
       </div>
-    {% endif %}
+      <p class="mb-1">Click to manually upload an entire MiSeq run to the database.
+        <strong>This will only work for administrators.</strong></p>
+    </a>
+  </div>
 
-    {% for hidden in form.hidden_fields %}
-      {{ hidden }}
-    {% endfor %}
-    {% for field in form.visible_fields %}
-      <p>
-        {{ field.label }}:
-        {{ field }}
-      </p>
-      {% if field.errors %}
-        <div class="alert alert-danger" role="alert">
-          <span>{{ field.errors|striptags }}</span>
-        </div>
-      {% endif %}
-    {% endfor %}
-    <input type="submit" value="Submit" class="btn btn-primary">
-  </form>
+  <br>
 
-
+  <h3>Single Project, Run, or Sample Uploads</h3>
+  <div class="list-group">
+    <a href="{% url 'miseq_uploader:create_project' %}"
+       class="list-group-item list-group-item-action flex-column align-items-start">
+      <div class="d-flex w-100 justify-content-between">
+        <h4 class="mb-1">Create Project</h4>
+      </div>
+      <p class="mb-1">Click to manually create a project. The project must have a <strong>unique</strong> name not
+        already present in the database.</p>
+    </a>
+    <a href="{% url 'miseq_uploader:run_uploader' %}"
+       class="list-group-item list-group-item-action flex-column align-items-start">
+      <div class="d-flex w-100 justify-content-between">
+        <h4 class="mb-1">Upload Run</h4>
+      </div>
+      <p class="mb-1">Click to manually upload a MiSeq run. This must be attached to an <strong>existing project
+      </strong>, and must also have an accompanying SampleSheet.</p>
+    </a>
+    <a href="{% url 'miseq_uploader:sample_uploader' %}"
+       class="list-group-item list-group-item-action flex-column align-items-start">
+      <div class="d-flex w-100 justify-content-between">
+        <h4 class="mb-1">Upload Sample</h4>
+      </div>
+      <p class="mb-1">Click to manually upload a sample <i>(paired-end .fastq.gz files)</i>. This must be attached to an
+        <strong>existing run</strong> with a SampleSheet which contains a corresponding Sample ID.</p>
+    </a>
+  </div>
 
 
 {% endblock content %}
