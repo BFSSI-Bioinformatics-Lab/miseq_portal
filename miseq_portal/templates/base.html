@@ -52,15 +52,12 @@
         </li>
         {% if request.user.is_authenticated %}
           <li class="nav-item">
-            {# URL provided by django-allauth/account/urls.py #}
             <a class="nav-link" href="{% url 'sample_search:sample_search' %}">{% trans "Sample Search" %}</a>
           </li>
           <li class="nav-item">
-            {# URL provided by django-allauth/account/urls.py #}
             <a class="nav-link" href="{% url 'miseq_viewer:miseq_viewer_projects' %}">{% trans "MiSeq Viewer" %}</a>
           </li>
           <li class="nav-item">
-            {# URL provided by django-allauth/account/urls.py #}
             <a class="nav-link" href="{% url 'miseq_uploader:miseq_uploader' %}">{% trans "MiSeq Uploader" %}</a>
           </li>
           <li class="nav-item">
