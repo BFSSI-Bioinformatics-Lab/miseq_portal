@@ -3,7 +3,7 @@ from django.views.generic import View, TemplateView
 from django.shortcuts import render, redirect
 from pathlib import Path
 
-from .forms import RunModelForm, CreateProjectForm
+from .forms import RunModelForm, CreateProjectForm, UploadMiSeqDirectoryForm
 from miseq_viewer.models import Project
 from miseq_uploader.upload_to_db import receive_miseq_run_dir
 
@@ -19,8 +19,6 @@ class SampleFormView(View):
     template_name = 'miseq_uploader/sample_uploader.html'
 
     def get(self, request):
-        receive_miseq_run_dir(Path("/home/forest/Projects/MiSeq-Portal/Testing/MiSeqAnalysis"))
-
         return render(request, self.template_name, {})
 
 
@@ -50,6 +48,30 @@ class CreateProjectView(LoginRequiredMixin, View):
 
 
 create_project_view = CreateProjectView.as_view()
+
+
+class MiSeqFormView(LoginRequiredMixin, View):
+    form_class = UploadMiSeqDirectoryForm
+    template_name = 'miseq_uploader/upload_miseq_directory.html'
+    # success_url = 'miseq_directory_uploaded/'  # TODO: actually make this page
+    success_url = 'run_submitted/'
+
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = self.form_class(request.POST, request.FILES)
+
+        if form.is_valid():
+            receive_miseq_run_dir(Path(request.POST['miseq_directory']))
+            return redirect(self.success_url)
+        else:
+            print('something bad happened??')
+            return render(request, self.template_name, {'form': form})
+
+
+miseq_form_view = MiSeqFormView.as_view()
 
 
 class RunFormView(LoginRequiredMixin, View):
