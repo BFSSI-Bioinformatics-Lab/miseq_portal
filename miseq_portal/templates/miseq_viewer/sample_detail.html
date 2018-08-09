@@ -19,6 +19,7 @@
   <table id="sample_detail" class="display" style="width:100%">
     <thead>
     <tr>
+      <th>Sample Name</th>
       <th>Forward Reads (R1)</th>
       <th>Reverse Reads (R2)</th>
       <th>Date Created</th>
@@ -26,6 +27,9 @@
     </thead>
     <tbody>
     <tr>
+      <td>
+        {{ sample_detail.sample_name }}
+      </td>
       <td>
         <a class="btn btn-primary btn-block" href="{{ sample_detail.fwd_reads.url }}" role="button"><i
           class="fas fa-download"></i> Download

@@ -70,6 +70,7 @@ class Sample(TimeStampedModel):
     - Each Sample must be associated with a Project + Run
     """
     sample_id = models.CharField(max_length=15, unique=True, validators=[validate_sample_id])
+    sample_name = models.CharField(max_length=64, unique=False, blank=True)
     project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
     run_id = models.ForeignKey(Run, on_delete=models.CASCADE)
 
