@@ -54,7 +54,7 @@ class Run(TimeStampedModel):
     project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/SampleSheet.csv
-    sample_sheet = models.FileField(upload_to=upload_samplesheet, blank=True)
+    sample_sheet = models.FileField(upload_to=upload_samplesheet, blank=True, max_length=700)
 
     # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/SampleSheet.csv
     # interop_dir = models.FilePathField(path=None, allow_folders=True, allow_files=False)
@@ -73,8 +73,8 @@ class Sample(TimeStampedModel):
     project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
     run_id = models.ForeignKey(Run, on_delete=models.CASCADE)
 
-    fwd_reads = models.FileField(upload_to=upload_reads, blank=True)
-    rev_reads = models.FileField(upload_to=upload_reads, blank=True)
+    fwd_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=700)
+    rev_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=700)
 
     # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/samples/<sample_id>/*.fasta
     # assembly = models.FileField(upload_to='')
