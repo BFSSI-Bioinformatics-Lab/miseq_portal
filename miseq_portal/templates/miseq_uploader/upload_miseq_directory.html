@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}MiSeq Directory Upload{% endblock %}
+
+{% block content %}
+
+  <div class="page-header">
+    <h1>Upload MiSeq Directory</h1>
+  </div>
+
+  <div class="alert alert-warning" role="alert">
+    Paste the full path to the MiSeq directory you wish to upload.
+    <strong>Note that this will only work for administrators.</strong>
+  </div>
+
+  <form action="{% url "miseq_uploader:miseq_form" %}" method="post" enctype="multipart/form-data">
+    {% crispy form %}
+  </form>
+
+{% endblock content %}
+
+
