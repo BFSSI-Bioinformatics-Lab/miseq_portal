@@ -1,14 +1,61 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import View, TemplateView
 from django.shortcuts import render, redirect
+from pathlib import Path
 
-from .forms import RunModelForm
+from .forms import RunModelForm, CreateProjectForm
 from miseq_viewer.models import Project
+from miseq_uploader.upload_to_db import receive_miseq_run_dir
 
 
-class RunFormView(View):
-    form_class = RunModelForm
+class MiseqUploaderView(LoginRequiredMixin, TemplateView):
     template_name = 'miseq_uploader/miseq_uploader.html'
-    success_url = 'run_submitted.html'
+
+
+miseq_uploader_view = MiseqUploaderView.as_view()
+
+
+class SampleFormView(View):
+    template_name = 'miseq_uploader/sample_uploader.html'
+
+    def get(self, request):
+        receive_miseq_run_dir(Path("/home/forest/Projects/MiSeq-Portal/Testing/MiSeqAnalysis"))
+
+        return render(request, self.template_name, {})
+
+
+sample_form_view = SampleFormView.as_view()
+
+
+class CreateProjectView(LoginRequiredMixin, View):
+    form_class = CreateProjectForm
+    template_name = 'miseq_uploader/create_project.html'
+    success_url = 'project_created/'
+
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = self.form_class(request.POST, request.FILES)
+
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.project_id = request.POST['project_id']
+            obj.save()
+            return redirect(self.success_url)
+        else:
+            print('Form not valid')
+            return render(request, self.template_name, {'form': form})
+
+
+create_project_view = CreateProjectView.as_view()
+
+
+class RunFormView(LoginRequiredMixin, View):
+    form_class = RunModelForm
+    template_name = 'miseq_uploader/run_uploader.html'
+    success_url = 'run_submitted/'
 
     def get(self, request):
         form = self.form_class()
@@ -49,8 +96,15 @@ class RunFormView(View):
 run_form_view = RunFormView.as_view()
 
 
-class RunSubmittedView(TemplateView):
+class RunSubmittedView(LoginRequiredMixin, TemplateView):
     template_name = 'miseq_uploader/run_submitted.html'
 
 
 run_submitted_view = RunSubmittedView.as_view()
+
+
+class ProjectCreatedView(LoginRequiredMixin, TemplateView):
+    template_name = 'miseq_uploader/project_created.html'
+
+
+project_created_view = ProjectCreatedView.as_view()

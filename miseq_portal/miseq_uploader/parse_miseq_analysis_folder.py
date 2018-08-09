@@ -16,22 +16,26 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
     for f in miseq_folder.glob("*"):
         if f.name == "SampleSheet.csv":
             check_dict['samplesheet'] = True
+            print("PASS: Detected 'SampleSheet.csv'")
         elif f.name == "InterOp" and f.is_dir():
             check_dict['interop'] = True
+            print("PASS: Detected 'InterOp' directory")
         elif f.name == "Data" and f.is_dir():
             check_dict['data'] = True
+            print("PASS: Detected 'Data' directory")
         else:
             pass
 
     # Check for fastq files in expected location
     if len(list(miseq_folder.glob("Data/Intensities/Basecalls/*"))) > 0:
         check_dict['basecalls'] = True
+        print("PASS: Detected a non-zero number of *.fastq.gz files in ./Data/Intensities/Basecalls/*")
 
     if False in check_dict.values():
         raise Exception(f"Input folder {miseq_folder} is not structured as expected.\n"
                         f"{check_dict}")
     else:
-        print(f"{miseq_folder} passed all checks")
+        print(f"Input folder {miseq_folder} passed all basic checks\n")
         return True
 
 
@@ -114,12 +118,11 @@ def get_sample_dictionary(directory: Path) -> dict:
     fastq_file_list = retrieve_fastqgz(directory)
     sample_id_list = retrieve_sampleids(fastq_file_list)
     sample_dictionary = populate_sample_dictionary(sample_id_list, fastq_file_list)
-    print(f"Successfully paired {len(sample_dictionary)} of {len(sample_id_list)} samples")
+    print(f"Successfully paired {len(sample_dictionary)} of {len(sample_id_list)} samples:")
     return sample_dictionary
 
 
-def parse_miseq_folder(miseq_folder: Path):
-
+def parse_miseq_folder(miseq_folder: Path) -> dict:
     # Folder setup
     read_folder = None
     interop_folder = None
@@ -132,10 +135,15 @@ def parse_miseq_folder(miseq_folder: Path):
     # Get sample dict
     sample_dict = get_sample_dictionary(read_folder)
 
-    for sample, reads in sample_dict.items():
+    for sample, reads in sorted(sample_dict.items()):
         print(f"{sample} ({reads[0].name}, {reads[1].name})")
 
+    samplesheet = Path(list(miseq_folder.glob('SampleSheet.csv'))[0])
 
-if __name__ == "__main__":
-    # Testing
-    parse_miseq_folder(Path("/home/forest/Projects/MiSeq-Portal/Testing/MiSeqAnalysis"))
+    # Create dict for all MiSeq data
+    miseq_dict = dict()
+    miseq_dict['samplesheet_path'] = samplesheet
+    miseq_dict['interop_folder'] = interop_folder
+    miseq_dict['sample_dict'] = sample_dict
+
+    return miseq_dict

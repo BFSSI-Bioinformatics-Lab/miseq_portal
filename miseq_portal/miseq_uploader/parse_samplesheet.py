@@ -24,7 +24,10 @@ def validate_samplesheet_header(header: list) -> bool:
         'Sample_Project',
         'Description'
     ]
-    return set(header) == set(expected_header)
+    if not set(header) == set(expected_header):
+        raise Exception(f"Provided header {header} does not match expected header {expected_header}")
+    else:
+        return True
 
 
 def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
@@ -33,8 +36,8 @@ def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
     :param samplesheet: Path to SampleSheet.csv
     :return: pandas df of SampleSheet.csv with head section stripped away
     """
-    # TODO: Verify that it's always 22 rows that need to be skipped. Will need to change approach if it varies.
-    df = pd.read_csv(samplesheet, sep=",", index_col=False, skiprows=22)
+    # TODO: Verify that it's always 21 rows that need to be skipped. Will need to change approach if it varies.
+    df = pd.read_csv(samplesheet, sep=",", index_col=False, skiprows=21)
     return df
 
 
@@ -98,3 +101,37 @@ def validate_sample_id(value: str, length: int = 15) -> bool:
         raise Exception(f"ID component of Sample ID ('{components[2]}') does not equal expected 'XXXXXX' format")
     else:
         return True
+
+
+def parse_samplesheet(samplesheet: Path) -> dict:
+    df = read_samplesheet(samplesheet=samplesheet)
+
+    # Validate header
+    validate_samplesheet_header(header=list(df))
+    print("PASS: Header is valid")
+
+    # Grab Run Name
+    run_id = extract_run_name(samplesheet=samplesheet)
+    print(f"\nDetected the following Run name: {run_id}")
+
+    # Get all Projects and associated samples from the SampleSheet
+    project_dict = group_by_project(samplesheet_df=df)
+    print(f"\nDetected the following Projects within the SampleSheet:")
+    for key, value in project_dict.items():
+        print(key)
+
+    # Get all Sample IDs
+    sample_id_list = get_sample_id_list(samplesheet_df=df)
+
+    # Check all Sample IDs
+    for sample_id in sample_id_list:
+        validate_sample_id(value=sample_id)
+
+    # Create dict to store all information
+    samplesheet_dict = dict()
+    samplesheet_dict['df'] = df
+    samplesheet_dict['sample_id_list'] = sample_id_list
+    samplesheet_dict['project_dict'] = project_dict
+    samplesheet_dict['run_id'] = run_id
+
+    return samplesheet_dict
