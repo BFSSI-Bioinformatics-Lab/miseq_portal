@@ -22,7 +22,7 @@ DEBUG = env.bool('DJANGO_DEBUG', False)
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # though not all of them may be available with every OS.
 # In Windows, this must be set to your system time zone.
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Canada/Eastern'
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = 'en-us'
 # https://docs.djangoproject.com/en/dev/ref/settings/#site-id
@@ -163,6 +163,11 @@ STATICFILES_FINDERS = [
 MEDIA_ROOT = str(APPS_DIR('media'))
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
+
+# CUSTOM MISEQ WATCHER
+# TODO: Implement this as the 'incoming' folder for new MiSeq runs
+MISEQ_WATCHER_ROOT = MEDIA_ROOT + 'miseq_watcher'
+MISEQ_WATCHER_URL = '/miseq_watcher/'
 
 # TEMPLATES
 # ------------------------------------------------------------------------------
