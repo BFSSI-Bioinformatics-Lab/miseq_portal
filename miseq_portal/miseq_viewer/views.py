@@ -22,7 +22,7 @@ project_list_view = ProjectListView.as_view()
 
 class ProjectDetailView(LoginRequiredMixin, DetailView):
     model = Project
-    context_object_name = 'project_detail'
+    context_object_name = 'project'
     template_name = "miseq_viewer/project_detail.html"
 
     def get_context_data(self, **kwargs):
@@ -36,7 +36,7 @@ project_detail_view = ProjectDetailView.as_view()
 
 class RunDetailView(LoginRequiredMixin, DetailView):
     model = Run
-    context_object_name = 'run_detail'
+    context_object_name = 'run'
     template_name = "miseq_viewer/run_detail.html"
 
     def get_context_data(self, **kwargs):
@@ -51,7 +51,7 @@ run_detail_view = RunDetailView.as_view()
 
 class SampleDetailView(LoginRequiredMixin, DetailView):
     model = Sample
-    context_object_name = 'sample_detail'
+    context_object_name = 'sample'
     template_name = "miseq_viewer/sample_detail.html"
 
     def get_context_data(self, **kwargs):
