@@ -17,13 +17,24 @@ def receive_miseq_run_dir(miseq_dir: Path):
     samplesheet_dict = parse_samplesheet(samplesheet=miseq_dict['samplesheet_path'])
 
     print("\nChecking for correspondence between Basecalls folder and SampleSheet.csv...")
-    if not set(miseq_dict['sample_dict'].keys()) == set(samplesheet_dict['sample_id_list']):
-        s = set(miseq_dict['sample_dict'].keys())
-        discrepancy_list = [x for x in set(samplesheet_dict['sample_id_list']) if x not in s]
-        print(f'FAIL: Discrepencies detected ({discrepancy_list})')
-    else:
-        print('PASS: All samples present in both SampleSheet.csv and the Basecalls directory')
 
+    for sample_id in set(miseq_dict['sample_dict'].keys()):
+        print(sample_id)
+        if sample_id not in set(samplesheet_dict['sample_id_list']):
+            print(f'FAIL: Could not find reads for {sample_id}')
+            return
+    print('PASS: All samples present in both SampleSheet.csv and the Basecalls directory')
+
+    # if not set(miseq_dict['sample_dict'].keys()) == set(samplesheet_dict['sample_id_list']):
+    #     s = set(miseq_dict['sample_dict'].keys())
+    #     discrepancy_list = [x for x in set(samplesheet_dict['sample_id_list']) if x not in s]
+    #     print(f'FAIL: Discrepencies detected ({discrepancy_list})')
+    #     return
+    # else:
+    #     print('PASS: All samples present in both SampleSheet.csv and the Basecalls directory')
+
+    # TODO: There's a bug here where projects will be created if samples are listed in SampleSheet.csv, but are
+    # TODO: not available as .fastq.gz files in the data folder. It's not a big deal, but should be fixed.
     print(f'{"="*21}\nUPLOADING TO DATABASE\n{"="*21}')
     for project_id in samplesheet_dict['project_dict'].keys():
         upload_to_db(project_id=project_id, run_id=samplesheet_dict['run_id'],
@@ -34,28 +45,28 @@ def receive_miseq_run_dir(miseq_dir: Path):
 def upload_to_db(project_id: str, run_id: str, sample_dict: dict, sample_name_dict: dict, samplesheet: Path):
     project, p_created = Project.objects.get_or_create(project_id=project_id)
     if p_created:
-        print(f"Created project '{project}'")
+        print(f"\nCreated project '{project}'")
     else:
-        print(f"Adding run and samples to existing project '{project}'")
+        print(f"\nAdding run and samples to existing project '{project}'")
 
     # Saving Run and uploading SampleSheet.csv
-    run, r_created = Run.objects.get_or_create(run_id=run_id, project_id=project)
+    run, r_created = Run.objects.get_or_create(run_id=run_id, defaults={'project_id': project, 'sample_sheet': ''})
     if r_created:
-        print(f"Created run '{run}'")
+        print(f"\nCreated run '{run}'")
         samplesheet_path = upload_samplesheet(instance=run, filename=samplesheet.name)
         os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + samplesheet_path), exist_ok=True)
         shutil.copy(str(samplesheet), (MEDIA_ROOT + '/' + samplesheet_path))
         run.sample_sheet = samplesheet_path
         run.save()
     else:
-        print(f"Adding samples to existing run '{run}'")
+        print(f"\nAdding samples to existing run '{run}'")
 
     # Uploading samples
     for sample_id, reads in sample_dict.items():
-        print(f"Uploading {sample_id}")
-        sample, s_created = Sample.objects.get_or_create(sample_id=sample_id, run_id=run, project_id=project)
-
+        sample, s_created = Sample.objects.get_or_create(sample_id=sample_id,
+                                                         defaults={'run_id': run, 'project_id': project})
         if s_created:
+            print(f"\nUploading {sample_id}")
             fwd_read_path = upload_reads(sample, reads[0].name)
             rev_read_path = upload_reads(sample, reads[1].name)
             os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path), exist_ok=True)
@@ -67,3 +78,4 @@ def upload_to_db(project_id: str, run_id: str, sample_dict: dict, sample_name_di
             sample.save()
         else:
             print(f"Sample {sample} already exists")
+
