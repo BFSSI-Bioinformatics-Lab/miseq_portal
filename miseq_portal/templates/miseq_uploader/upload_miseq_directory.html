@@ -3,23 +3,48 @@
 {% load crispy_forms_tags %}
 
 
-{% block title %}MiSeq Directory Upload{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
+        integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+{% endblock %}
+
+{% block title %}MiSeq Run Directory Upload{% endblock %}
 
 {% block content %}
 
   <div class="page-header">
-    <h1>Upload MiSeq Directory</h1>
+    <h1>Upload MiSeq Run Directory</h1>
   </div>
 
   <div class="alert alert-warning" role="alert">
-    Paste the full path to the MiSeq directory you wish to upload.
+    Paste the full path to the MiSeq run directory you wish to upload.
     <strong>Note that this will only work for administrators.</strong>
   </div>
 
-  <form action="{% url "miseq_uploader:miseq_form" %}" method="post" enctype="multipart/form-data">
+  <form action="{% url "miseq_uploader:miseq_form" %}" method="post" enctype="multipart/form-data"
+        onsubmit="showProgress()">
     {% crispy form %}
   </form>
+
+  <div class="jumbotron" id="progress-spinner" style="display:none" align="center">
+    <h2>Uploading...</h2>
+    <div class="fa fa-sync fa-spin fa-4x"></div>
+  </div>
+
 
 {% endblock content %}
 
 
+{% block extra_javascript %}
+  <script type="text/javascript">
+    function showProgress() {
+      var div = document.getElementById("progress-spinner");
+      if (div.style.display === 'none') {
+        div.style.display = '';
+      }
+      else {
+        div.style.display = 'none';
+      }
+    }
+  </script>
+{% endblock %}
