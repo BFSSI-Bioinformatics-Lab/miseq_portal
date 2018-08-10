@@ -29,11 +29,11 @@ def read_stats_json(stats_json: Path) -> dict:
         tmp_stats_dict['Yield'] = sample['Yield']
 
         # ReadMetrics per read (R1, R2)
-        tmp_stats_dict['R1_QualityScoreScum'] = sample['ReadMetrics'][0]['QualityScoreSum']
+        tmp_stats_dict['R1_QualityScoreSum'] = sample['ReadMetrics'][0]['QualityScoreSum']
         tmp_stats_dict['R1_TrimmedBases'] = sample['ReadMetrics'][0]['TrimmedBases']
         tmp_stats_dict['R1_Yield'] = sample['ReadMetrics'][0]['Yield']
         tmp_stats_dict['R1_YieldQ30'] = sample['ReadMetrics'][0]['YieldQ30']
-        tmp_stats_dict['R2_QualityScoreScum'] = sample['ReadMetrics'][1]['QualityScoreSum']
+        tmp_stats_dict['R2_QualityScoreSum'] = sample['ReadMetrics'][1]['QualityScoreSum']
         tmp_stats_dict['R2_TrimmedBases'] = sample['ReadMetrics'][1]['TrimmedBases']
         tmp_stats_dict['R2_Yield'] = sample['ReadMetrics'][1]['Yield']
         tmp_stats_dict['R2_YieldQ30'] = sample['ReadMetrics'][1]['YieldQ30']

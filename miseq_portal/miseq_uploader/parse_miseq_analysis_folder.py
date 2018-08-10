@@ -12,6 +12,7 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
     check_dict['interop'] = False
     check_dict['data'] = False
     check_dict['basecalls'] = False
+    check_dict['logs'] = False
 
     for f in miseq_folder.glob("*"):
         if f.name == "SampleSheet.csv":
@@ -23,6 +24,9 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
         elif f.name == "Data" and f.is_dir():
             check_dict['data'] = True
             print("PASS: Detected 'Data' directory")
+        elif f.name == "Logs" and f.is_dir():
+            check_dict['logs'] = True
+            print("PASS: Detected 'Logs' directory")
         else:
             pass
 
@@ -140,10 +144,17 @@ def parse_miseq_folder(miseq_folder: Path) -> dict:
 
     samplesheet = Path(list(miseq_folder.glob('SampleSheet.csv'))[0])
 
+    # Get log files
+    log_folder = miseq_folder / "Logs"
+    log_files = list(log_folder.glob("*"))
+    json_stats_file = Path(list(log_folder.glob("Stats.json"))[0])
+
     # Create dict for all MiSeq data
     miseq_dict = dict()
     miseq_dict['samplesheet_path'] = samplesheet
     miseq_dict['interop_folder'] = interop_folder
     miseq_dict['sample_dict'] = sample_dict
+    miseq_dict['log_files'] = log_files
+    miseq_dict['json_stats_file'] = json_stats_file
 
     return miseq_dict
