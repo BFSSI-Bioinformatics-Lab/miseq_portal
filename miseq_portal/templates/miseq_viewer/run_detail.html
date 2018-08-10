@@ -4,12 +4,12 @@
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
 {% endblock %}
-{% block title %}{{ run_detail.run_id }}{% endblock %}
+{% block title %}{{ run.run_id }}{% endblock %}
 
 {% block content %}
   <div class="container">
     <div class="page-header">
-      <h1>{{ run_detail }}</h1>
+      <h1>{{ run }}</h1>
     </div>
 
     <table id="sample_table" class="display" style="width:100%">
@@ -23,13 +23,13 @@
       </thead>
       <tbody>
       {% for project in project_list %}
-        {% if run_detail.project_id == project %}
+        {% if run.project_id == project %}
           {% for sample in sample_list %}
-            {% if sample.run_id == run_detail %}
+            {% if sample.run_id == run %}
               <tr>
                 <td>
                   <a
-                    href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk_project=project.pk pk_run=run_detail.pk pk=sample.pk %}">
+                    href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk_project=project.pk pk_run=run.pk pk=sample.pk %}">
                     {{ sample.sample_id }}
                   </a>
                 </td>

@@ -9,11 +9,11 @@
 
 {% endblock %}
 
-{% block title %}{{ sample_detail }}{% endblock %}
+{% block title %}{{ sample }}{% endblock %}
 
 {% block content %}
   <div class="page-header">
-    <h1>{{ sample_detail }}</h1>
+    <h1>{{ sample }}</h1>
   </div>
 
   <table id="sample_detail" class="display" style="width:100%">
@@ -28,19 +28,19 @@
     <tbody>
     <tr>
       <td>
-        {{ sample_detail.sample_name }}
+        {{ sample.sample_name }}
       </td>
       <td>
-        <a class="btn btn-primary btn-block" href="{{ sample_detail.fwd_reads.url }}" role="button"><i
+        <a class="btn btn-primary btn-block" href="{{ sample.fwd_reads.url }}" role="button"><i
           class="fas fa-download"></i> Download
         </a>
       </td>
       <td>
-        <a class="btn btn-primary btn-block" href="{{ sample_detail.rev_reads.url }}" role="button"><i
+        <a class="btn btn-primary btn-block" href="{{ sample.rev_reads.url }}" role="button"><i
           class="fas fa-download"></i> Download
         </a>
       </td>
-      <td>{{ sample_detail.created }}</td>
+      <td>{{ sample.created }}</td>
     </tr>
     </tbody>
   </table>
