@@ -82,3 +82,24 @@ class Sample(TimeStampedModel):
 
     def __str__(self):
         return self.sample_id
+
+
+class SampleLogData(TimeStampedModel):
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+    number_reads = models.BigIntegerField(blank=True, null=True)
+    sample_yield = models.BigIntegerField(blank=True, null=True)
+
+    # R1
+    r1_qualityscoresum = models.BigIntegerField(blank=True, null=True)
+    r1_trimmedbases = models.BigIntegerField(blank=True, null=True)
+    r1_yield = models.BigIntegerField(blank=True, null=True)
+    r1_yieldq30 = models.BigIntegerField(blank=True, null=True)
+
+    # R2
+    r2_qualityscoresum = models.BigIntegerField(blank=True, null=True)
+    r2_trimmedbases = models.BigIntegerField(blank=True, null=True)
+    r2_yield = models.BigIntegerField(blank=True, null=True)
+    r2_yieldq30 = models.BigIntegerField(blank=True, null=True)
+
+    def __str__(self):
+        return self.sample_id
