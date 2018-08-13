@@ -1,9 +1,10 @@
 import os
 import shutil
+
 from pathlib import Path
 from config.settings.base import MEDIA_ROOT
 
-from miseq_uploader.parse_samplesheet import parse_samplesheet
+from miseq_uploader.parse_samplesheet import parse_samplesheet, SampleObject
 from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
 from miseq_uploader.parse_stats_json import stats_json_to_df
 
@@ -16,96 +17,102 @@ def receive_miseq_run_dir(miseq_dir: Path):
     miseq_dict = parse_miseq_folder(miseq_folder=miseq_dir)
 
     print(f'{"="*20}\nCHECKING SAMPLESHEET\n{"="*20}')
-    samplesheet_dict = parse_samplesheet(samplesheet=miseq_dict['samplesheet_path'])
+    samplesheet = miseq_dict['samplesheet_path']
+    json_stats_file = miseq_dict['json_stats_file']
+    sample_object_list = parse_samplesheet(samplesheet=miseq_dict['samplesheet_path'])
 
-    print("\nChecking for correspondence between Basecalls folder and SampleSheet.csv...")
+    # Update SampleObjects with stats and reads
+    sample_object_list = append_sample_object_reads(sample_dict=miseq_dict['sample_dict'],
+                                                    sample_object_list=sample_object_list)
+    sample_object_list = append_sample_object_stats(json_stats_file=json_stats_file,
+                                                    sample_object_list=sample_object_list)
 
-    for sample_id in set(miseq_dict['sample_dict'].keys()):
-        if sample_id not in set(samplesheet_dict['sample_id_list']):
-            print(f'FAIL: Could not find reads for {sample_id}')
-            return
-    print('PASS: All samples present in both SampleSheet.csv and the Basecalls directory')
-
-    # TODO: There's a bug here where projects will be created if samples are listed in SampleSheet.csv, but are
-    # TODO: not available as .fastq.gz files in the data folder. It's not a big deal, but should be fixed.
-    print(f'{"="*21}\nUPLOADING TO DATABASE\n{"="*21}')
-    for project_id in samplesheet_dict['project_dict'].keys():
-        upload_to_db(project_id=project_id, run_id=samplesheet_dict['run_id'],
-                     sample_dict=miseq_dict['sample_dict'], samplesheet=miseq_dict['samplesheet_path'],
-                     sample_name_dict=samplesheet_dict['sample_name_dict'],
-                     json_stats_file=miseq_dict['json_stats_file'])
+    upload_to_db(sample_object_list=sample_object_list,
+                 samplesheet=samplesheet)
 
 
-def upload_to_db(project_id: str, run_id: str, sample_dict: dict, sample_name_dict: dict,
-                 samplesheet: Path, json_stats_file: Path):
-    stats_df = stats_json_to_df(stats_json=json_stats_file)
-    project, p_created = Project.objects.get_or_create(project_id=project_id)
-    if p_created:
-        print(f"\nCreated project '{project}'")
-    else:
-        print(f"\nAdding run and samples to existing project '{project}'")
-
-    # Saving Run and uploading SampleSheet.csv
-    run, r_created = Run.objects.get_or_create(run_id=run_id, defaults={'project_id': project, 'sample_sheet': ''})
-    if r_created:
-        print(f"\nCreated run '{run}'")
-        samplesheet_path = upload_samplesheet(instance=run, filename=samplesheet.name)
-        os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + samplesheet_path), exist_ok=True)
-        shutil.copy(str(samplesheet), (MEDIA_ROOT + '/' + samplesheet_path))
-        run.sample_sheet = samplesheet_path
-        run.save()
-    else:
-        print(f"\nAdding samples to existing run '{run}'")
-
-    # Uploading samples + metadata
+def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleObject]) -> [SampleObject]:
+    """Appends read paths to SampleObjects given a sample_dict.
+    Useful side effect of only returning SampleObjects that actually have reads associated with them."""
+    sample_object_list_reads = list()
     for sample_id, reads in sample_dict.items():
-        sample, s_created = Sample.objects.get_or_create(sample_id=sample_id,
+        for sample_object in sample_object_list:
+            if sample_object.sample_id == sample_id:
+                sample_object.fwd_read_path = reads[0]
+                sample_object.rev_read_path = reads[1]
+                sample_object_list_reads.append(sample_object)
+    return sample_object_list_reads
+
+
+def append_sample_object_stats(json_stats_file: Path, sample_object_list: [SampleObject]) -> [SampleObject]:
+    """Given a list of SampleObjects + the Stats.json file from the same run, appends those stats to the SampleObject"""
+    sample_object_list_stats = list()
+    for sample_object in sample_object_list:
+        stats_df = stats_json_to_df(stats_json=json_stats_file)
+        sample_object.number_reads = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['NumberReads'])
+        sample_object.sample_yield = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['Yield'])
+        sample_object.r1_qualityscoresum = int(
+            stats_df[stats_df['sample_id'] == sample_object.sample_id]['R1_QualityScoreSum'])
+        sample_object.r2_qualityscoresum = int(
+            stats_df[stats_df['sample_id'] == sample_object.sample_id]['R2_QualityScoreSum'])
+        sample_object.r1_trimmedbases = int(
+            stats_df[stats_df['sample_id'] == sample_object.sample_id]['R1_TrimmedBases'])
+        sample_object.r2_trimmedbases = int(
+            stats_df[stats_df['sample_id'] == sample_object.sample_id]['R2_TrimmedBases'])
+        sample_object.r1_yield = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['R1_Yield'])
+        sample_object.r2_yield = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['R2_Yield'])
+        sample_object.r1_yieldq30 = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['R1_YieldQ30'])
+        sample_object.r2_yieldq30 = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['R2_YieldQ30'])
+        sample_object_list_stats.append(sample_object)
+    return sample_object_list_stats
+
+
+def upload_to_db(sample_object_list: [SampleObject], samplesheet: Path):
+    """Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database"""
+    for sample_object in sample_object_list:
+        # PROJECT
+        project, p_created = Project.objects.get_or_create(project_id=sample_object.project_id)
+        if p_created:
+            print(f"\nCreated project '{project}'")
+
+        # RUN
+        run, r_created = Run.objects.get_or_create(run_id=sample_object.run_id, defaults={'project_id': project,
+                                                                                          'sample_sheet': ''})
+        if r_created:
+            print(f"\nCreated run '{run}'")
+            samplesheet_path = upload_samplesheet(instance=run, filename=samplesheet.name)
+            os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + samplesheet_path), exist_ok=True)
+            shutil.copy(str(samplesheet), (MEDIA_ROOT + '/' + samplesheet_path))
+            run.sample_sheet = samplesheet_path
+            run.save()
+
+        # SAMPLE
+        sample, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
                                                          defaults={'run_id': run, 'project_id': project})
         sample_log, sl_created = SampleLogData.objects.get_or_create(sample_id=sample)
-
         if s_created:
-            print(f"\nUploading {sample_id}")
+            print(f"\nUploading {sample_object.sample_id}...")
 
             # Sample data + read handling
-            fwd_read_path = upload_reads(sample, reads[0].name)
-            rev_read_path = upload_reads(sample, reads[1].name)
+            fwd_read_path = upload_reads(sample, sample_object.fwd_read_path.name)
+            rev_read_path = upload_reads(sample, sample_object.rev_read_path.name)
             os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path), exist_ok=True)
-            shutil.copy(str(reads[0]), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
-            shutil.copy(str(reads[1]), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
+            shutil.copy(str(sample_object.fwd_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
+            shutil.copy(str(sample_object.rev_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
             sample.fwd_reads = fwd_read_path
             sample.rev_reads = rev_read_path
-            sample.sample_name = sample_name_dict[sample_id]  # TODO: test this
+            sample.sample_name = sample_object.sample_name
             sample.save()
 
-        else:
-            print(f"Sample {sample} already exists")
-
-        # Update the stats of the samples regardless of being newly created or not
-        # Sample log stats retrieved from stats_df
-        number_reads = int(stats_df[stats_df['sample_id'] == sample_id]['NumberReads'])
-        sample_yield = int(stats_df[stats_df['sample_id'] == sample_id]['Yield'])
-        r1_qualityscoresum = int(stats_df[stats_df['sample_id'] == sample_id]['R1_QualityScoreSum'])
-        r2_qualityscoresum = int(stats_df[stats_df['sample_id'] == sample_id]['R2_QualityScoreSum'])
-
-        # TODO: @Bug trimmed bases are always 0?
-        r1_trimmedbases = int(stats_df[stats_df['sample_id'] == sample_id]['R1_TrimmedBases'])
-        r2_trimmedbases = int(stats_df[stats_df['sample_id'] == sample_id]['R2_TrimmedBases'])
-
-        r1_yield = int(stats_df[stats_df['sample_id'] == sample_id]['R1_Yield'])
-        r2_yield = int(stats_df[stats_df['sample_id'] == sample_id]['R2_Yield'])
-        r1_yieldq30 = int(stats_df[stats_df['sample_id'] == sample_id]['R1_YieldQ30'])
-        r2_yieldq30 = int(stats_df[stats_df['sample_id'] == sample_id]['R2_YieldQ30'])
-
         # Save sample stats
-        sample_log.number_reads = number_reads
-        sample_log.sample_yield = sample_yield
-        sample_log.r1_qualityscoresum = r1_qualityscoresum
-        sample_log.r2_qualityscoresum = r2_qualityscoresum
-        sample_log.r1_trimmedbases = r1_trimmedbases
-        sample_log.r2_trimmedbases = r2_trimmedbases
-        sample_log.r1_yield = r1_yield
-        sample_log.r2_yield = r2_yield
-        sample_log.r1_yieldq30 = r1_yieldq30
-        sample_log.r2_yieldq30 = r2_yieldq30
+        sample_log.number_reads = sample_object.number_reads
+        sample_log.sample_yield = sample_object.sample_yield
+        sample_log.r1_qualityscoresum = sample_object.r1_qualityscoresum
+        sample_log.r2_qualityscoresum = sample_object.r2_qualityscoresum
+        sample_log.r1_trimmedbases = sample_object.r1_trimmedbases
+        sample_log.r2_trimmedbases = sample_object.r2_trimmedbases
+        sample_log.r1_yield = sample_object.r1_yield
+        sample_log.r2_yield = sample_object.r2_yield
+        sample_log.r1_yieldq30 = sample_object.r1_yieldq30
+        sample_log.r2_yieldq30 = sample_object.r2_yieldq30
         sample_log.save()
-

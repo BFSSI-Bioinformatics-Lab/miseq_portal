@@ -1,5 +1,32 @@
 import pandas as pd
 from pathlib import Path
+from dataclasses import dataclass
+
+
+@dataclass
+class SampleObject:
+    """Dataclass for storing all metadata for an individual sample"""
+    # TODO: Move this to another file.... maybe miseq_viewer/models.py?
+
+    # Must be instantiated with these attributes
+    sample_id: str
+    run_id: str
+    project_id: str
+    sample_name: str
+
+    # Updated later in the lifecycle
+    fwd_read_path: Path = None
+    rev_read_path: Path = None
+    number_reads: int = None
+    sample_yield: int = None
+    r1_qualityscoresum: int = None
+    r2_qualityscoresum: int = None
+    r1_trimmedbases: int = None
+    r2_trimmedbases: int = None
+    r1_yield: int = None
+    r2_yield: int = None
+    r1_yieldq30: int = None
+    r2_yieldq30: int = None
 
 
 def validate_samplesheet_header(header: list) -> bool:
@@ -110,7 +137,7 @@ def validate_sample_id(value: str, length: int = 15) -> bool:
         return True
 
 
-def parse_samplesheet(samplesheet: Path) -> dict:
+def parse_samplesheet(samplesheet: Path) -> [SampleObject]:
     df = read_samplesheet(samplesheet=samplesheet)
 
     # Validate header
@@ -137,12 +164,23 @@ def parse_samplesheet(samplesheet: Path) -> dict:
     # Get Sample Names
     sample_name_dictionary = get_sample_name_dictionary(df=df)
 
-    # Create dict to store all information
-    samplesheet_dict = dict()
-    samplesheet_dict['df'] = df
-    samplesheet_dict['sample_id_list'] = sample_id_list
-    samplesheet_dict['project_dict'] = project_dict
-    samplesheet_dict['run_id'] = run_id
-    samplesheet_dict['sample_name_dict'] = sample_name_dictionary  # TODO: test this
+    # Create SampleObject list. Need to consolidate sample_id, sample_name, project_id, and run_id per-sample
+    sample_object_list = list()
+    for sample_id in sample_id_list:
+        for project_id, sample_list in project_dict.items():
+            if sample_id in sample_list:
+                sample_object = SampleObject(sample_id=sample_id,
+                                             sample_name=sample_name_dictionary[sample_id],
+                                             run_id=run_id,
+                                             project_id=project_id)
+                sample_object_list.append(sample_object)
 
-    return samplesheet_dict
+    # Create dict to store all information
+    # samplesheet_dict = dict()
+    # samplesheet_dict['df'] = df
+    # samplesheet_dict['sample_id_list'] = sample_id_list
+    # samplesheet_dict['project_dict'] = project_dict
+    # samplesheet_dict['run_id'] = run_id
+    # samplesheet_dict['sample_name_dict'] = sample_name_dictionary
+
+    return sample_object_list
