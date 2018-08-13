@@ -1,6 +1,8 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import View, TemplateView
 from django.shortcuts import render, redirect
+from django.http import Http404
+
 from pathlib import Path
 
 from .forms import RunModelForm, CreateProjectForm, UploadMiSeqDirectoryForm
@@ -15,7 +17,7 @@ class MiseqUploaderView(LoginRequiredMixin, TemplateView):
 miseq_uploader_view = MiseqUploaderView.as_view()
 
 
-class SampleFormView(View):
+class SampleFormView(LoginRequiredMixin, View):
     template_name = 'miseq_uploader/sample_uploader.html'
 
     def get(self, request):
@@ -50,11 +52,19 @@ class CreateProjectView(LoginRequiredMixin, View):
 create_project_view = CreateProjectView.as_view()
 
 
-class MiSeqFormView(LoginRequiredMixin, View):
+class MiSeqFormView(LoginRequiredMixin, UserPassesTestMixin, View):
     form_class = UploadMiSeqDirectoryForm
     template_name = 'miseq_uploader/upload_miseq_directory.html'
+
     # success_url = 'miseq_directory_uploaded/'  # TODO: actually make this page
     success_url = 'run_submitted/'
+
+    # Only staff can access this page
+    def test_func(self):
+        if self.request.user.is_staff:
+            return True
+        else:
+            raise Http404("You are not authenticated to view this page.")
 
     def get(self, request):
         form = self.form_class()
