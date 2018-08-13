@@ -160,7 +160,8 @@ STATICFILES_FINDERS = [
 # MEDIA
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = str(APPS_DIR('media'))
+# MEDIA_ROOT = str(APPS_DIR('media'))  # Old default for MEDIA_ROOT
+MEDIA_ROOT = "/mnt/MiSeqPortal"  # Store user uploads on BMH-WGS-Backup (~50 TB storage)
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = '/media/'
 
