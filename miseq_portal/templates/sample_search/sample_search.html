@@ -14,10 +14,11 @@
     </div>
     <div class="list-group">
 
-      <table id="sample_table" class="display">
+      <table id="sample_table" class="display compact">
         <thead>
         <tr>
           <th>Sample ID</th>
+          <th>Sample Name</th>
           <th>Run ID</th>
           <th>Project ID</th>
           <th>Date Created</th>
@@ -32,6 +33,9 @@
                 href="/miseq_viewer/sample/{{ sample.pk }}">
                 {{ sample.sample_id }}
               </a>
+            </td>
+            <td>
+              {{ sample.sample_name }}
             </td>
             <td>
               <a
