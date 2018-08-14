@@ -32,13 +32,14 @@
       <td>
         {{ sample.sample_name }}
       </td>
+      {# TODO: Fix these download buttons. Doesn't actually retrieve the file. #}
       <td>
-        <a class="btn btn-primary btn-block" href="{{ sample.fwd_reads.url }}" role="button"><i
+        <a class="btn btn-primary btn-block" href="{{ sample.fwd_reads.url }}" download role="button"><i
           class="fas fa-download"></i> Download
         </a>
       </td>
       <td>
-        <a class="btn btn-primary btn-block" href="{{ sample.rev_reads.url }}" role="button"><i
+        <a class="btn btn-primary btn-block" href="{{ sample.rev_reads.url }}" download role="button"><i
           class="fas fa-download"></i> Download
         </a>
       </td>
