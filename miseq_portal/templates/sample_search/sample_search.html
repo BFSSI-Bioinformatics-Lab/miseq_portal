@@ -9,7 +9,9 @@
 
 {% block content %}
   <div class="container">
-    <h2>All Samples</h2>
+    <div class="page-header">
+      <h1>Sample Search</h1>
+    </div>
     <div class="list-group">
 
       <table id="sample_table" class="display">
@@ -27,13 +29,13 @@
           <tr>
             <td>
               <a
-                href="/miseq_viewer/project/{{ sample.project_id_id }}/run/{{ sample.run_id_id }}/sample/{{ sample.pk }}">
+                href="/miseq_viewer/sample/{{ sample.pk }}">
                 {{ sample.sample_id }}
               </a>
             </td>
             <td>
               <a
-                href="/miseq_viewer/project/{{ sample.project_id_id }}/run/{{ sample.run_id_id }}">
+                href="/miseq_viewer/run/{{ sample.run_id_id }}">
                 {{ sample.run_id }}
               </a>
             </td>
@@ -69,7 +71,7 @@
   <script>
     $(document).ready(function () {
       $('#sample_table').DataTable({
-        "pageLength": 30,
+        "pageLength": 20,
       });
     });
   </script>
