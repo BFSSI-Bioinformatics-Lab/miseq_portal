@@ -30,7 +30,7 @@
             </a>
           </td>
           <td>
-            <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.pk %}">
+            <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
               {{ sample.run_id }}
             </a>
           </td>
