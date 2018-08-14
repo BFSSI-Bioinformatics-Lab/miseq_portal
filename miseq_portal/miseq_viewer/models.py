@@ -27,11 +27,11 @@ def validate_sample_id(value: str, length: int = 15):
 
 
 def upload_samplesheet(instance, filename):
-    return f'uploads/projects/{instance.project_id}/runs/{instance.run_id}/{filename}'
+    return f'uploads/runs/{instance.run_id}/{filename}'
 
 
 def upload_reads(instance, filename):
-    return f'uploads/projects/{instance.project_id}/runs/{instance.run_id}/sample/{instance.sample_id}/{filename}'
+    return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
 
 
 # Create your models here.
@@ -48,10 +48,8 @@ class Project(TimeStampedModel):
 class Run(TimeStampedModel):
     """
     Stores information relating to a single BMH run
-    - Each Run must be associated with a Project
     """
     run_id = models.CharField(max_length=256, unique=True)
-    project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/SampleSheet.csv
     sample_sheet = models.FileField(upload_to=upload_samplesheet, blank=True, max_length=700)
