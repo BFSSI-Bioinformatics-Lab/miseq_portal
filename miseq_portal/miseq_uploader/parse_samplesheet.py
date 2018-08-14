@@ -70,6 +70,11 @@ def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
     return df
 
 
+def read_samplesheet_to_html(samplesheet: Path) -> pd.DataFrame:
+    df = read_samplesheet(samplesheet)
+    return df.to_html(table_id="samplesheet", index=None, classes=['compact'], bold_rows=False, )
+
+
 def get_sample_id_list(samplesheet_df: pd.DataFrame) -> list:
     """
     Returns list of all SampleIDs in SampleSheet dataframe
