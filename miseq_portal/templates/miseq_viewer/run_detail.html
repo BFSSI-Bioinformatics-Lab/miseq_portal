@@ -8,48 +8,67 @@
 
 {% block content %}
   <div class="container">
-    <div class="page-header">
-      <h1>{{ run }}</h1>
-    </div>
-
-    <table id="sample_table" class="display" style="width:100%">
-      <thead>
-      <tr>
-        <th>Sample ID</th>
-        <th>Sample Name</th>
-        <th>Date Created</th>
-        <th>Date Modified</th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for project in project_list %}
-        {% if run.project_id == project %}
-          {% for sample in sample_list %}
-            {% if sample.run_id == run %}
-              <tr>
-                <td>
-                  <a
-                    href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk_project=project.pk pk_run=run.pk pk=sample.pk %}">
-                    {{ sample.sample_id }}
-                  </a>
-                </td>
-                <td>
-                  {{ sample.sample_name }}
-                </td>
-                <td>
-                  {{ sample.created }}
-                </td>
-                <td>
-                  {{ sample.modified }}
-                </td>
-              </tr>
-            {% endif %}
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="page-header">
+    <h1>{{ run }}</h1>
+    <a class="btn btn-primary" href="{{ run.sample_sheet.url }}" role="button"><i
+      class="fas fa-download"></i> Download SampleSheet.csv
+    </a>
   </div>
+
+  <br>
+
+  <div>
+    {{ samplesheet_df | safe }}
+  </div>
+
+
+  {#    <table id="sample_table" class="display" style="width:100%">#}
+  {#      <thead>#}
+  {#      <tr>#}
+  {#        <th>Sample ID</th>#}
+  {#        <th>Sample Name</th>#}
+  {#        <th>NumberReads</th>#}
+  {#        <th>SampleYield</th>#}
+  {#        <th>Date Created</th>#}
+  {#        <th>Date Modified</th>#}
+  {#      </tr>#}
+  {#      </thead>#}
+  {#      <tbody>#}
+  {##}
+  {#      {% for project in project_list %}#}
+  {#        {% if run.project_id == project %}#}
+  {#          {% for sample in sample_list %}#}
+  {#            {% if sample.run_id == run %}#}
+  {#              <tr>#}
+  {#                <td>#}
+  {#                  <a#}
+  {#                    href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk_project=project.pk pk_run=run.pk pk=sample.pk %}">#}
+  {#                    {{ sample.sample_id }}#}
+  {#                  </a>#}
+  {#                </td>#}
+  {#                <td>#}
+  {#                  {{ sample.sample_name }}#}
+  {#                </td>#}
+  {#                <td>#}
+  {#                  {{ sample.samplelogdata.number_reads }}#}
+  {#                </td>#}
+  {#                <td>#}
+  {#                  {{ sample.samplelogdata.sample_yield }}#}
+  {#                </td>#}
+  {#                <td>#}
+  {#                  {{ sample.created }}#}
+  {#                </td>#}
+  {#                <td>#}
+  {#                  {{ sample.modified }}#}
+  {#                </td>#}
+  {#              </tr>#}
+  {#            {% endif %}#}
+  {#          {% endfor %}#}
+  {#        {% endif %}#}
+  {#      {% endfor %}#}
+  {#      </tbody>#}
+  {#    </table>#}
+  {#  </div>#}
 
 {% endblock content %}
 
@@ -60,7 +79,9 @@
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script>
     $(document).ready(function () {
-      $('#sample_table').DataTable();
+      $('#samplesheet').DataTable({
+        "scrollX": true
+      });
     });
   </script>
 {% endblock %}

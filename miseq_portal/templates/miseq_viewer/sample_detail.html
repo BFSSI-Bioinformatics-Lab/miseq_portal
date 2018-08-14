@@ -5,7 +5,7 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
         integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
-
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.5.1/css/colReorder.dataTables.min.css">
 
 {% endblock %}
 
@@ -20,8 +20,10 @@
     <thead>
     <tr>
       <th>Sample Name</th>
-      <th>Forward Reads (R1)</th>
-      <th>Reverse Reads (R2)</th>
+      <th>R1</th>
+      <th>R2</th>
+      <th>NumberReads</th>
+      <th>SampleYield</th>
       <th>Date Created</th>
     </tr>
     </thead>
@@ -40,6 +42,12 @@
           class="fas fa-download"></i> Download
         </a>
       </td>
+      <td>
+        {{ sample.samplelogdata.number_reads }}
+      </td>
+      <td>
+        {{ sample.samplelogdata.sample_yield }}
+      </td>
       <td>{{ sample.created }}</td>
     </tr>
     </tbody>
@@ -51,9 +59,26 @@
   <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script src="https://cdn.datatables.net/colreorder/1.5.1/js/dataTables.colReorder.min.js"></script>
+
+  {# Datatables #}
   <script>
     $(document).ready(function () {
-      $('#sample_detail').DataTable();
+      $('#sample_detail').DataTable({
+        "paging": false,
+        "searching": false,
+        "info": false,
+        "ordering": false,
+        "colReorder": {
+          enable: true,
+        },
+      });
     });
   </script>
+
+  {# D3.js #}
+  <script>
+    {# TODO: Visualize R1 and R2 statistics #}
+  </script>
+
 {% endblock %}

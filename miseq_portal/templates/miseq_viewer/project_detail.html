@@ -15,33 +15,32 @@
     <table id="run_table" class="display" style="width:100%">
       <thead>
       <tr>
+        <th>Sample ID</th>
         <th>Run ID</th>
-        <th>SampleSheet</th>
         <th>Date Created</th>
         <th>Date Modified</th>
       </tr>
       </thead>
       <tbody>
-      {% for run in run_list %}
-        {% if run.project_id == project %}
-          <tr>
-            <td>
-              <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk_project=project.pk pk=run.pk %}">
-                {{ run.run_id }}
-              </a>
-            <td>
-              <a class="btn btn-primary btn-block" href="{{ run.sample_sheet.url }}" role="button"><i
-                class="fas fa-download"></i> Download
-              </a>
-            </td>
-            <td>
-              {{ run.created }}
-            </td>
-            <td>
-              {{ run.modified }}
-            </td>
-          </tr>
-        {% endif %}
+      {% for sample in sample_list %}
+        <tr>
+          <td>
+            <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample.pk %}">
+              {{ sample.sample_id }}
+            </a>
+          </td>
+          <td>
+            <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.pk %}">
+              {{ sample.run_id }}
+            </a>
+          </td>
+          <td>
+            {{ sample.created }}
+          </td>
+          <td>
+            {{ sample.modified }}
+          </td>
+        </tr>
       {% endfor %}
       </tbody>
     </table>
