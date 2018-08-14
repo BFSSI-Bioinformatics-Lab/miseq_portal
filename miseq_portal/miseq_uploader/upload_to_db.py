@@ -29,6 +29,7 @@ def receive_miseq_run_dir(miseq_dir: Path):
 
     upload_to_db(sample_object_list=sample_object_list,
                  samplesheet=samplesheet)
+    print(f'{"="*15}\nUPLOAD COMPLETE\n{"="*15}')
 
 
 def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleObject]) -> [SampleObject]:
@@ -76,8 +77,8 @@ def upload_to_db(sample_object_list: [SampleObject], samplesheet: Path):
             print(f"\nCreated project '{project}'")
 
         # RUN
-        run, r_created = Run.objects.get_or_create(run_id=sample_object.run_id, defaults={'project_id': project,
-                                                                                          'sample_sheet': ''})
+        run, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
+                                                   defaults={'sample_sheet': ''})
         if r_created:
             print(f"\nCreated run '{run}'")
             samplesheet_path = upload_samplesheet(instance=run, filename=samplesheet.name)
