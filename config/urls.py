@@ -25,7 +25,8 @@ urlpatterns = [
                   # Your stuff: custom urls includes go here
                   path("miseq_viewer/", include("miseq_portal.miseq_viewer.urls")),
                   path("miseq_uploader/", include("miseq_portal.miseq_uploader.urls")),
-                  path("sample_search/", include("miseq_portal.sample_search.urls"))
+                  path("sample_search/", include("miseq_portal.sample_search.urls")),
+                  path("analysis/", include("miseq_portal.analysis.urls")),
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
