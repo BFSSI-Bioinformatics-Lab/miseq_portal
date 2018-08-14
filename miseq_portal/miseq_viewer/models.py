@@ -37,7 +37,7 @@ def upload_reads(instance, filename):
 # Create your models here.
 class Project(TimeStampedModel):
     """
-    Each project contains runs, and each run contains samples
+    Each Sample must be associated with a Project.
     """
     project_id = models.CharField(max_length=256, unique=True)
 
@@ -47,15 +47,10 @@ class Project(TimeStampedModel):
 
 class Run(TimeStampedModel):
     """
-    Stores information relating to a single BMH run
+    Stores information relating to a single BMH run. An individual Sample must be associated with a Run.
     """
     run_id = models.CharField(max_length=256, unique=True)
-
-    # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/SampleSheet.csv
     sample_sheet = models.FileField(upload_to=upload_samplesheet, blank=True, max_length=700)
-
-    # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/SampleSheet.csv
-    # interop_dir = models.FilePathField(path=None, allow_folders=True, allow_files=False)
 
     def __str__(self):
         return self.run_id
@@ -63,7 +58,7 @@ class Run(TimeStampedModel):
 
 class Sample(TimeStampedModel):
     """
-    Stores information relating to a single BMH sample (i.e. R1, R2, corresponding assembly, etc.)
+    Stores basic information relating to a single BMH sample (i.e. R1, R2, corresponding assembly, etc.)
     - Must follow the BMH-YYYY-ZZZZZZ format, e.g. "BMH-2018-000001"
     - Each Sample must be associated with a Project + Run
     """
@@ -75,14 +70,14 @@ class Sample(TimeStampedModel):
     fwd_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=700)
     rev_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=700)
 
-    # TODO: upload_to uploads/projects/<project_id>/runs/<run_id>/samples/<sample_id>/*.fasta
-    # assembly = models.FileField(upload_to='')
-
     def __str__(self):
         return self.sample_id
 
 
 class SampleLogData(TimeStampedModel):
+    """
+    Stores Sample metadata derived from Stats.json
+    """
     sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
     number_reads = models.BigIntegerField(blank=True, null=True)
     sample_yield = models.BigIntegerField(blank=True, null=True)
