@@ -112,4 +112,4 @@ class SampleLogData(TimeStampedModel):
     r2_yieldq30 = models.BigIntegerField(blank=True, null=True)
 
     def __str__(self):
-        return self.sample_id
+        return str(self.sample_id)
