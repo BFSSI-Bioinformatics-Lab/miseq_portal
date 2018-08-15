@@ -26,7 +26,7 @@
         <tbody>
         {% for project in project_list %}
           {% for approved_user in approved_users %}
-            {% if project == approved_user.project_id or user.is_staff %}
+            {% if project == approved_user.project_id %}
               <tr>
                 <td>
                   <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' project.pk %}">
