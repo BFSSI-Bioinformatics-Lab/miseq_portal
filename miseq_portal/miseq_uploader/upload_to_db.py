@@ -8,7 +8,7 @@ from miseq_uploader.parse_samplesheet import parse_samplesheet, SampleObject
 from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
 from miseq_uploader.parse_stats_json import stats_json_to_df
 
-from miseq_viewer.models import Project, Run, Sample, SampleLogData, \
+from miseq_viewer.models import Project, UserProjectRelationship, Run, Sample, SampleLogData, \
     upload_samplesheet, upload_reads
 from miseq_portal.users.models import User
 
@@ -79,6 +79,8 @@ def upload_to_db(sample_object_list: [SampleObject], samplesheet: Path):
                                                                'project_owner': User.objects.get(username="admin")
                                                            })
         if p_created:
+            # Create admin relationship to project immediately
+            UserProjectRelationship.objects.create(project_id=project, user_id=User.objects.get(username="admin"))
             print(f"\nCreated project '{project}'")
 
         # RUN
