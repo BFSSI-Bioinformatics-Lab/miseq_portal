@@ -70,12 +70,13 @@ THIRD_PARTY_APPS = [
     'rest_framework',
 ]
 LOCAL_APPS = [
+    # Your stuff: custom apps go here
     'miseq_portal.users.apps.UsersAppConfig',
     'core.apps.CoreConfig',
     'miseq_viewer.apps.MiseqViewerConfig',
     'miseq_uploader.apps.MiseqUploaderConfig',
-    'sample_search.apps.SampleSearchConfig'
-    # Your stuff: custom apps go here
+    'sample_search.apps.SampleSearchConfig',
+    'analysis.apps.AnalysisConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -230,7 +231,6 @@ ADMINS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 
-
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool('DJANGO_ACCOUNT_ALLOW_REGISTRATION', True)
@@ -244,7 +244,6 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_ADAPTER = 'miseq_portal.users.adapters.AccountAdapter'
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = 'miseq_portal.users.adapters.SocialAccountAdapter'
-
 
 # Your stuff...
 # ------------------------------------------------------------------------------
