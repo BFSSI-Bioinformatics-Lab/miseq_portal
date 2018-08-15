@@ -3,6 +3,7 @@
 {% block extra_css %}
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
 {% endblock %}
 
 {% block title %}Analysis{% endblock %}
@@ -14,9 +15,14 @@
   </div>
 
   <div class="alert alert-info" role="alert">
-    <strong>Click</strong> to select samples to add to your analysis group. Once you have created a selection, click
-    <kbd>Submit</kbd> to move
-    on to the analysis page where you can select from various bioinformatics tools to run on the selection group.
+    <ul>
+      <li><strong>Click</strong> to select samples to add to your analysis group</li>
+      <li>Use the <strong>Search</strong> bar to
+        filter the Sample table
+      </li>
+      <li>Once you have created a selection, click <kbd>Submit</kbd> to move on to the analysis page
+      </li>
+    </ul>
   </div>
 
   <div class="list-group">
@@ -43,16 +49,10 @@
             {{ sample.sample_name }}
           </td>
           <td>
-            <a
-              href="/miseq_viewer/run/{{ sample.run_id_id }}">
-              {{ sample.run_id }}
-            </a>
+            {{ sample.run_id }}
           </td>
           <td>
-            <a
-              href="/miseq_viewer/project/{{ sample.project_id_id }}/">
-              {{ sample.project_id }}
-            </a>
+            {{ sample.project_id }}
           </td>
         </tr>
       {% endfor %}
@@ -71,7 +71,7 @@
   <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
-
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
 
   <script>
     $.ajaxSetup({
@@ -80,7 +80,16 @@
 
     $(document).ready(function () {
       let table = $('#sample_table').DataTable({
-        "pageLength": 10,
+        dom: 'Bfrtip',
+        buttons: [
+          {
+            text: 'Select All',
+            action: function (e, dt, node, config) {
+              $('#sample_table tbody tr').toggleClass('selected');
+            }
+          }
+        ],
+        pageLength: 15,
       });
 
 
@@ -98,18 +107,21 @@
 
         let sample_id_list = [];
         for (i = 0; i < selected_samples.length; i++) {
+          // Remove HTML tags and whitespace
           let sample_id = selected_samples[i][0].replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
           sample_id_list.push(sample_id);
         }
 
         $.ajax({
-          url: '#',
+          url: "",
           type: 'POST',
           data: {'sample_id_list': sample_id_list},
+        }).done(function (data) {
+          if (data.success) {
+            window.location.href = data.url;
+          }
         })
-
       });
-
     });
   </script>
 {% endblock %}
