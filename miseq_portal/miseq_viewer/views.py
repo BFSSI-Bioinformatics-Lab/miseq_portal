@@ -20,7 +20,6 @@ class ProjectListView(LoginRequiredMixin, ListView):
         context['now'] = timezone.now()
         context['user'] = self.request.user
         context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user)
-        print(context['approved_users'])
         return context
 
 
