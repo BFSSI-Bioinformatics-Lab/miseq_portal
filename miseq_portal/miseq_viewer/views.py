@@ -5,7 +5,7 @@ from django.views.generic import DetailView, ListView
 
 from config.settings.base import MEDIA_ROOT
 
-from miseq_viewer.models import Project, Run, Sample
+from miseq_viewer.models import Project, Run, Sample, UserProjectRelationship
 from miseq_uploader import parse_samplesheet
 
 
@@ -18,6 +18,9 @@ class ProjectListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['now'] = timezone.now()
+        context['user'] = self.request.user
+        context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user)
+        print(context['approved_users'])
         return context
 
 

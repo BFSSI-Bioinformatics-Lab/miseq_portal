@@ -10,6 +10,7 @@ from miseq_uploader.parse_stats_json import stats_json_to_df
 
 from miseq_viewer.models import Project, Run, Sample, SampleLogData, \
     upload_samplesheet, upload_reads
+from miseq_portal.users.models import User
 
 
 def receive_miseq_run_dir(miseq_dir: Path):
@@ -72,7 +73,11 @@ def upload_to_db(sample_object_list: [SampleObject], samplesheet: Path):
     """Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database"""
     for sample_object in sample_object_list:
         # PROJECT
-        project, p_created = Project.objects.get_or_create(project_id=sample_object.project_id)
+        project, p_created = Project.objects.get_or_create(project_id=sample_object.project_id,
+                                                           defaults={
+                                                               # Default to admin ownership
+                                                               'project_owner': User.objects.get(username="admin")
+                                                           })
         if p_created:
             print(f"\nCreated project '{project}'")
 

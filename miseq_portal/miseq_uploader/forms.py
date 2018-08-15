@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import ModelForm, Form
 
+from miseq_portal.users.models import User
 from miseq_viewer.models import Run, Project
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -24,6 +25,7 @@ class UploadMiSeqDirectoryForm(Form):
 # PROJECT
 class CreateProjectForm(ModelForm):
     project_id = forms.CharField(label="Project ID", required=True)
+    project_owner = forms.ModelChoiceField(queryset=User.objects.all())
 
     def __init__(self, *args, **kwargs):
         super(CreateProjectForm, self).__init__(*args, **kwargs)
@@ -32,11 +34,13 @@ class CreateProjectForm(ModelForm):
         self.helper.form_class = 'blueForms'
         self.helper.form_method = 'post'
         self.helper.form_action = 'create_project'
+        self.fields['project_id'].label = 'Project ID'
+        self.fields['project_owner'].label = 'Project Owner'
         self.helper.add_input(Submit('submit', 'Submit'))
 
     class Meta:
         model = Project
-        fields = ['project_id']
+        fields = ['project_id', 'project_owner']
 
 
 # RUN

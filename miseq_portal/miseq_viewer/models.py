@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 from core.models import TimeStampedModel
+from miseq_portal.users.models import User
 
 
 def validate_sample_id(value: str, length: int = 15):
@@ -40,9 +41,25 @@ class Project(TimeStampedModel):
     Each Sample must be associated with a Project.
     """
     project_id = models.CharField(max_length=256, unique=True)
+    project_owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.project_id
+
+
+class UserProjectRelationship(TimeStampedModel):
+    ACCESS_LEVELS = (
+        ('MANAGER', 'Manager'),  # Delete, modify
+        ('USER', 'User'),  # View
+        ('ADMIN', 'Admin'),  # Same as MANAGER
+        ('NONE', 'None'),  # No access
+    )
+    project_id = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='relationship_project', null=True)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='relationship_user', null=True)
+    access_level = models.CharField(max_length=32, choices=ACCESS_LEVELS, default='NONE')
+
+    def __str__(self):
+        return str(self.project_id) + ':' + str(self.user_id)
 
 
 class Run(TimeStampedModel):
