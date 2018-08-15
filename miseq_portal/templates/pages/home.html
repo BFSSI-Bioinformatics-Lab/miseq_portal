@@ -1,1 +1,14 @@
 {% extends "base.html" %}
+
+{% block content %}
+
+  <div class="jumbotron">
+    <h2>Welcome to the <strong>BFSSI MiSeq-Portal</strong></h2>
+    <p class="lead">You are logged in as user <strong class="text-success">{{ request.user }}</strong></p>
+    <hr class="my-4">
+    <p class="lead">Use the navigation links on the top panel to search for <strong class="text-primary">samples</strong>,
+      view your <strong class="text-primary">projects</strong>, or conduct a new
+      <strong class="text-primary">analysis</strong>.</p>
+  </div>
+
+{% endblock %}
