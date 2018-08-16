@@ -25,26 +25,45 @@
         </thead>
         <tbody>
         {% for project in project_list %}
-          {% for approved_user in approved_users %}
-            {% if project == approved_user.project_id %}
-              <tr>
-                <td>
-                  <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' project.pk %}">
-                    {{ project.project_id }}
-                  </a>
-                </td>
-                <td>
-                  {{ project.project_owner }}
-                </td>
-                <td>
-                  {{ project.created }}
-                </td>
-                <td>
-                  {{ project.modified }}
-                </td>
-              </tr>
-            {% endif %}
-          {% endfor %}
+          {% if user.is_staff %}
+            <tr>
+              <td>
+                <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' project.pk %}">
+                  {{ project.project_id }}
+                </a>
+              </td>
+              <td>
+                {{ project.project_owner }}
+              </td>
+              <td>
+                {{ project.created }}
+              </td>
+              <td>
+                {{ project.modified }}
+              </td>
+            </tr>
+          {% else %}
+            {% for approved_user in approved_users %}
+              {% if project == approved_user.project_id %}
+                <tr>
+                  <td>
+                    <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' project.pk %}">
+                      {{ project.project_id }}
+                    </a>
+                  </td>
+                  <td>
+                    {{ project.project_owner }}
+                  </td>
+                  <td>
+                    {{ project.created }}
+                  </td>
+                  <td>
+                    {{ project.modified }}
+                  </td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
         {% endfor %}
 
 
@@ -52,7 +71,6 @@
       </table>
     </div>
   </div>
-
 
 
 {% endblock content %}
