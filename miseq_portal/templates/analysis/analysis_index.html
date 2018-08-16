@@ -38,23 +38,47 @@
       </thead>
       <tbody>
       {% for sample in sample_list %}
-        <tr>
-          <td>
-            <a
-              href="/miseq_viewer/sample/{{ sample.pk }}">
-              {{ sample.sample_id }}
-            </a>
-          </td>
-          <td>
-            {{ sample.sample_name }}
-          </td>
-          <td>
-            {{ sample.run_id }}
-          </td>
-          <td>
-            {{ sample.project_id }}
-          </td>
-        </tr>
+        {% if user.is_staff %}
+          <tr>
+            <td>
+              <a
+                href="/miseq_viewer/sample/{{ sample.pk }}">
+                {{ sample.sample_id }}
+              </a>
+            </td>
+            <td>
+              {{ sample.sample_name }}
+            </td>
+            <td>
+              {{ sample.run_id }}
+            </td>
+            <td>
+              {{ sample.project_id }}
+            </td>
+          </tr>
+        {% else %}
+          {% for approved_user in approved_users %}
+            {% if sample.project_id == approved_user.project_id %}
+              <tr>
+                <td>
+                  <a
+                    href="/miseq_viewer/sample/{{ sample.pk }}">
+                    {{ sample.sample_id }}
+                  </a>
+                </td>
+                <td>
+                  {{ sample.sample_name }}
+                </td>
+                <td>
+                  {{ sample.run_id }}
+                </td>
+                <td>
+                  {{ sample.project_id }}
+                </td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
       {% endfor %}
 
       </tbody>
@@ -85,7 +109,15 @@
           {
             text: 'Select All',
             action: function (e, dt, node, config) {
-              $('#sample_table tbody tr').toggleClass('selected');
+
+              $('#sample_table tbody tr').removeClass("selected").toggleClass('selected');
+            }
+          },
+          {
+            text: 'Deselect All',
+            action: function (e, dt, node, config) {
+
+              $('#sample_table tbody tr').removeClass("selected");
             }
           }
         ],
@@ -111,6 +143,7 @@
           let sample_id = selected_samples[i][0].replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
           sample_id_list.push(sample_id);
         }
+
 
         $.ajax({
           url: "",
