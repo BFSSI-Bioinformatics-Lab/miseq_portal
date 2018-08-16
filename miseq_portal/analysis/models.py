@@ -5,7 +5,7 @@ from miseq_portal.users.models import User
 
 
 # Create your models here.
-class SampleAnalysisTemporaryGroup(TimeStampedModel):
+class SampleAnalysisTemporaryGroup(models.Model):
     """
     Temporary table to store Samples destined for analysis.
     Should be cleared out whenever an analysis is submitted.
@@ -15,4 +15,4 @@ class SampleAnalysisTemporaryGroup(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.sample_id
+        return str(self.sample_id)

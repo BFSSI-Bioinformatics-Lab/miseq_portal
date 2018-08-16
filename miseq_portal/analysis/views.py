@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, View
 
-from miseq_viewer.models import Sample
+from miseq_viewer.models import Sample, UserProjectRelationship
 from analysis.models import SampleAnalysisTemporaryGroup
 
 
@@ -16,6 +16,7 @@ class AnalysisIndexView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user)
         return context
 
     def post(self, request, *args, **kwargs):
@@ -48,7 +49,8 @@ class ToolSelectionView(LoginRequiredMixin, View):
     template_name = 'analysis/tool_selection.html'
 
     def get(self, request):
-        sample_group = SampleAnalysisTemporaryGroup.objects.all()
+        # Display samples only belonging only to the requesting user
+        sample_group = SampleAnalysisTemporaryGroup.objects.filter(user_id=self.request.user)
 
         context = {
             'sample_group': sample_group
