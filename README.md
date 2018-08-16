@@ -26,6 +26,6 @@ psql
 \l  # Show all databases
 ```
 
-**DB name:** bfssi_portal
+**DB name:** miseq_portal
 
 **DB user:** forest
