@@ -27,43 +27,77 @@
         </thead>
         <tbody>
         {% for sample in sample_list %}
-          <tr>
-            <td>
-              <a
-                href="/miseq_viewer/sample/{{ sample.pk }}">
-                {{ sample.sample_id }}
-              </a>
-            </td>
-            <td>
-              {{ sample.sample_name }}
-            </td>
-            <td>
-              <a
-                href="/miseq_viewer/run/{{ sample.run_id_id }}">
-                {{ sample.run_id }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="/miseq_viewer/project/{{ sample.project_id_id }}/">
-                {{ sample.project_id }}
-              </a>
-            </td>
-            <td>
-              {{ sample.created }}
-            </td>
-            <td>
-              {{ sample.modified }}
-            </td>
-          </tr>
+          {% if user.is_staff %}
+            <tr>
+              <td>
+                <a
+                  href="/miseq_viewer/sample/{{ sample.pk }}">
+                  {{ sample.sample_id }}
+                </a>
+              </td>
+              <td>
+                {{ sample.sample_name }}
+              </td>
+              <td>
+                <a
+                  href="/miseq_viewer/run/{{ sample.run_id_id }}">
+                  {{ sample.run_id }}
+                </a>
+              </td>
+              <td>
+                <a
+                  href="/miseq_viewer/project/{{ sample.project_id_id }}/">
+                  {{ sample.project_id }}
+                </a>
+              </td>
+              <td>
+                {{ sample.created }}
+              </td>
+              <td>
+                {{ sample.modified }}
+              </td>
+            </tr>
+          {% else %}
+            {% for approved_user in approved_users %}
+              {% if sample.project_id == approved_user.project_id %}
+                <tr>
+                  <td>
+                    <a
+                      href="/miseq_viewer/sample/{{ sample.pk }}">
+                      {{ sample.sample_id }}
+                    </a>
+                  </td>
+                  <td>
+                    {{ sample.sample_name }}
+                  </td>
+                  <td>
+                    <a
+                      href="/miseq_viewer/run/{{ sample.run_id_id }}">
+                      {{ sample.run_id }}
+                    </a>
+                  </td>
+                  <td>
+                    <a
+                      href="/miseq_viewer/project/{{ sample.project_id_id }}/">
+                      {{ sample.project_id }}
+                    </a>
+                  </td>
+                  <td>
+                    {{ sample.created }}
+                  </td>
+                  <td>
+                    {{ sample.modified }}
+                  </td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
         {% endfor %}
 
         </tbody>
       </table>
     </div>
   </div>
-
-
 
 {% endblock content %}
 
