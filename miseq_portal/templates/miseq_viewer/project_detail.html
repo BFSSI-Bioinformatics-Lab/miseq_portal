@@ -16,6 +16,7 @@
       <thead>
       <tr>
         <th>Sample ID</th>
+        <th>Sample Name</th>
         <th>Run ID</th>
         <th>Date Created</th>
         <th>Date Modified</th>
@@ -28,6 +29,9 @@
             <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample.pk %}">
               {{ sample.sample_id }}
             </a>
+          </td>
+          <td>
+            {{ sample.sample_name }}
           </td>
           <td>
             <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
