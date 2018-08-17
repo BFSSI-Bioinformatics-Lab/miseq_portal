@@ -113,3 +113,6 @@ class SampleLogData(TimeStampedModel):
 
     def __str__(self):
         return str(self.sample_id)
+
+    def sample_yield_mbp(self):
+        return float(self.sample_yield/1000000)
