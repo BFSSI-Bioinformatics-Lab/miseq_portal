@@ -23,6 +23,9 @@
 
 
     <!-- Your stuff: Third-party CSS libraries go here -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
+          integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+
 
     <!-- This file stores project-specific CSS -->
     <link href="{% static 'css/project.css' %}" rel="stylesheet">
@@ -46,39 +49,54 @@
     <a class="navbar-brand" href="{% url 'home' %}">MiSeq-Portal</a>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
+      <ul class="navbar-nav mr-auto nav-fill w-100">
         <li class="nav-item active">
-          <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i>
+            Home <span class="sr-only">(current)</span></a>
         </li>
         {% if request.user.is_authenticated %}
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'sample_search:sample_search' %}">{% trans "Sample Search" %}</a>
+            <a class="nav-link "
+               href="{% url 'sample_search:sample_search' %}"><i class="fas fa-search"></i> Sample Search</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'miseq_viewer:miseq_viewer_projects' %}">{% trans "Project Viewer" %}</a>
+            <a class="nav-link "
+               href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i> Project
+              Viewer</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'analysis:analysis_index' %}">{% trans "Analysis" %}</a>
+            <a class="nav-link "
+               href="{% url 'analysis:analysis_index' %}"><i class="fas fa-flask"></i> Analysis</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'miseq_uploader:miseq_uploader' %}">{% trans "MiSeq Uploader" %}</a>
+            <a class="nav-link "
+               href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> MiSeq Uploader</a>
           </li>
           <li class="nav-item">
             {# URL provided by django-allauth/account/urls.py #}
-            <a class="nav-link" href="{% url 'users:detail' request.user.username %}">{% trans "Profile" %} ({{ request.user.username }})</a>
+            <a class="nav-link "
+               href="{% url 'users:detail' request.user.username %}"><i class="fas fa-user"></i> Profile
+              ({{ request.user.username }})</a>
           </li>
           <li class="nav-item">
             {# URL provided by django-allauth/account/urls.py #}
-            <a class="nav-link" href="{% url 'account_logout' %}">{% trans "Sign Out" %}</a>
+            <a class="nav-link " href="{% url 'account_logout' %}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
           </li>
         {% else %}
           <li class="nav-item">
             {# URL provided by django-allauth/account/urls.py #}
-            <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a>
+            <a id="sign-up-link" class="nav-link "
+               href="{% url 'account_signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a>
           </li>
           <li class="nav-item">
             {# URL provided by django-allauth/account/urls.py #}
-            <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% trans "Sign In" %}</a>
+            <a id="log-in-link" class="nav-link "
+               href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+          </li>
+        {% endif %}
+        {% if request.user.is_staff %}
+          <li class="nav-item">
+            <a class="nav-link btn btn-outline-danger" href="{% url 'admin:index' %}"><span>Admin Panel</span></a>
           </li>
         {% endif %}
       </ul>
