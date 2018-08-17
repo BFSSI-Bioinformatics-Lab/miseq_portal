@@ -12,7 +12,6 @@ from miseq_uploader import parse_samplesheet
 class ProjectListView(LoginRequiredMixin, ListView):
     model = Project
     context_object_name = 'project_list'
-    paginate_by = 50
     template_name = "miseq_viewer/project_list.html"
 
     def get_context_data(self, **kwargs):
