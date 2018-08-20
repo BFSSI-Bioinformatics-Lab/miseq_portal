@@ -180,12 +180,5 @@ def parse_samplesheet(samplesheet: Path) -> [SampleObject]:
                                              project_id=project_id)
                 sample_object_list.append(sample_object)
 
-    # Create dict to store all information
-    # samplesheet_dict = dict()
-    # samplesheet_dict['df'] = df
-    # samplesheet_dict['sample_id_list'] = sample_id_list
-    # samplesheet_dict['project_dict'] = project_dict
-    # samplesheet_dict['run_id'] = run_id
-    # samplesheet_dict['sample_name_dict'] = sample_name_dictionary
 
     return sample_object_list
