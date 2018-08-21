@@ -115,4 +115,6 @@ class SampleLogData(TimeStampedModel):
         return str(self.sample_id)
 
     def sample_yield_mbp(self):
-        return float(self.sample_yield/1000000)
+        if self.sample_yield is not None:
+            return float(self.sample_yield/1000000)
+
