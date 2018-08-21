@@ -31,9 +31,11 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
             pass
 
     # Check for fastq files in expected location
-    if len(list(miseq_folder.glob("Data/Intensities/Basecalls/*"))) > 0:
+    if len(list(miseq_folder.glob("Data/Intensities/BaseCalls/*.f*q*"))) > 0:
         check_dict['basecalls'] = True
-        print("PASS: Detected a non-zero number of *.fastq.gz files in ./Data/Intensities/Basecalls/*")
+        print("PASS: Detected a non-zero number of *.fastq.gz files in ./Data/Intensities/BaseCalls/*")
+    else:
+        print("FAIL: Could not detect any *.fastq.gz files in ./Data/Intensities/BaseCalls/*")
 
     if False in check_dict.values():
         raise Exception(f"Input folder {miseq_folder} is not structured as expected.\n"
@@ -139,7 +141,7 @@ def parse_miseq_folder(miseq_folder: Path) -> dict:
 
     # Make sure folder is ok
     if verify_miseq_folder_contents(miseq_folder):
-        read_folder = miseq_folder / "Data" / "Intensities" / "Basecalls"
+        read_folder = miseq_folder / "Data" / "Intensities" / "BaseCalls"
         interop_folder = miseq_folder / "InterOp"
 
     # Get sample dict
@@ -153,7 +155,12 @@ def parse_miseq_folder(miseq_folder: Path) -> dict:
     # Get log files
     log_folder = miseq_folder / "Logs"
     log_files = list(log_folder.glob("*"))
-    json_stats_file = Path(list(log_folder.glob("Stats.json"))[0])
+
+    try:
+        json_stats_file = Path(list(log_folder.glob("Stats.json"))[0])
+    except IndexError:
+        print("WARNING: Could not locate ./Logs/Stats.json file.")
+        json_stats_file = None
 
     # Create dict for all MiSeq data
     miseq_dict = dict()
