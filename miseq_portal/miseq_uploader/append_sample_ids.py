@@ -63,6 +63,7 @@ def check_sample_ids_in_filenames(data_folder: Path, samplesheet: Path):
 
 
 def main():
+    # TODO: Make this CLI friendly instead of this hardcoded nonsense
     data_folder = Path("/home/brock/Projects/BMH-MiSeq/Basemount_MiSeqPortal/180816_M01308_0087_000000000-BMH68/Data/Intensities/BaseCalls")
     samplesheet = Path("/home/brock/Projects/BMH-MiSeq/Basemount_MiSeqPortal/180816_M01308_0087_000000000-BMH68/SampleSheet.csv")
     check_sample_ids_in_filenames(data_folder=data_folder, samplesheet=samplesheet)
