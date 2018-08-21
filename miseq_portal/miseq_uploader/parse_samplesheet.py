@@ -142,7 +142,7 @@ def validate_sample_id(value: str, length: int = 15) -> bool:
         return True
 
 
-def parse_samplesheet(samplesheet: Path) -> [SampleObject]:
+def generate_sample_objects(samplesheet: Path) -> [SampleObject]:
     df = read_samplesheet(samplesheet=samplesheet)
 
     # Validate header
@@ -179,6 +179,5 @@ def parse_samplesheet(samplesheet: Path) -> [SampleObject]:
                                              run_id=run_id,
                                              project_id=project_id)
                 sample_object_list.append(sample_object)
-
 
     return sample_object_list

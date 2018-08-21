@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 from config.settings.base import MEDIA_ROOT
 
-from miseq_uploader.parse_samplesheet import parse_samplesheet, SampleObject
+from miseq_uploader.parse_samplesheet import generate_sample_objects, SampleObject
 from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
 from miseq_uploader.parse_stats_json import stats_json_to_df
 
@@ -20,7 +20,7 @@ def receive_miseq_run_dir(miseq_dir: Path):
     print(f'{"="*20}\nCHECKING SAMPLESHEET\n{"="*20}')
     samplesheet = miseq_dict['samplesheet_path']
     json_stats_file = miseq_dict['json_stats_file']
-    sample_object_list = parse_samplesheet(samplesheet=miseq_dict['samplesheet_path'])
+    sample_object_list = generate_sample_objects(samplesheet=miseq_dict['samplesheet_path'])
 
     # Update SampleObjects with stats and reads
     sample_object_list = append_sample_object_reads(sample_dict=miseq_dict['sample_dict'],
@@ -48,6 +48,10 @@ def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleObj
 
 def append_sample_object_stats(json_stats_file: Path, sample_object_list: [SampleObject]) -> [SampleObject]:
     """Given a list of SampleObjects + the Stats.json file from the same run, appends those stats to the SampleObject"""
+    if json_stats_file is None:
+        print("WARNING: Cannot append Sample stats for this run because no Stats.json file was provided")
+        return sample_object_list
+
     sample_object_list_stats = list()
     for sample_object in sample_object_list:
         stats_df = stats_json_to_df(stats_json=json_stats_file)
