@@ -22,8 +22,8 @@
       <th>Sample Name</th>
       <th>R1</th>
       <th>R2</th>
-      <th>NumberReads</th>
-      <th>SampleYield</th>
+      <th># Reads</th>
+      <th>Sample Yield (Mbp)</th>
       <th>Date Created</th>
     </tr>
     </thead>
@@ -47,7 +47,7 @@
         {{ sample.samplelogdata.number_reads }}
       </td>
       <td>
-        {{ sample.samplelogdata.sample_yield }}
+        {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
       </td>
       <td>{{ sample.created }}</td>
     </tr>

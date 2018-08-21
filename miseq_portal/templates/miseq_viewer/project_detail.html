@@ -18,6 +18,7 @@
         <th>Sample ID</th>
         <th>Sample Name</th>
         <th>Run ID</th>
+        <th>Yield (Mbp)</th>
         <th>Date Created</th>
         <th>Date Modified</th>
       </tr>
@@ -37,6 +38,9 @@
             <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
               {{ sample.run_id }}
             </a>
+          </td>
+          <td>
+            {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
           </td>
           <td>
             {{ sample.created }}
