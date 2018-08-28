@@ -1,0 +1,107 @@
+<link rel="stylesheet" href="/static/css/project_overview.css">
+<h3>Portal Overview</h3>
+<div id="overview-chart"></div>
+<script src="/static/js/d3.v5.min.js"></script>
+<script src="/static/js/jquery-3.3.1.min.js"></script>
+<script>
+  // Initial drawing of the chart
+  draw_chart();
+
+  // Upon resize, draw the chart again so the width responds reactively
+  window.onresize = function (event) {
+    draw_chart()
+  };
+
+  function draw_chart() {
+    // Clean up old chart
+    d3.select("svg").remove();
+
+    // Setup chart size
+    div_width = $("#overview-chart").width();
+    var margin = {top: 0, right: 40, bottom: 0, left: 140};
+    var width = div_width - margin.left - margin.right;
+    var height = 250 - margin.top - margin.bottom;
+
+    // Grab data
+    var data = [];
+    data = {{ overview_json|safe }};
+
+    // Reformat data
+    data = [{"group": "Number of Projects", "value": data.number_of_projects},
+      {"group": "Number of Runs", "value": data.number_of_runs},
+      {"group": "Number of Samples", "value": data.number_of_samples}];
+
+    // format the data
+    data.forEach(function (d) {
+      d.value = +d.value;
+    });
+
+    // Colors
+    colors = ["#41b6c4", "#225ea8", "#081d58"];
+    colorScale = d3.scaleOrdinal().range(colors);
+
+    // set the ranges/domains
+    var xScale = d3.scaleLinear()
+      .domain([0, d3.max(data, function (d) {
+        return d.value
+      })])
+      .range([0, width]);
+
+    var yScale = d3.scaleBand()
+      .domain(["Number of Projects", "Number of Runs", "Number of Samples"])
+      .range([height, 0])
+      .padding(0.1);
+
+    // append the svg object to the body of the page
+    // append a 'group' element to 'svg'
+    // moves the 'group' element to the top left margin
+    var svg = d3.select("#overview-chart").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")");
+
+    // Append rects
+    svg.selectAll(".bar")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("width", function (d) {
+        return xScale(d.value)
+      })
+      .attr("y", function (d) {
+        return yScale(d.group)
+      })
+      .attr("height", yScale.bandwidth())
+      .style("fill", function (d) {
+        return colorScale(d.value)
+      });
+
+    // Append labels to bars
+    svg.selectAll(".label")
+      .data(data)
+      .enter()
+      .append("text")
+      .text(function (d) {
+        return d.value;
+      })
+      .attr("x", function (d) {
+        return (xScale(d.value) + 10)
+      })
+      .attr("y", function (d) {
+        return (yScale(d.group)) + 40
+      })
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "12px");
+
+    // add the xScale Axis
+    svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(xScale));
+
+    // add the yScale Axis
+    svg.append("g")
+      .call(d3.axisLeft(yScale));
+  }
+</script>
