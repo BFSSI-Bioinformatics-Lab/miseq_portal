@@ -1,6 +1,9 @@
 <link rel="stylesheet" href="/static/css/project_overview.css">
+
 <h3>Portal Overview</h3>
 <div id="overview-chart"></div>
+
+{# JavaScript #}
 <script src="/static/js/d3.v5.min.js"></script>
 <script src="/static/js/jquery-3.3.1.min.js"></script>
 <script>
@@ -8,7 +11,7 @@
   draw_chart();
 
   // Upon resize, draw the chart again so the width responds reactively
-  window.onresize = function (event) {
+  window.onresize = function () {
     draw_chart()
   };
 
@@ -37,7 +40,7 @@
     });
 
     // Colors
-    colors = ["#41b6c4", "#225ea8", "#081d58"];
+    colors = ["#e41a1c","#377eb8","#4daf4a"];
     colorScale = d3.scaleOrdinal().range(colors);
 
     // set the ranges/domains
@@ -52,9 +55,6 @@
       .range([height, 0])
       .padding(0.1);
 
-    // append the svg object to the body of the page
-    // append a 'group' element to 'svg'
-    // moves the 'group' element to the top left margin
     var svg = d3.select("#overview-chart").append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
