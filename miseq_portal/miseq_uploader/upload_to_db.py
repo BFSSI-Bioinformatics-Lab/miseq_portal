@@ -9,7 +9,7 @@ from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder, RunIn
 from miseq_uploader.parse_stats_json import stats_json_to_df
 
 from miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, SampleLogData, \
-    upload_run_file, upload_reads
+    upload_run_file, upload_reads, upload_interop_file
 from miseq_portal.users.models import User
 
 
@@ -51,7 +51,7 @@ def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleObj
 def append_sample_object_stats(json_stats_file: Path, sample_object_list: [SampleObject]) -> [SampleObject]:
     """Given a list of SampleObjects + the Stats.json file from the same run, appends those stats to the SampleObject"""
     if json_stats_file is None:
-        print("WARNING: Cannot append Sample stats for this run because no Stats.json file was provided")
+        print("WARNING: Cannot append sample stats for this run because no Stats.json file was provided")
         return sample_object_list
 
     sample_object_list_stats = list()
@@ -77,7 +77,7 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
 
 
 def upload_run_interop_data(run_interop_instance: RunInterOpData, run_interop_data_object: RunInterOpDataObject,
-                            run_interop_model_fieldname: str):
+                            run_interop_model_fieldname: str) -> RunInterOpData:
     """
     TODO: Maybe implement this pattern for other file uploads. This could be a generic function.
     :param run_interop_instance:
@@ -92,7 +92,10 @@ def upload_run_interop_data(run_interop_instance: RunInterOpData, run_interop_da
         raise AttributeError(f"Attribute {run_interop_model_fieldname} does not exist.")
 
     # Create destination path for InterOp file
-    interop_file_path = upload_run_file(run_interop_instance, interop_attr.name)
+    interop_file_path = upload_interop_file(run_interop_instance, interop_attr.name)
+
+    # Create InterOp directory for file if it doesn't already exist
+    os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + interop_file_path), exist_ok=True)
 
     # Transfer the file to the disk
     shutil.copy(src=str(interop_attr), dst=(MEDIA_ROOT + '/' + interop_file_path))
@@ -100,6 +103,25 @@ def upload_run_interop_data(run_interop_instance: RunInterOpData, run_interop_da
     # Update the run instance
     setattr(run_interop_instance, run_interop_model_fieldname, interop_file_path)
     print(f"Succesfully uploaded {interop_attr.name}")
+    return run_interop_instance
+
+
+def upload_run_xml_file(run_interop_instance: RunInterOpData, run_interop_data_object: RunInterOpDataObject,
+                        run_xml_fieldname: str):
+    xml_attr = getattr(run_interop_data_object, run_xml_fieldname)
+
+    # Create destination path for XML file
+    xml_file_path = upload_run_file(run_interop_instance, xml_attr.name)
+
+    # Create XML directory for file if it doesn't already exist
+    os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + xml_file_path), exist_ok=True)
+
+    # Transfer the file to the disk
+    shutil.copy(src=str(xml_attr), dst=(MEDIA_ROOT + '/' + xml_file_path))
+
+    # Update the run instance
+    setattr(run_interop_instance, run_xml_fieldname, xml_file_path)
+    print(f"Succesfully uploaded {xml_attr.name} to {xml_file_path}")
     return run_interop_instance
 
 
@@ -134,7 +156,7 @@ def upload_to_db(sample_object_list: [SampleObject], run_interop_data_object: Ru
             run.sample_sheet = samplesheet_path
             run.save()
         if ri_created:
-            # Upload interop files
+            # Upload InterOp files
             run_interop_data_field_list = [
                 'control_metrics',
                 'errormetrics',
@@ -150,7 +172,14 @@ def upload_to_db(sample_object_list: [SampleObject], run_interop_data_object: Ru
                 run_interop = upload_run_interop_data(run_interop_instance=run_interop,
                                                       run_interop_data_object=run_interop_data_object,
                                                       run_interop_model_fieldname=field)
-            # Save the changes to the instance
+
+            # Upload XML files
+            xml_field_list = ['runinfoxml', 'runparametersxml']
+            for field in xml_field_list:
+                run_interop = upload_run_xml_file(run_interop_instance=run_interop,
+                                                  run_interop_data_object=run_interop_data_object,
+                                                  run_xml_fieldname=field)
+            # Save the changes to the run_interop model instance
             run_interop.save()
 
         # SAMPLE
@@ -173,7 +202,7 @@ def upload_to_db(sample_object_list: [SampleObject], run_interop_data_object: Ru
 
         # Save sample stats
         if sl_created:
-            attribute_list = [
+            sample_log_attribute_list = [
                 'number_reads',
                 'sample_yield',
                 'r1_qualityscoresum',
@@ -185,6 +214,6 @@ def upload_to_db(sample_object_list: [SampleObject], run_interop_data_object: Ru
                 'r1_yieldq30',
                 'r2_yieldq30'
             ]
-            for attribute in attribute_list:
+            for attribute in sample_log_attribute_list:
                 setattr(sample_log, attribute, getattr(sample_object, attribute))
             sample_log.save()

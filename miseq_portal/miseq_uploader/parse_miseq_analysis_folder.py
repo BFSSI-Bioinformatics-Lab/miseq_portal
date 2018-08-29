@@ -10,6 +10,8 @@ class RunInterOpDataObject:
     """
     run_id: str
 
+    runinfoxml: Path = None
+    runparametersxml: Path = None
     control_metrics: Path = None
     correctedintmetrics: Path = None
     errormetrics: Path = None
@@ -156,6 +158,7 @@ def get_sample_dictionary(directory: Path) -> dict:
 
 def populate_run_interop_object(interop_folder: Path, run_id: str):
     run_interop_object = RunInterOpDataObject(run_id=run_id)
+
     run_interop_object.control_metrics = interop_folder / 'ControlMetricsOut.bin'
     run_interop_object.correctedintmetrics = interop_folder / 'CorrectedIntMetricsOut.bin'
     run_interop_object.errormetrics = interop_folder / 'ErrorMetricsOut.bin'
@@ -185,13 +188,18 @@ def parse_miseq_folder(miseq_folder: Path) -> dict:
         print(f"{sample} ({reads[0].name}, {reads[1].name})")
 
     samplesheet = Path(list(miseq_folder.glob('SampleSheet.csv'))[0])
+    runinfoxml = Path(list(miseq_folder.glob('RunInfo.xml'))[0])
+    runparametersxml = Path(list(miseq_folder.glob('RunParameters.xml'))[0])
     run_id = extract_run_name(samplesheet)  # TODO: Pass this value along, it's calculated somewhere else as well
     run_interop_object = populate_run_interop_object(interop_folder=interop_folder, run_id=run_id)
+    run_interop_object.runinfoxml = runinfoxml
+    run_interop_object.runparametersxml = runparametersxml
 
     # Get log files
     log_folder = miseq_folder / "Logs"
     log_files = list(log_folder.glob("*"))
 
+    # NOTE: The stats file is only created when the run is uploaded to BaseSpace. It will be missing from local runs.
     try:
         json_stats_file = Path(list(log_folder.glob("Stats.json"))[0])
     except IndexError:
