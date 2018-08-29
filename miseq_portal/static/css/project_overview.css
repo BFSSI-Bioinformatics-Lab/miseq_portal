@@ -1,3 +1,9 @@
 svg text {
   font-size: 10pt;
 }
+
+rect {
+  shape-rendering: crispEdges;
+  stroke: black;
+  stroke-width: 1px;
+}
