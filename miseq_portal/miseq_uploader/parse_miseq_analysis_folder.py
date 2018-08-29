@@ -55,7 +55,7 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
         check_dict['basecalls'] = True
         print("PASS: Detected a non-zero number of *.fastq.gz files in ./Data/Intensities/BaseCalls/*")
     else:
-        print("FAIL: Could not detect any *.fastq.gz files in ./Data/Intensities/BaseCalls/*")
+        raise Exception("FAIL: Could not detect any *.fastq.gz files in ./Data/Intensities/BaseCalls/*")
 
     if False in check_dict.values():
         raise Exception(f"Input folder {miseq_folder} is not structured as expected.\n"
