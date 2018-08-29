@@ -5,11 +5,11 @@ from pathlib import Path
 from config.settings.base import MEDIA_ROOT
 
 from miseq_uploader.parse_samplesheet import generate_sample_objects, SampleObject
-from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
+from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder, RunInterOpDataObject
 from miseq_uploader.parse_stats_json import stats_json_to_df
 
-from miseq_viewer.models import Project, UserProjectRelationship, Run, Sample, SampleLogData, \
-    upload_samplesheet, upload_reads
+from miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, SampleLogData, \
+    upload_run_file, upload_reads
 from miseq_portal.users.models import User
 
 
@@ -21,6 +21,7 @@ def receive_miseq_run_dir(miseq_dir: Path):
     samplesheet = miseq_dict['samplesheet_path']
     json_stats_file = miseq_dict['json_stats_file']
     sample_object_list = generate_sample_objects(samplesheet=miseq_dict['samplesheet_path'])
+    run_interop_object = miseq_dict['run_interop_object']
 
     # Update SampleObjects with stats and reads
     sample_object_list = append_sample_object_reads(sample_dict=miseq_dict['sample_dict'],
@@ -29,6 +30,7 @@ def receive_miseq_run_dir(miseq_dir: Path):
                                                     sample_object_list=sample_object_list)
 
     upload_to_db(sample_object_list=sample_object_list,
+                 run_interop_data_object=run_interop_object,
                  samplesheet=samplesheet)
     print(f'{"="*15}\nUPLOAD COMPLETE\n{"="*15}')
 
@@ -73,8 +75,39 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
     return sample_object_list_stats
 
 
-def upload_to_db(sample_object_list: [SampleObject], samplesheet: Path):
-    """Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database"""
+def upload_run_interop_data(run_interop_instance: RunInterOpData, run_interop_data_object: RunInterOpDataObject,
+                            run_interop_model_fieldname: str):
+    """
+    TODO: Maybe implement this pattern for other file uploads
+    :param run_interop_instance:
+    :param run_interop_data_object:
+    :param run_interop_model_fieldname:
+    :return:
+    """
+    # Check if the attribute even exists, quit if it doesn't
+    try:
+        interop_attr = getattr(run_interop_data_object, run_interop_model_fieldname)
+    except AttributeError:
+        raise AttributeError(f"Attribute {run_interop_model_fieldname} does not exist.")
+
+    # Create destination path for InterOp file
+    interop_file_path = upload_run_file(run_interop_instance, interop_attr.name)
+
+    # Transfer the file to the disk
+    shutil.copy(src=str(interop_attr), dst=(MEDIA_ROOT + '/' + interop_file_path))
+
+    # Update the run instance
+    run_interop_instance.control_metrics = interop_file_path
+    print(f"Succesfully uploaded {interop_attr.name}")
+    return run_interop_instance
+
+
+def upload_to_db(sample_object_list: [SampleObject], run_interop_data_object: RunInterOpDataObject, samplesheet: Path):
+    """
+    Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database
+    TODO: Factor out a lot of this code into little functions. It's getting unwieldy.
+    """
+
     for sample_object in sample_object_list:
         # PROJECT
         project, p_created = Project.objects.get_or_create(project_id=sample_object.project_id,
@@ -90,13 +123,34 @@ def upload_to_db(sample_object_list: [SampleObject], samplesheet: Path):
         # RUN
         run, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
                                                    defaults={'sample_sheet': ''})
+        run_interop, ri_created = RunInterOpData.objects.get_or_create(run_id=run,
+                                                                       defaults={})
         if r_created:
             print(f"\nCreated run '{run}'")
-            samplesheet_path = upload_samplesheet(instance=run, filename=samplesheet.name)
+            samplesheet_path = upload_run_file(instance=run, filename=samplesheet.name)
             os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + samplesheet_path), exist_ok=True)
             shutil.copy(str(samplesheet), (MEDIA_ROOT + '/' + samplesheet_path))
             run.sample_sheet = samplesheet_path
             run.save()
+        if ri_created:
+            # Upload interop files
+            run_interop_data_field_list = [
+                'control_metrics',
+                'errormetrics',
+                'extractionmetrics',
+                'extractionmetrics',
+                'indexmetrics',
+                'qmetrics2030',
+                'qmetricsbylane',
+                'qmetrics',
+                'tilemetrics'
+            ]
+            for field in run_interop_data_field_list:
+                run_interop = upload_run_interop_data(run_interop_instance=run_interop,
+                                                      run_interop_data_object=run_interop_data_object,
+                                                      run_interop_model_fieldname=field)
+            # Save the changes to the instance
+            run_interop.save()
 
         # SAMPLE
         sample, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
@@ -117,14 +171,16 @@ def upload_to_db(sample_object_list: [SampleObject], samplesheet: Path):
             sample.save()
 
         # Save sample stats
-        sample_log.number_reads = sample_object.number_reads
-        sample_log.sample_yield = sample_object.sample_yield
-        sample_log.r1_qualityscoresum = sample_object.r1_qualityscoresum
-        sample_log.r2_qualityscoresum = sample_object.r2_qualityscoresum
-        sample_log.r1_trimmedbases = sample_object.r1_trimmedbases
-        sample_log.r2_trimmedbases = sample_object.r2_trimmedbases
-        sample_log.r1_yield = sample_object.r1_yield
-        sample_log.r2_yield = sample_object.r2_yield
-        sample_log.r1_yieldq30 = sample_object.r1_yieldq30
-        sample_log.r2_yieldq30 = sample_object.r2_yieldq30
-        sample_log.save()
+        # TODO: Just added the if sl_created condition. Make this this works.
+        if sl_created:
+            sample_log.number_reads = sample_object.number_reads
+            sample_log.sample_yield = sample_object.sample_yield
+            sample_log.r1_qualityscoresum = sample_object.r1_qualityscoresum
+            sample_log.r2_qualityscoresum = sample_object.r2_qualityscoresum
+            sample_log.r1_trimmedbases = sample_object.r1_trimmedbases
+            sample_log.r2_trimmedbases = sample_object.r2_trimmedbases
+            sample_log.r1_yield = sample_object.r1_yield
+            sample_log.r2_yield = sample_object.r2_yield
+            sample_log.r1_yieldq30 = sample_object.r1_yieldq30
+            sample_log.r2_yieldq30 = sample_object.r2_yieldq30
+            sample_log.save()

@@ -1,4 +1,24 @@
 from pathlib import Path
+from miseq_uploader.parse_samplesheet import extract_run_name
+from dataclasses import dataclass
+
+
+@dataclass
+class RunInterOpDataObject:
+    """
+    Object to store paths to the InterOp files for a run
+    """
+    run_id: str
+
+    control_metrics: Path = None
+    correctedintmetrics: Path = None
+    errormetrics: Path = None
+    extractionmetrics: Path = None
+    indexmetrics: Path = None
+    qmetrics2030: Path = None
+    qmetricsbylane: Path = None
+    qmetrics: Path = None
+    tilemetrics: Path = None
 
 
 def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
@@ -134,6 +154,20 @@ def get_sample_dictionary(directory: Path) -> dict:
     return sample_dictionary
 
 
+def populate_run_interop_object(interop_folder: Path, run_id: str):
+    run_interop_object = RunInterOpDataObject(run_id=run_id)
+    run_interop_object.control_metrics = interop_folder / 'ControlMetricsOut.bin'
+    run_interop_object.correctedintmetrics = interop_folder / 'CorrectedIntMetricsOut.bin'
+    run_interop_object.errormetrics = interop_folder / 'ErrorMetricsOut.bin'
+    run_interop_object.extractionmetrics = interop_folder / 'ExtractionMetricsOut.bin'
+    run_interop_object.indexmetrics = interop_folder / 'IndexMetricsOut.bin'
+    run_interop_object.qmetrics2030 = interop_folder / 'QMetrics2030Out.bin'
+    run_interop_object.qmetricsbylane = interop_folder / 'QMetricsByLaneOut.bin'
+    run_interop_object.qmetrics = interop_folder / 'QMetricsOut.bin'
+    run_interop_object.tilemetrics = interop_folder / 'TileMetricsOut.bin'
+    return run_interop_object
+
+
 def parse_miseq_folder(miseq_folder: Path) -> dict:
     # Folder setup
     read_folder = None
@@ -151,6 +185,8 @@ def parse_miseq_folder(miseq_folder: Path) -> dict:
         print(f"{sample} ({reads[0].name}, {reads[1].name})")
 
     samplesheet = Path(list(miseq_folder.glob('SampleSheet.csv'))[0])
+    run_id = extract_run_name(samplesheet)  # TODO: Pass this value along, it's calculated somewhere else as well
+    run_interop_object = populate_run_interop_object(interop_folder=interop_folder, run_id=run_id)
 
     # Get log files
     log_folder = miseq_folder / "Logs"
@@ -168,6 +204,7 @@ def parse_miseq_folder(miseq_folder: Path) -> dict:
     miseq_dict['interop_folder'] = interop_folder
     miseq_dict['sample_dict'] = sample_dict
     miseq_dict['log_files'] = log_files
+    miseq_dict['run_interop_object'] = run_interop_object
     miseq_dict['json_stats_file'] = json_stats_file
 
     return miseq_dict
