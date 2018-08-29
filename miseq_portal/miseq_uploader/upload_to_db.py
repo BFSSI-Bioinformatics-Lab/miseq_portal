@@ -55,22 +55,23 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
         return sample_object_list
 
     sample_object_list_stats = list()
+    attribute_dict = {
+        'number_reads': 'NumberReads',
+        'sample_yield': 'Yield',
+        'r1_qualityscoresum': 'R1_QualityScoreSum',
+        'r2_qualityscoresum': 'R2_QualityScoreSum',
+        'r1_trimmedbases': 'R1_TrimmedBases',
+        'r2_trimmedbases': 'R2_TrimmedBases',
+        'r1_yield': 'R1_Yield',
+        'r2_yield': 'R2_Yield',
+        'r1_yieldq30': 'R1_YieldQ30',
+        'r2_yieldq30': 'R2_YieldQ30'
+    }
     for sample_object in sample_object_list:
         stats_df = stats_json_to_df(stats_json=json_stats_file)
-        sample_object.number_reads = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['NumberReads'])
-        sample_object.sample_yield = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['Yield'])
-        sample_object.r1_qualityscoresum = int(
-            stats_df[stats_df['sample_id'] == sample_object.sample_id]['R1_QualityScoreSum'])
-        sample_object.r2_qualityscoresum = int(
-            stats_df[stats_df['sample_id'] == sample_object.sample_id]['R2_QualityScoreSum'])
-        sample_object.r1_trimmedbases = int(
-            stats_df[stats_df['sample_id'] == sample_object.sample_id]['R1_TrimmedBases'])
-        sample_object.r2_trimmedbases = int(
-            stats_df[stats_df['sample_id'] == sample_object.sample_id]['R2_TrimmedBases'])
-        sample_object.r1_yield = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['R1_Yield'])
-        sample_object.r2_yield = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['R2_Yield'])
-        sample_object.r1_yieldq30 = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['R1_YieldQ30'])
-        sample_object.r2_yieldq30 = int(stats_df[stats_df['sample_id'] == sample_object.sample_id]['R2_YieldQ30'])
+        for attribute, value in attribute_dict.items():
+            set_value = int(stats_df[stats_df['sample_id'] == sample_object.sample_id][value])
+            setattr(sample_object, attribute, set_value)
         sample_object_list_stats.append(sample_object)
     return sample_object_list_stats
 
@@ -78,7 +79,7 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
 def upload_run_interop_data(run_interop_instance: RunInterOpData, run_interop_data_object: RunInterOpDataObject,
                             run_interop_model_fieldname: str):
     """
-    TODO: Maybe implement this pattern for other file uploads
+    TODO: Maybe implement this pattern for other file uploads. This could be a generic function.
     :param run_interop_instance:
     :param run_interop_data_object:
     :param run_interop_model_fieldname:
@@ -171,16 +172,19 @@ def upload_to_db(sample_object_list: [SampleObject], run_interop_data_object: Ru
             sample.save()
 
         # Save sample stats
-        # TODO: Just added the if sl_created condition. Make this this works.
         if sl_created:
-            sample_log.number_reads = sample_object.number_reads
-            sample_log.sample_yield = sample_object.sample_yield
-            sample_log.r1_qualityscoresum = sample_object.r1_qualityscoresum
-            sample_log.r2_qualityscoresum = sample_object.r2_qualityscoresum
-            sample_log.r1_trimmedbases = sample_object.r1_trimmedbases
-            sample_log.r2_trimmedbases = sample_object.r2_trimmedbases
-            sample_log.r1_yield = sample_object.r1_yield
-            sample_log.r2_yield = sample_object.r2_yield
-            sample_log.r1_yieldq30 = sample_object.r1_yieldq30
-            sample_log.r2_yieldq30 = sample_object.r2_yieldq30
+            attribute_list = [
+                'number_reads',
+                'sample_yield',
+                'r1_qualityscoresum',
+                'r2_qualityscoresum',
+                'r1_trimmedbases',
+                'r2_trimmedbases',
+                'r1_yield',
+                'r2_yield',
+                'r1_yieldq30',
+                'r2_yieldq30'
+            ]
+            for attribute in attribute_list:
+                setattr(sample_log, attribute, getattr(sample_object, attribute))
             sample_log.save()
