@@ -32,6 +32,18 @@ def upload_run_file(instance, filename):
 
 
 def upload_reads(instance, filename):
+    """
+    TODO: Research and fix the below described bug
+    There is a bizarre bug when serving .fastq.gz files. When accessing a media file via the browser, e.g.
+    http://192.168.1.61:8000/media/uploads/runs/20180709_WGS_M01308/BMH-2018-000049/something.fastq.gz, the file will
+    download only a partial, UNCOMPRESSED version of the file. Changing the extenion from .gz to .zip allows the file
+    to be fully downloaded, though when the user tries to open it, they will receive an error from their decompression
+    program - the fix is to then change the extension back to .gz.
+
+    :param instance:
+    :param filename:
+    :return:
+    """
     return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
 
 
