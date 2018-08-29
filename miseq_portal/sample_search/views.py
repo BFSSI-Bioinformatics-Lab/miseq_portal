@@ -11,7 +11,7 @@ class SampleSearchView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user)
+        context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user).order_by('id')
         return context
 
 
