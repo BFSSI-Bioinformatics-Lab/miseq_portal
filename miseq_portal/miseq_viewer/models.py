@@ -27,7 +27,7 @@ def validate_sample_id(value: str, length: int = 15):
         raise ValidationError(f"ID component of Sample ID ('{components[2]}') does not equal expected 'XXXXXX' format")
 
 
-def upload_samplesheet(instance, filename):
+def upload_run_file(instance, filename):
     return f'uploads/runs/{instance.run_id}/{filename}'
 
 
@@ -46,6 +46,10 @@ class Project(TimeStampedModel):
     def __str__(self):
         return self.project_id
 
+    class Meta:
+        verbose_name = 'Project'
+        verbose_name_plural = 'Projects'
+
 
 class UserProjectRelationship(TimeStampedModel):
     ACCESS_LEVELS = (
@@ -61,16 +65,45 @@ class UserProjectRelationship(TimeStampedModel):
     def __str__(self):
         return str(self.project_id) + ':' + str(self.user_id)
 
+    class Meta:
+        verbose_name = 'UserProjectRelationship'
+        verbose_name_plural = 'UserProjectRelationships'
+
 
 class Run(TimeStampedModel):
     """
     Stores information relating to a single BMH run. An individual Sample must be associated with a Run.
     """
     run_id = models.CharField(max_length=256, unique=True)
-    sample_sheet = models.FileField(upload_to=upload_samplesheet, blank=True, max_length=700)
+    sample_sheet = models.FileField(upload_to=upload_run_file, blank=True, max_length=700)
 
     def __str__(self):
-        return self.run_id
+        return str(self.run_id)
+
+    class Meta:
+        verbose_name = 'Run'
+        verbose_name_plural = 'Runs'
+
+
+class RunInterOpData(TimeStampedModel):
+    run_id = models.OneToOneField(Run, on_delete=models.CASCADE, primary_key=True)
+
+    control_metrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    correctedintmetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    errormetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    extractionmetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    indexmetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    qmetrics2030 = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    qmetricsbylane = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    qmetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    tilemetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+
+    def __str__(self):
+        return str(self.run_id)
+
+    class Meta:
+        verbose_name = 'RunInterOpData'
+        verbose_name_plural = 'RunInterOpData'
 
 
 class Sample(TimeStampedModel):
@@ -89,6 +122,10 @@ class Sample(TimeStampedModel):
 
     def __str__(self):
         return self.sample_id
+
+    class Meta:
+        verbose_name = 'Sample'
+        verbose_name_plural = 'Samples'
 
 
 class SampleLogData(TimeStampedModel):
@@ -116,5 +153,8 @@ class SampleLogData(TimeStampedModel):
 
     def sample_yield_mbp(self):
         if self.sample_yield is not None:
-            return float(self.sample_yield/1000000)
+            return float(self.sample_yield / 1000000)
 
+    class Meta:
+        verbose_name = 'SampleLogData'
+        verbose_name_plural = 'SampleLogData'
