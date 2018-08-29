@@ -84,7 +84,7 @@ def upload_run_interop_data(run_interop_instance: RunInterOpData, run_interop_da
     :param run_interop_model_fieldname:
     :return:
     """
-    # Check if the attribute even exists, quit if it doesn't
+    # Check if the attribute exists, quit if it doesn't
     try:
         interop_attr = getattr(run_interop_data_object, run_interop_model_fieldname)
     except AttributeError:
@@ -97,7 +97,7 @@ def upload_run_interop_data(run_interop_instance: RunInterOpData, run_interop_da
     shutil.copy(src=str(interop_attr), dst=(MEDIA_ROOT + '/' + interop_file_path))
 
     # Update the run instance
-    run_interop_instance.control_metrics = interop_file_path
+    setattr(run_interop_instance, run_interop_model_fieldname, interop_file_path)
     print(f"Succesfully uploaded {interop_attr.name}")
     return run_interop_instance
 
