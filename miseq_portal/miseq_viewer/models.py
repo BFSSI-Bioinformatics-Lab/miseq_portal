@@ -31,12 +31,16 @@ def upload_run_file(instance, filename):
     return f'uploads/runs/{instance.run_id}/{filename}'
 
 
+def upload_interop_file(instance, filename):
+    return f'uploads/runs/{instance.run_id}/InterOp/{filename}'
+
+
 def upload_reads(instance, filename):
     """
     TODO: Research and fix the below described bug
     There is a bizarre bug when serving .fastq.gz files. When accessing a media file via the browser, e.g.
     http://192.168.1.61:8000/media/uploads/runs/20180709_WGS_M01308/BMH-2018-000049/something.fastq.gz, the file will
-    download only a partial, UNCOMPRESSED version of the file. Changing the extenion from .gz to .zip allows the file
+    download only a partial, UNCOMPRESSED version of the file. Changing the extension from .gz to .zip allows the file
     to be fully downloaded, though when the user tries to open it, they will receive an error from their decompression
     program - the fix is to then change the extension back to .gz.
 
@@ -100,15 +104,19 @@ class Run(TimeStampedModel):
 class RunInterOpData(TimeStampedModel):
     run_id = models.OneToOneField(Run, on_delete=models.CASCADE, primary_key=True)
 
-    control_metrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
-    correctedintmetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
-    errormetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
-    extractionmetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
-    indexmetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
-    qmetrics2030 = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
-    qmetricsbylane = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
-    qmetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
-    tilemetrics = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    # TODO: Move these to two XML files to the Run model instead?
+    runinfoxml = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+    runparametersxml = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
+
+    control_metrics = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
+    correctedintmetrics = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
+    errormetrics = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
+    extractionmetrics = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
+    indexmetrics = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
+    qmetrics2030 = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
+    qmetricsbylane = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
+    qmetrics = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
+    tilemetrics = models.FileField(upload_to=upload_interop_file, blank=True, null=True, max_length=700)
 
     def __str__(self):
         return str(self.run_id)
