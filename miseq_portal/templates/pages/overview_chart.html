@@ -40,7 +40,7 @@
     });
 
     // Colors
-    colors = ["#e41a1c","#377eb8","#4daf4a"];
+    colors = ["#e41a1c", "#377eb8", "#4daf4a"];
     colorScale = d3.scaleOrdinal().range(colors);
 
     // set the ranges/domains
@@ -103,5 +103,25 @@
     // add the yScale Axis
     svg.append("g")
       .call(d3.axisLeft(yScale));
+
+
+    // Make rects glow
+    //Container for the gradients
+    var defs = svg.append("defs");
+
+    //Filter for the outside glow
+    var filter = defs.append("filter")
+      .attr("id", "glow");
+    filter.append("feGaussianBlur")
+      .attr("stdDeviation", "3")
+      .attr("result", "coloredBlur");
+    var feMerge = filter.append("feMerge");
+    feMerge.append("feMergeNode")
+      .attr("in", "coloredBlur");
+    feMerge.append("feMergeNode")
+      .attr("in", "SourceGraphic");
+    //Apply to your element(s)
+    d3.selectAll("rect")
+      .style("filter", "url(#glow)");
   }
 </script>
