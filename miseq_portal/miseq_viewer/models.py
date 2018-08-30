@@ -104,7 +104,7 @@ class Run(TimeStampedModel):
 class RunInterOpData(TimeStampedModel):
     run_id = models.OneToOneField(Run, on_delete=models.CASCADE, primary_key=True)
 
-    # TODO: Move these to two XML files to the Run model instead?
+    # TODO: Move these two XML files to the Run model instead?
     runinfoxml = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
     runparametersxml = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=700)
 
