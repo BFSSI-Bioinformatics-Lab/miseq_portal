@@ -27,9 +27,7 @@
     <div>
       {% if interop_data_avaiable %}
         <div id="interop-charts">
-          <h3>Q-Score Chart</h3>
-          <div id="qscore-chart">
-          </div>
+          {% include "miseq_viewer/qscore_chart.html" %}
         </div>
       {% else %}
         <div class="alert alert-warning" role="alert">
@@ -102,25 +100,6 @@
         "scrollX": true
       });
     });
-
-
-    function check_interop() {
-      var interop_bool = ("{{ interop_data_available|yesno:'false,true' }}" === "true");
-      return interop_bool;
-    }
-
-    if(check_interop()){
-      console.log("InterOp data detected");
-      qscore_json_data = {{ qscore_json|safe }};
-      console.log(qscore_json_data);
-    }
-    else{
-      console.log("InterOp data not available")
-    }
-
-
-    {#qscore_json = {{ qscore_json }}#}
-    {#  console.log(qscore_json)#}
 
   </script>
 {% endblock %}
