@@ -8,19 +8,38 @@
 
 {% block content %}
   <div class="container">
-  <div class="page-header">
-    <h1>{{ run }}</h1>
-    <a class="btn btn-primary" href="{{ run.sample_sheet.url }}" role="button"><i
-      class="fas fa-download"></i> Download SampleSheet.csv
-    </a>
+
+    <div class="page-header">
+      <h1>{{ run }}</h1>
+      <a class="btn btn-primary" href="{{ run.sample_sheet.url }}" role="button"><i
+        class="fas fa-download"></i> Download SampleSheet.csv
+      </a>
+    </div>
+
+    <br>
+
+    <div>
+      {{ samplesheet_df | safe }}
+    </div>
+
+    <br>
+
+    <div>
+      {% if interop_data_avaiable %}
+        <div id="interop-charts">
+          <h3>Q-Score Chart</h3>
+          <div id="qscore-chart">
+          </div>
+        </div>
+      {% else %}
+        <div class="alert alert-warning" role="alert">
+          Could not retrieve InterOp data for {{ run.run_id }}
+        </div>
+      {% endif %}
+
+    </div>
+
   </div>
-
-  <br>
-
-  <div>
-    {{ samplesheet_df | safe }}
-  </div>
-
 
   {#    <table id="sample_table" class="display" style="width:100%">#}
   {#      <thead>#}
@@ -83,5 +102,25 @@
         "scrollX": true
       });
     });
+
+
+    function check_interop() {
+      var interop_bool = ("{{ interop_data_available|yesno:'false,true' }}" === "true");
+      return interop_bool;
+    }
+
+    if(check_interop()){
+      console.log("InterOp data detected");
+      qscore_json_data = {{ qscore_json|safe }};
+      console.log(qscore_json_data);
+    }
+    else{
+      console.log("InterOp data not available")
+    }
+
+
+    {#qscore_json = {{ qscore_json }}#}
+    {#  console.log(qscore_json)#}
+
   </script>
 {% endblock %}
