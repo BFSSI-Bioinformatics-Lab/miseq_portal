@@ -1,0 +1,153 @@
+<link rel="stylesheet" href="/static/css/qscore_chart.css">
+
+<h3>Q Score Chart</h3>
+<div id="qscore-chart"></div>
+<br>
+
+{# JavaScript #}
+<script src="/static/js/d3.v5.min.js"></script>
+<script src="/static/js/jquery-3.3.1.min.js"></script>
+<script>
+  if (check_interop()) {
+    console.log("InterOp data detected");
+    qscore_json_data = {{ qscore_json|safe }};
+
+    // Initial drawing of the chart
+    draw_qscore_chart(qscore_json_data);
+
+    // Upon resize, draw the chart again so the width responds reactively
+    window.onresize = function () {
+      draw_qscore_chart(qscore_json_data)
+    };
+  }
+  else {
+    console.log("InterOp data not available")
+  }
+
+  function check_interop() {
+    var interop_bool = ("{{ interop_data_available|yesno:'false,true' }}" === "true");
+    return interop_bool;
+  }
+
+  function draw_qscore_chart(qscore_json_data) {
+    // Clean up old chart
+    d3.select("svg").remove();
+
+
+    // y-axis gridlines
+    function make_y_gridlines() {
+      return d3.axisLeft(y)
+        .ticks(5)
+    }
+
+    // Setup chart size
+    div_width = $("#qscore-chart").width();
+    var margin = {top: 40, right: 60, bottom: 60, left: 70};
+    var width = div_width - margin.left - margin.right;
+    var height = 360 - margin.top - margin.bottom;
+
+    var x = d3.scaleBand()
+      .rangeRound([0, width], .1)
+      .paddingInner(0.1);
+
+    var y = d3.scaleLinear()
+      .range([height, 0]);
+
+    var xAxis = d3.axisBottom()
+      .scale(x)
+    ;
+
+    var yAxis = d3.axisLeft()
+      .scale(y)
+      .ticks(5, "s");
+
+    var svg = d3.select("#qscore-chart").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // Tooltip
+    var tooltip = d3.select('#qscore-chart').append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0);
+
+    // add the Y gridlines
+    svg.append("g")
+      .attr("class", "grid")
+      .call(make_y_gridlines()
+        .tickSize(-width)
+        .tickFormat("")
+      );
+
+    // Fixing data
+    xvalues = $.map(qscore_json_data.x, function (d) {
+      return d
+    });
+    yvalues = $.map(qscore_json_data.y, function (d) {
+      return d
+    });
+    var data = xvalues.map(function (x, i) {
+      return [x, yvalues[i]]
+    });
+    console.log(data);
+
+    x.domain(data.map(function (d) {
+      return d[0];
+    }));
+    y.domain([0, d3.max(data, function (d) {
+      return d[1];
+    })]);
+
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+    // text label for the x axis
+    svg.append("text")
+      .attr("transform",
+        "translate(" + (width / 2) + " ," +
+        (height + margin.top + 5) + ")")
+      .style("text-anchor", "middle")
+      .text("Q score");
+
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+
+    // text label for the y axis
+    svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left + 15)
+      .attr("x", 0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Total (million)");
+
+    svg.selectAll(".bar")
+      .data(data)
+      .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function (d) {
+        return x(d[0]);
+      })
+      .attr("width", x.bandwidth())
+      .attr("y", function (d) {
+        return y(d[1]);
+      })
+      .attr("height", function (d) {
+        return height - y(d[1]);
+      })
+      .on('mouseover', (d) => {
+        tooltip.transition().duration(200).style('opacity', 0.9);
+        tooltip.html(`Total: <span>${parseFloat(d[1]).toFixed(2)}M</span>`)
+          .style('left', `${d3.event.layerX}px`)
+          .style('top', `${(d3.event.layerY - 28)}px`);
+      })
+      .on('mouseout', () => tooltip.transition().duration(500).style('opacity', 0));
+
+
+  }
+
+</script>

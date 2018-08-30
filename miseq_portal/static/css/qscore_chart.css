@@ -1,0 +1,40 @@
+svg {
+  border: 1px solid black;
+  border-radius: 15px;
+
+}
+
+svg text {
+  font-size: 10pt;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+rect:hover {
+  fill: orange;
+}
+
+.tooltip {
+  background: #dde9ff;
+  border: 1px;
+  border-radius: 8px;
+  height: auto;
+  padding: 2px;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  width: 120px;
+}
+
+.grid line {
+  stroke: #9b9b9b;
+  stroke-opacity: 0.7;
+  shape-rendering: crispEdges;
+}
+
+.grid path {
+  stroke-width: 0;
+}
+
