@@ -248,3 +248,4 @@ SOCIALACCOUNT_ADAPTER = 'miseq_portal.users.adapters.SocialAccountAdapter'
 # Your stuff...
 # ------------------------------------------------------------------------------
 APPEND_SLASH = False
+MAX_UPLOAD_SIZE = 1719664640  # 2GB
