@@ -1,26 +1,6 @@
 from pathlib import Path
 from miseq_uploader.parse_samplesheet import extract_run_name
-from dataclasses import dataclass
-
-
-@dataclass
-class RunInterOpDataObject:
-    """
-    Object to store paths to the InterOp files for a run
-    """
-    run_id: str
-
-    runinfoxml: Path = None
-    runparametersxml: Path = None
-    control_metrics: Path = None
-    correctedintmetrics: Path = None
-    errormetrics: Path = None
-    extractionmetrics: Path = None
-    indexmetrics: Path = None
-    qmetrics2030: Path = None
-    qmetricsbylane: Path = None
-    qmetrics: Path = None
-    tilemetrics: Path = None
+from miseq_viewer.models import RunDataObject
 
 
 def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
@@ -30,7 +10,7 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
     :return: True if folder meets expected structure, False if not
     """
     check_dict = dict()
-    check_dict['samplesheet'] = False
+    check_dict['sample_sheet'] = False
     check_dict['interop'] = False
     check_dict['data'] = False
     check_dict['basecalls'] = False
@@ -38,7 +18,7 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
 
     for f in miseq_folder.glob("*"):
         if f.name == "SampleSheet.csv":
-            check_dict['samplesheet'] = True
+            check_dict['sample_sheet'] = True
             print("PASS: Detected 'SampleSheet.csv'")
         elif f.name == "InterOp" and f.is_dir():
             check_dict['interop'] = True
@@ -144,8 +124,6 @@ def get_sample_dictionary(directory: Path) -> dict:
     """
     Creates a sample dictionary with unique/valid sample IDs as keys and paths to forward and reverse reads as values
     :param directory: Path to a directory containing .fastq.gz files
-    :param forward_id: ID indicating forward read in filename (e.g. _R1)
-    :param reverse_id: ID indicating reverse read in filename (e.g. _R2)
     :return: Validated sample dictionary with sample_ID:R1,R2 structure
     """
     fastq_file_list = retrieve_fastqgz(directory)
@@ -156,63 +134,80 @@ def get_sample_dictionary(directory: Path) -> dict:
     return sample_dictionary
 
 
-def populate_run_interop_object(interop_folder: Path, run_id: str):
-    run_interop_object = RunInterOpDataObject(run_id=run_id)
+def populate_run_object_interop(interop_dir: Path, run_id: str):
+    # Instantiate
+    run_data_object = RunDataObject(run_id=run_id)
 
-    run_interop_object.control_metrics = interop_folder / 'ControlMetricsOut.bin'
-    run_interop_object.correctedintmetrics = interop_folder / 'CorrectedIntMetricsOut.bin'
-    run_interop_object.errormetrics = interop_folder / 'ErrorMetricsOut.bin'
-    run_interop_object.extractionmetrics = interop_folder / 'ExtractionMetricsOut.bin'
-    run_interop_object.indexmetrics = interop_folder / 'IndexMetricsOut.bin'
-    run_interop_object.qmetrics2030 = interop_folder / 'QMetrics2030Out.bin'
-    run_interop_object.qmetricsbylane = interop_folder / 'QMetricsByLaneOut.bin'
-    run_interop_object.qmetrics = interop_folder / 'QMetricsOut.bin'
-    run_interop_object.tilemetrics = interop_folder / 'TileMetricsOut.bin'
-    return run_interop_object
+    # Populate
+    run_data_object.interop_dir = interop_dir
+    run_data_object.control_metrics = interop_dir / 'ControlMetricsOut.bin'
+    run_data_object.correctedintmetrics = interop_dir / 'CorrectedIntMetricsOut.bin'
+    run_data_object.errormetrics = interop_dir / 'ErrorMetricsOut.bin'
+    run_data_object.extractionmetrics = interop_dir / 'ExtractionMetricsOut.bin'
+    run_data_object.indexmetrics = interop_dir / 'IndexMetricsOut.bin'
+    run_data_object.qmetrics2030 = interop_dir / 'QMetrics2030Out.bin'
+    run_data_object.qmetricsbylane = interop_dir / 'QMetricsByLaneOut.bin'
+    run_data_object.qmetrics = interop_dir / 'QMetricsOut.bin'
+    run_data_object.tilemetrics = interop_dir / 'TileMetricsOut.bin'
+    return run_data_object
 
 
-def parse_miseq_folder(miseq_folder: Path) -> dict:
+def parse_miseq_folder(miseq_dir: Path) -> dict:
     # Folder setup
     read_folder = None
     interop_folder = None
 
     # Make sure folder is ok
-    if verify_miseq_folder_contents(miseq_folder):
-        read_folder = miseq_folder / "Data" / "Intensities" / "BaseCalls"
-        interop_folder = miseq_folder / "InterOp"
+    if verify_miseq_folder_contents(miseq_dir):
+        read_folder = miseq_dir / "Data" / "Intensities" / "BaseCalls"
+        interop_folder = miseq_dir / "InterOp"
 
     # Get sample dict
     sample_dict = get_sample_dictionary(read_folder)
-
     for sample, reads in sorted(sample_dict.items()):
         print(f"{sample} ({reads[0].name}, {reads[1].name})")
 
-    samplesheet = Path(list(miseq_folder.glob('SampleSheet.csv'))[0])
-    runinfoxml = Path(list(miseq_folder.glob('RunInfo.xml'))[0])
-    runparametersxml = Path(list(miseq_folder.glob('RunParameters.xml'))[0])
-    run_id = extract_run_name(samplesheet)  # TODO: Pass this value along, it's calculated somewhere else as well
-    run_interop_object = populate_run_interop_object(interop_folder=interop_folder, run_id=run_id)
-    run_interop_object.runinfoxml = runinfoxml
-    run_interop_object.runparametersxml = runparametersxml
+    # SampleSheet.csv
+    sample_sheet = Path(list(miseq_dir.glob('SampleSheet.csv'))[0])
+
+    # RunInfo.xml
+    try:
+        runinfoxml = Path(list(miseq_dir.glob('RunInfo.xml'))[0])
+    except IndexError as e:
+        print("WARNING: Could not find RunInfo.xml")
+        print(f"TRACEBACK: {e}")
+        runinfoxml = None
+
+    # RunParameters.xml
+    try:
+        runparametersxml = Path(list(miseq_dir.glob('RunParameters.xml'))[0])
+    except IndexError as e:
+        print("WARNING: Could not find RunParameters.xml")
+        print(f"TRACEBACK: {e}")
+        runparametersxml = None
+
+    run_id = extract_run_name(sample_sheet)
+    run_data_object = populate_run_object_interop(interop_dir=interop_folder, run_id=run_id)
+    run_data_object.runinfoxml = runinfoxml
+    run_data_object.runparametersxml = runparametersxml
+    run_data_object.sample_sheet = sample_sheet
 
     # Get log files
-    log_folder = miseq_folder / "Logs"
+    log_folder = miseq_dir / "Logs"
     log_files = list(log_folder.glob("*"))
+    run_data_object.logfiles = log_files
 
     # NOTE: The stats file is only created when the run is uploaded to BaseSpace. It will be missing from local runs.
     try:
         json_stats_file = Path(list(log_folder.glob("Stats.json"))[0])
-    except IndexError:
-        print("WARNING: Could not locate ./Logs/Stats.json file.")
-        json_stats_file = None
+        run_data_object.json_stats_file = json_stats_file
+    except IndexError as e:
+        print("WARNING: Could not locate ./Logs/Stats.json file")
+        print(f"TRACEBACK: {e}")
 
     # Create dict for all MiSeq data
     miseq_dict = dict()
-    miseq_dict['samplesheet_path'] = samplesheet
-    miseq_dict['interop_folder'] = interop_folder
     miseq_dict['sample_dict'] = sample_dict
-    miseq_dict['log_files'] = log_files
-    miseq_dict['run_interop_object'] = run_interop_object
-    miseq_dict['json_stats_file'] = json_stats_file
+    miseq_dict['run_data_object'] = run_data_object
 
     return miseq_dict

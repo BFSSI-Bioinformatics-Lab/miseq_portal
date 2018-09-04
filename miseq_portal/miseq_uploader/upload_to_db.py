@@ -2,40 +2,38 @@ import os
 import shutil
 
 from pathlib import Path
+from typing import Union
 from config.settings.base import MEDIA_ROOT
 
-from miseq_uploader.parse_samplesheet import generate_sample_objects, SampleObject
-from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder, RunInterOpDataObject
+from miseq_uploader.parse_samplesheet import generate_sample_objects
+from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
 from miseq_uploader.parse_stats_json import stats_json_to_df
 
 from miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, SampleLogData, \
-    upload_run_file, upload_reads, upload_interop_file
+    upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, RunDataObject
 from miseq_portal.users.models import User
 
 
 def receive_miseq_run_dir(miseq_dir: Path):
     print(f'{"="*24}\nCHECKING MISEQ DIRECTORY\n{"="*24}')
-    miseq_dict = parse_miseq_folder(miseq_folder=miseq_dir)
+    miseq_dict = parse_miseq_folder(miseq_dir=miseq_dir)
 
-    print(f'{"="*20}\nCHECKING SAMPLESHEET\n{"="*20}')
-    samplesheet = miseq_dict['samplesheet_path']
-    json_stats_file = miseq_dict['json_stats_file']
-    sample_object_list = generate_sample_objects(samplesheet=miseq_dict['samplesheet_path'])
-    run_interop_object = miseq_dict['run_interop_object']
+    print(f'{"="*20}\nCHECKING SAMPLESHEET AND RUN DETAILS\n{"="*36}')
+    run_data_object = miseq_dict['run_data_object']
+    sample_object_list = generate_sample_objects(sample_sheet=run_data_object.sample_sheet)
 
     # Update SampleObjects with stats and reads
     sample_object_list = append_sample_object_reads(sample_dict=miseq_dict['sample_dict'],
                                                     sample_object_list=sample_object_list)
-    sample_object_list = append_sample_object_stats(json_stats_file=json_stats_file,
+    sample_object_list = append_sample_object_stats(json_stats_file=run_data_object.json_stats_file,
                                                     sample_object_list=sample_object_list)
 
     upload_to_db(sample_object_list=sample_object_list,
-                 run_interop_data_object=run_interop_object,
-                 samplesheet=samplesheet)
+                 run_data_object=run_data_object)
     print(f'{"="*15}\nUPLOAD COMPLETE\n{"="*15}')
 
 
-def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleObject]) -> [SampleObject]:
+def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleDataObject]) -> [SampleDataObject]:
     """Appends read paths to SampleObjects given a sample_dict.
     Useful side effect of only returning SampleObjects that actually have reads associated with them."""
     sample_object_list_reads = list()
@@ -48,8 +46,10 @@ def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleObj
     return sample_object_list_reads
 
 
-def append_sample_object_stats(json_stats_file: Path, sample_object_list: [SampleObject]) -> [SampleObject]:
-    """Given a list of SampleObjects + the Stats.json file from the same run, appends those stats to the SampleObject"""
+def append_sample_object_stats(json_stats_file: Path, sample_object_list: [SampleDataObject]) -> [SampleDataObject]:
+    """
+    Given a list of SampleObjects + the Stats.json file from the same run, appends those stats to the SampleDataObject
+    """
     if json_stats_file is None:
         print("WARNING: Cannot append sample stats for this run because no Stats.json file was provided")
         return sample_object_list
@@ -76,91 +76,100 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
     return sample_object_list_stats
 
 
-def upload_run_interop_data(run_interop_instance: RunInterOpData, run_interop_data_object: RunInterOpDataObject,
-                            run_interop_model_fieldname: str) -> RunInterOpData:
+def upload_run_data(run_instance: Union[Run, RunInterOpData], run_data_object: RunDataObject,
+                    run_model_fieldname: str, interop_flag: bool) -> Union[Run, RunInterOpData]:
     """
-    TODO: Maybe implement this pattern for other file uploads. This could be a generic function.
-    :param run_interop_instance:
-    :param run_interop_data_object:
-    :param run_interop_model_fieldname:
-    :return:
     """
     # Check if the attribute exists, quit if it doesn't
     try:
-        interop_attr = getattr(run_interop_data_object, run_interop_model_fieldname)
+        model_attr = getattr(run_data_object, run_model_fieldname)
     except AttributeError:
-        raise AttributeError(f"Attribute {run_interop_model_fieldname} does not exist.")
+        raise AttributeError(f"Attribute {run_model_fieldname} does not exist.")
+
+    if not os.path.isfile(str(model_attr)):
+        print(f"WARNING: Could not find {str(model_attr)}. Skipping.")
+        return run_instance
 
     # Create destination path for InterOp file
-    interop_file_path = upload_interop_file(run_interop_instance, interop_attr.name)
+    if interop_flag:
+        run_file_path = upload_interop_file(run_instance, model_attr.name)
+    else:
+        run_file_path = upload_run_file(run_instance, model_attr.name)
 
     # Create InterOp directory for file if it doesn't already exist
-    os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + interop_file_path), exist_ok=True)
+    os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + run_file_path), exist_ok=True)
 
     # Transfer the file to the disk
-    shutil.copy(src=str(interop_attr), dst=(MEDIA_ROOT + '/' + interop_file_path))
+    shutil.copy(src=str(model_attr), dst=(MEDIA_ROOT + '/' + run_file_path))
 
     # Update the run instance
-    setattr(run_interop_instance, run_interop_model_fieldname, interop_file_path)
-    print(f"Succesfully uploaded {interop_attr.name}")
-    return run_interop_instance
+    setattr(run_instance, run_model_fieldname, run_file_path)
+    print(f"Succesfully uploaded {model_attr.name} to {run_file_path}")
+    return run_instance
 
 
-def upload_run_xml_file(run_interop_instance: RunInterOpData, run_interop_data_object: RunInterOpDataObject,
-                        run_xml_fieldname: str):
-    xml_attr = getattr(run_interop_data_object, run_xml_fieldname)
-
-    # Create destination path for XML file
-    xml_file_path = upload_run_file(run_interop_instance, xml_attr.name)
-
-    # Create XML directory for file if it doesn't already exist
-    os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + xml_file_path), exist_ok=True)
-
-    # Transfer the file to the disk
-    shutil.copy(src=str(xml_attr), dst=(MEDIA_ROOT + '/' + xml_file_path))
-
-    # Update the run instance
-    setattr(run_interop_instance, run_xml_fieldname, xml_file_path)
-    print(f"Succesfully uploaded {xml_attr.name} to {xml_file_path}")
-    return run_interop_instance
-
-
-def upload_to_db(sample_object_list: [SampleObject], run_interop_data_object: RunInterOpDataObject, samplesheet: Path):
+def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDataObject):
     """
     Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database
     TODO: Factor out a lot of this code into little functions. It's getting unwieldy.
     """
-
     for sample_object in sample_object_list:
         # PROJECT
-        project, p_created = Project.objects.get_or_create(project_id=sample_object.project_id,
-                                                           defaults={
-                                                               # Default to admin ownership
-                                                               'project_owner': User.objects.get(username="admin")
-                                                           })
+        project_instance, p_created = Project.objects.get_or_create(project_id=sample_object.project_id,
+                                                                    defaults={
+                                                                        # Default to admin ownership
+                                                                        'project_owner': User.objects.get(
+                                                                            username="admin")
+                                                                    })
         if p_created:
             # Create admin relationship to project immediately
-            UserProjectRelationship.objects.create(project_id=project, user_id=User.objects.get(username="admin"))
-            print(f"\nCreated project '{project}'")
+            UserProjectRelationship.objects.create(project_id=project_instance,
+                                                   user_id=User.objects.get(username="admin"))
+            print(f"\nCreated Project '{project_instance}'")
 
         # RUN
-        run, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
-                                                   defaults={'sample_sheet': ''})
-        run_interop, ri_created = RunInterOpData.objects.get_or_create(run_id=run,
-                                                                       defaults={})
+        run_instance, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
+                                                            defaults={'sample_sheet': '',
+                                                                      'runinfoxml': '',
+                                                                      'runparametersxml': '',
+                                                                      'interop_directory_path': ''})
+        run_interop_instance, ri_created = RunInterOpData.objects.get_or_create(run_id=run_instance,
+                                                                                defaults={'control_metrics': '',
+                                                                                          'correctedintmetrics': '',
+                                                                                          'errormetrics': '',
+                                                                                          'extractionmetrics': '',
+                                                                                          'indexmetrics': '',
+                                                                                          'qmetrics2030': '',
+                                                                                          'qmetricsbylane': '',
+                                                                                          'qmetrics': '',
+                                                                                          'tilemetrics': ''})
         if r_created:
-            print(f"\nCreated run '{run}'")
-            samplesheet_path = upload_run_file(instance=run, filename=samplesheet.name)
-            os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + samplesheet_path), exist_ok=True)
-            shutil.copy(str(samplesheet), (MEDIA_ROOT + '/' + samplesheet_path))
-            run.sample_sheet = samplesheet_path
-            run.save()
+            print(f"\nCreated Run '{run_instance}'")
+
+            # Set interop_dir (no upload necessary, it's just a string path)
+            interop_dir_path = upload_interop_dir(run_instance)
+            run_instance.interop_directory_path = interop_dir_path
+            print(f'Set interop_directory_path to {interop_dir_path}')
+
+            # Upload XML files + SampleSheet
+            xml_field_list = ['runinfoxml', 'runparametersxml', 'sample_sheet']
+            for field in xml_field_list:
+                run_instance = upload_run_data(run_instance=run_instance,
+                                               run_data_object=run_data_object,
+                                               run_model_fieldname=field,
+                                               interop_flag=False)
+            # Save instance
+            run_instance.save()
+            print(f"Saved {run_instance} to the database")
+
         if ri_created:
+            print(f"\nCreated RunInterop '{run_interop_instance}'")
+
             # Upload InterOp files
             run_interop_data_field_list = [
                 'control_metrics',
+                'correctedintmetrics',
                 'errormetrics',
-                'extractionmetrics',
                 'extractionmetrics',
                 'indexmetrics',
                 'qmetrics2030',
@@ -168,37 +177,35 @@ def upload_to_db(sample_object_list: [SampleObject], run_interop_data_object: Ru
                 'qmetrics',
                 'tilemetrics'
             ]
-            for field in run_interop_data_field_list:
-                run_interop = upload_run_interop_data(run_interop_instance=run_interop,
-                                                      run_interop_data_object=run_interop_data_object,
-                                                      run_interop_model_fieldname=field)
 
-            # Upload XML files
-            xml_field_list = ['runinfoxml', 'runparametersxml']
-            for field in xml_field_list:
-                run_interop = upload_run_xml_file(run_interop_instance=run_interop,
-                                                  run_interop_data_object=run_interop_data_object,
-                                                  run_xml_fieldname=field)
+            for field in run_interop_data_field_list:
+                run_interop_instance = upload_run_data(run_instance=run_interop_instance,
+                                                       run_data_object=run_data_object,
+                                                       run_model_fieldname=field,
+                                                       interop_flag=True)
+
             # Save the changes to the run_interop model instance
-            run_interop.save()
+            run_interop_instance.save()
+            print(f"Saved {run_interop_instance} to the database")
 
         # SAMPLE
-        sample, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
-                                                         defaults={'run_id': run, 'project_id': project})
-        sample_log, sl_created = SampleLogData.objects.get_or_create(sample_id=sample)
+        sample_instance, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
+                                                                  defaults={'run_id': run_instance,
+                                                                            'project_id': project_instance})
+        sample_log, sl_created = SampleLogData.objects.get_or_create(sample_id=sample_instance)
         if s_created:
             print(f"\nUploading {sample_object.sample_id}...")
 
             # Sample data + read handling
-            fwd_read_path = upload_reads(sample, sample_object.fwd_read_path.name)
-            rev_read_path = upload_reads(sample, sample_object.rev_read_path.name)
+            fwd_read_path = upload_reads(sample_instance, sample_object.fwd_read_path.name)
+            rev_read_path = upload_reads(sample_instance, sample_object.rev_read_path.name)
             os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path), exist_ok=True)
             shutil.copy(str(sample_object.fwd_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
             shutil.copy(str(sample_object.rev_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
-            sample.fwd_reads = fwd_read_path
-            sample.rev_reads = rev_read_path
-            sample.sample_name = sample_object.sample_name
-            sample.save()
+            sample_instance.fwd_reads = fwd_read_path
+            sample_instance.rev_reads = rev_read_path
+            sample_instance.sample_name = sample_object.sample_name
+            sample_instance.save()
 
         # Save sample stats
         if sl_created:

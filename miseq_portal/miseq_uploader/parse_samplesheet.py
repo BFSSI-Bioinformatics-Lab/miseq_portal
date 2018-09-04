@@ -1,32 +1,6 @@
 import pandas as pd
 from pathlib import Path
-from dataclasses import dataclass
-
-
-@dataclass
-class SampleObject:
-    """Dataclass for storing all metadata for an individual sample"""
-    # TODO: Move this to another file.... maybe miseq_viewer/models.py?
-
-    # Must be instantiated with these attributes
-    sample_id: str
-    run_id: str
-    project_id: str
-    sample_name: str
-
-    # Updated later in the lifecycle
-    fwd_read_path: Path = None
-    rev_read_path: Path = None
-    number_reads: int = None
-    sample_yield: int = None
-    r1_qualityscoresum: int = None
-    r2_qualityscoresum: int = None
-    r1_trimmedbases: int = None
-    r2_trimmedbases: int = None
-    r1_yield: int = None
-    r2_yield: int = None
-    r1_yieldq30: int = None
-    r2_yieldq30: int = None
+from miseq_viewer.models import SampleDataObject
 
 
 def validate_samplesheet_header(header: list) -> bool:
@@ -53,25 +27,25 @@ def validate_samplesheet_header(header: list) -> bool:
         return True
 
 
-def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
+def read_samplesheet(sample_sheet: Path) -> pd.DataFrame:
     """
     Reads SampleSheet.csv and returns dataframe (all header information will be stripped)
-    :param samplesheet: Path to SampleSheet.csv
+    :param sample_sheet: Path to SampleSheet.csv
     :return: pandas df of SampleSheet.csv with head section stripped away
     """
     counter = 1
-    with open(str(samplesheet)) as f:
+    with open(str(sample_sheet)) as f:
         for line in f:
             if '[Data]' in line:
                 break
             else:
                 counter += 1
-    df = pd.read_csv(samplesheet, sep=",", index_col=False, skiprows=counter)
+    df = pd.read_csv(sample_sheet, sep=",", index_col=False, skiprows=counter)
     return df
 
 
-def read_samplesheet_to_html(samplesheet: Path) -> pd.DataFrame:
-    df = read_samplesheet(samplesheet)
+def read_samplesheet_to_html(sample_sheet: Path) -> pd.DataFrame:
+    df = read_samplesheet(sample_sheet)
     return df.to_html(table_id="samplesheet", index=None, classes=['compact'], bold_rows=False, )
 
 
@@ -103,19 +77,19 @@ def group_by_project(samplesheet_df: pd.DataFrame) -> dict:
     return project_dict
 
 
-def extract_run_name(samplesheet: Path) -> str:
+def extract_run_name(sample_sheet: Path) -> str:
     """
     Retrieves the 'Experiment Name' from SampleSheet.csv
-    :param samplesheet: Path to SampleSheet.csv
+    :param sample_sheet: Path to SampleSheet.csv
     :return: value of 'Experiment Name'
     """
-    with open(str(samplesheet)) as f:
+    with open(str(sample_sheet)) as f:
         for line in f:
             if 'Experiment Name' in line:
                 experiment_name = line.split(',')[1].strip()
                 return experiment_name
         else:
-            raise Exception(f"Could not find 'Experiment Name' in {samplesheet}")
+            raise Exception(f"Could not find 'Experiment Name' in {sample_sheet}")
 
 
 def validate_sample_id(value: str, length: int = 15) -> bool:
@@ -142,15 +116,15 @@ def validate_sample_id(value: str, length: int = 15) -> bool:
         return True
 
 
-def generate_sample_objects(samplesheet: Path) -> [SampleObject]:
-    df = read_samplesheet(samplesheet=samplesheet)
+def generate_sample_objects(sample_sheet: Path) -> [SampleDataObject]:
+    df = read_samplesheet(sample_sheet=sample_sheet)
 
     # Validate header
     validate_samplesheet_header(header=list(df))
     print("PASS: Header is valid")
 
     # Grab Run Name
-    run_id = extract_run_name(samplesheet=samplesheet)
+    run_id = extract_run_name(sample_sheet=sample_sheet)
     print(f"\nDetected the following Run name: {run_id}")
 
     # Get all Projects and associated samples from the SampleSheet
@@ -169,15 +143,15 @@ def generate_sample_objects(samplesheet: Path) -> [SampleObject]:
     # Get Sample Names
     sample_name_dictionary = get_sample_name_dictionary(df=df)
 
-    # Create SampleObject list. Need to consolidate sample_id, sample_name, project_id, and run_id per-sample
+    # Create SampleDataObject list. Need to consolidate sample_id, sample_name, project_id, and run_id per-sample
     sample_object_list = list()
     for sample_id in sample_id_list:
         for project_id, sample_list in project_dict.items():
             if sample_id in sample_list:
-                sample_object = SampleObject(sample_id=sample_id,
-                                             sample_name=sample_name_dictionary[sample_id],
-                                             run_id=run_id,
-                                             project_id=project_id)
+                sample_object = SampleDataObject(sample_id=sample_id,
+                                                 sample_name=sample_name_dictionary[sample_id],
+                                                 run_id=run_id,
+                                                 project_id=project_id)
                 sample_object_list.append(sample_object)
 
     return sample_object_list

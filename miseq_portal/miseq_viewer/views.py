@@ -1,8 +1,10 @@
+import os
 import json
 from pathlib import Path
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView, ListView, View
+from django.http import HttpResponse, Http404
 
 from config.settings.base import MEDIA_ROOT
 
@@ -60,19 +62,28 @@ class RunDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         # Get run folder to feed to the interop parser
-        run_folder = Path(str(context['run'].sample_sheet)).parent
+        interop_folder = context['run'].interop_directory_path
+        if context['run'].interop_directory_path is not None:
+            interop_folder = Path(interop_folder)
+        else:
+            print("WARNING: The InterOp directory for this run is not stored in the database")
+            context['interop_data_avaiable'] = False
+
+        # Grab Samplesheet path
+        samplesheet = Path(MEDIA_ROOT) / str(context['run'].sample_sheet)
 
         # Try to receive InterOp data, if it's not available then display an alert on miseq_viewer/run_detail.html
         try:
-            context['qscore_json'] = get_qscore_json(Path(MEDIA_ROOT) / run_folder)
+            context['qscore_json'] = get_qscore_json(Path(MEDIA_ROOT) / interop_folder.parent)
             context['interop_data_avaiable'] = True
-        except:
+        except Exception as e:
+            print(f"Could not parse InterOp files: {e}")
             context['interop_data_avaiable'] = False
 
+        print(f"interop_data_available: {context['interop_data_avaiable']}")
         context['project_list'] = Project.objects.all()
         context['sample_list'] = Sample.objects.all()
-        context['samplesheet_df'] = parse_samplesheet.read_samplesheet_to_html(
-            Path(MEDIA_ROOT) / str(context['run'].sample_sheet))
+        context['samplesheet_df'] = parse_samplesheet.read_samplesheet_to_html(sample_sheet=samplesheet)
         return context
 
 
@@ -91,10 +102,16 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
 
 sample_detail_view = SampleDetailView.as_view()
 
-# class DownloadReadView(LoginRequiredMixin, DetailView):
+#
+# class DownloadReadView(LoginRequiredMixin, View):
 #     model = Sample
 #     context_object_name = 'sample'
-#     # template_name = "miseq_viewer/sample_download.html"
+#     template_name = "miseq_viewer/sample_download.html"
+#
+#     def get(self, request):
+#         response = HttpResponse(content_type="image/jpeg")
+#         file_path = os.path.join(MEDIA_ROOT, ['sample'])
+#         response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
 #
 #     def get_context_data(self, **kwargs):
 #         context = super().get_context_data(**kwargs)
@@ -103,8 +120,10 @@ sample_detail_view = SampleDetailView.as_view()
 #         file_path = os.path.join(MEDIA_ROOT, path)
 #         if os.path.exists(file_path):
 #             with open(file_path, 'rb') as fh:
-#                 response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+#                 response = HttpResponse(fh.read(), content_type="application/gzip")
 #                 response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
 #                 return response
 #         raise Http404
 #
+#
+# read_download_view = DownloadReadView.as_view()
