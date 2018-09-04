@@ -10,14 +10,14 @@ from miseq_uploader.parse_miseq_analysis_folder import retrieve_fastqgz, filter_
 
 
 def samplesheet_to_samplename_dict(samplesheet: Path) -> dict:
-    df = read_samplesheet(samplesheet=samplesheet)
+    df = read_samplesheet(sample_sheet=samplesheet)
 
     # Validate header
     validate_samplesheet_header(header=list(df))
     print("PASS: Header is valid")
 
     # Grab Run Name
-    run_id = extract_run_name(samplesheet=samplesheet)
+    run_id = extract_run_name(sample_sheet=samplesheet)
     print(f"\nDetected the following Run name: {run_id}")
 
     # Get all Projects and associated samples from the SampleSheet
