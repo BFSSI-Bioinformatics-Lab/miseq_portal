@@ -1,3 +1,7 @@
+import os
+import sys
+import raven
+import logging
 from .base import *  # noqa
 from .base import env
 
@@ -8,6 +12,7 @@ DEBUG = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='nzLmaOFkXcklXlRqXokowxivfd52TY4YmIJQCuLUea55r2roP73n8Ts4cJ3Ykgc6')
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
+
 ALLOWED_HOSTS = [
     "localhost",
     "0.0.0.0",
@@ -56,7 +61,6 @@ DEBUG_TOOLBAR_CONFIG = {
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#internal-ips
 INTERNAL_IPS = ['127.0.0.1', '10.0.2.2']
 
-
 # django-extensions
 # ------------------------------------------------------------------------------
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
@@ -64,3 +68,61 @@ INSTALLED_APPS += ['django_extensions']  # noqa F405
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+# raven
+# ------------------------------------------------------------------------------
+# https://docs.sentry.io/clients/python/integrations/django/
+INSTALLED_APPS += ['raven.contrib.django.raven_compat']  # noqa F405
+MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware'] + MIDDLEWARE
+
+# Sentry
+# ------------------------------------------------------------------------------
+SENTRY_DSN = 'https://17c3f4a0263e4b50b48f706cafb9afd0:fc8010ba656740d185a48cbafbc27437@sentry.io/1276151'  # env('SENTRY_DSN')
+SENTRY_CLIENT = env('DJANGO_SENTRY_CLIENT', default='raven.contrib.django.raven_compat.DjangoClient')
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'root': {
+        'level': 'WARNING',
+        'handlers': ['sentry'],
+    },
+    'formatters': {
+        'verbose': {
+            'format': '\033[92m \033[1m %(levelname)s %(asctime)s %(module)s:\033[0m %(message)s '
+        },
+    },
+    'handlers': {
+        'sentry': {
+            'level': 'INFO', # To capture more than ERROR, change to WARNING, INFO, etc.
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+            'tags': {'custom-tag': 'x'},
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'raven': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'sentry.errors': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+    },
+}
+
+
+SENTRY_CELERY_LOGLEVEL = env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO)
+RAVEN_CONFIG = {
+    'dsn': 'https://17c3f4a0263e4b50b48f706cafb9afd0:fc8010ba656740d185a48cbafbc27437@sentry.io/1276151',
+}
