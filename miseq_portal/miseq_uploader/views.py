@@ -9,6 +9,9 @@ from .forms import RunModelForm, CreateProjectForm, UploadMiSeqDirectoryForm
 from miseq_viewer.models import Project
 from miseq_uploader.upload_to_db import receive_miseq_run_dir
 
+import logging
+logger = logging.getLogger('raven')
+
 
 class MiseqUploaderView(LoginRequiredMixin, TemplateView):
     template_name = 'miseq_uploader/miseq_uploader.html'
@@ -45,7 +48,7 @@ class CreateProjectView(LoginRequiredMixin, View):
             obj.save()
             return redirect(self.success_url)
         else:
-            print('Form not valid')
+            logger.info('Form not valid')
             return render(request, self.template_name, {'form': form})
 
 
@@ -77,7 +80,7 @@ class MiSeqFormView(LoginRequiredMixin, UserPassesTestMixin, View):
             receive_miseq_run_dir(Path(request.POST['miseq_directory']))
             return redirect(self.success_url)
         else:
-            print('something bad happened??')
+            logger.info('something bad happened??')
             return render(request, self.template_name, {'form': form})
 
 
@@ -102,7 +105,7 @@ class RunFormView(LoginRequiredMixin, View):
         try:
             project = Project.objects.get(project_id=project_id)
         except Project.DoesNotExist:
-            print(f'Could not retrieve the following project: {project_id}')
+            logger.info(f'Could not retrieve the following project: {project_id}')
             return
         post['project_id'] = project
         post['project_id_id'] = project.pk
@@ -121,7 +124,7 @@ class RunFormView(LoginRequiredMixin, View):
             return redirect(self.success_url)
         else:
             # TODO: Make this better
-            print('Form not valid')
+            logger.info('Form not valid')
             return render(request, self.template_name, {'form': form})
 
 

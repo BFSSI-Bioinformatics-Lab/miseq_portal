@@ -8,23 +8,26 @@ from miseq_uploader.parse_samplesheet import get_sample_name_dictionary, read_sa
     group_by_project, get_sample_id_list, validate_sample_id, validate_samplesheet_header
 from miseq_uploader.parse_miseq_analysis_folder import retrieve_fastqgz, filter_undetermined_reads
 
+import logging
+logger = logging.getLogger('raven')
+
 
 def samplesheet_to_samplename_dict(samplesheet: Path) -> dict:
     df = read_samplesheet(sample_sheet=samplesheet)
 
     # Validate header
     validate_samplesheet_header(header=list(df))
-    print("PASS: Header is valid")
+    logger.info("PASS: Header is valid")
 
     # Grab Run Name
     run_id = extract_run_name(sample_sheet=samplesheet)
-    print(f"\nDetected the following Run name: {run_id}")
+    logger.info(f"\nDetected the following Run name: {run_id}")
 
     # Get all Projects and associated samples from the SampleSheet
     project_dict = group_by_project(samplesheet_df=df)
-    print(f"\nDetected the following Projects within the SampleSheet:")
+    logger.info(f"\nDetected the following Projects within the SampleSheet:")
     for key, value in project_dict.items():
-        print(key)
+        logger.info(key)
 
     # Get all Sample IDs
     sample_id_list = get_sample_id_list(samplesheet_df=df)
@@ -58,7 +61,7 @@ def check_sample_ids_in_filenames(data_folder: Path, samplesheet: Path):
                 if sample_name == name_element:
                     # Append sample_id to beginning of filename
                     fastq_file_renamed = fastq_file.parent / (sample_id + '_' + fastq_file.name)
-                    print(f"Renaming {fastq_file.name} to {fastq_file_renamed.name}")
+                    logger.info(f"Renaming {fastq_file.name} to {fastq_file_renamed.name}")
                     os.rename(fastq_file, fastq_file_renamed)
 
 

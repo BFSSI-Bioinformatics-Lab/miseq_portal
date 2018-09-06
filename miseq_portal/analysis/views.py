@@ -7,6 +7,9 @@ from django.views.generic import ListView, View
 from miseq_viewer.models import Sample, UserProjectRelationship
 from analysis.models import SampleAnalysisTemporaryGroup
 
+import logging
+logger = logging.getLogger('raven')
+
 
 class AnalysisIndexView(LoginRequiredMixin, ListView):
     template_name = 'analysis/analysis_index.html'
@@ -36,6 +39,8 @@ class AnalysisIndexView(LoginRequiredMixin, ListView):
         for sample_object in sample_object_list:
             obj = SampleAnalysisTemporaryGroup(sample_id=sample_object, user=request.user)
             obj.save()
+
+        logger.info(f'Saved {sample_object_list} to SampleAnalysisTemporaryGroup for user "{request.user}"')
 
         context = {'success': True,
                    'url': 'tool_selection/'}

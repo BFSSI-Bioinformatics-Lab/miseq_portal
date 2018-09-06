@@ -2,6 +2,10 @@ from pathlib import Path
 from miseq_uploader.parse_samplesheet import extract_run_name
 from miseq_viewer.models import RunDataObject
 
+import logging
+
+logger = logging.getLogger('raven')
+
 
 def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
     """
@@ -19,23 +23,23 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
     for f in miseq_folder.glob("*"):
         if f.name == "SampleSheet.csv":
             check_dict['sample_sheet'] = True
-            print("PASS: Detected 'SampleSheet.csv'")
+            logger.info("PASS: Detected 'SampleSheet.csv'")
         elif f.name == "InterOp" and f.is_dir():
             check_dict['interop'] = True
-            print("PASS: Detected 'InterOp' directory")
+            logger.info("PASS: Detected 'InterOp' directory")
         elif f.name == "Data" and f.is_dir():
             check_dict['data'] = True
-            print("PASS: Detected 'Data' directory")
+            logger.info("PASS: Detected 'Data' directory")
         elif f.name == "Logs" and f.is_dir():
             check_dict['logs'] = True
-            print("PASS: Detected 'Logs' directory")
+            logger.info("PASS: Detected 'Logs' directory")
         else:
             pass
 
     # Check for fastq files in expected location
     if len(list(miseq_folder.glob("Data/Intensities/BaseCalls/*.f*q*"))) > 0:
         check_dict['basecalls'] = True
-        print("PASS: Detected a non-zero number of *.fastq.gz files in ./Data/Intensities/BaseCalls/*")
+        logger.info("PASS: Detected a non-zero number of *.fastq.gz files in ./Data/Intensities/BaseCalls/*")
     else:
         raise Exception("FAIL: Could not detect any *.fastq.gz files in ./Data/Intensities/BaseCalls/*")
 
@@ -43,7 +47,7 @@ def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
         raise Exception(f"Input folder {miseq_folder} is not structured as expected.\n"
                         f"{check_dict}")
     else:
-        print(f"Input folder {miseq_folder} passed all basic checks\n")
+        logger.info(f"Input folder {miseq_folder} passed all basic checks\n")
         return True
 
 
@@ -97,7 +101,7 @@ def get_readpair(sample_id: str, fastq_file_list: [Path], forward_id: str = "_R1
     if r1 is not None and r2 is not None:
         return [r1, r2]
     else:
-        print('Could not pair {}'.format(sample_id))
+        logger.info('Could not pair {}'.format(sample_id))
         return None
 
 
@@ -130,7 +134,7 @@ def get_sample_dictionary(directory: Path) -> dict:
     fastq_file_list = filter_undetermined_reads(fastq_file_list)
     sample_id_list = retrieve_sampleids(fastq_file_list)
     sample_dictionary = populate_sample_dictionary(sample_id_list, fastq_file_list)
-    print(f"Successfully paired {len(sample_dictionary)} of {len(sample_id_list)} samples:")
+    logger.info(f"Successfully paired {len(sample_dictionary)} of {len(sample_id_list)} samples:")
     return sample_dictionary
 
 
@@ -165,7 +169,7 @@ def parse_miseq_folder(miseq_dir: Path) -> dict:
     # Get sample dict
     sample_dict = get_sample_dictionary(read_folder)
     for sample, reads in sorted(sample_dict.items()):
-        print(f"{sample} ({reads[0].name}, {reads[1].name})")
+        logger.info(f"{sample} ({reads[0].name}, {reads[1].name})")
 
     # SampleSheet.csv
     sample_sheet = Path(list(miseq_dir.glob('SampleSheet.csv'))[0])
@@ -174,16 +178,16 @@ def parse_miseq_folder(miseq_dir: Path) -> dict:
     try:
         runinfoxml = Path(list(miseq_dir.glob('RunInfo.xml'))[0])
     except IndexError as e:
-        print("WARNING: Could not find RunInfo.xml")
-        print(f"TRACEBACK: {e}")
+        logger.info("WARNING: Could not find RunInfo.xml")
+        logger.info(f"TRACEBACK: {e}")
         runinfoxml = None
 
     # RunParameters.xml
     try:
         runparametersxml = Path(list(miseq_dir.glob('RunParameters.xml'))[0])
     except IndexError as e:
-        print("WARNING: Could not find RunParameters.xml")
-        print(f"TRACEBACK: {e}")
+        logger.info("WARNING: Could not find RunParameters.xml")
+        logger.info(f"TRACEBACK: {e}")
         runparametersxml = None
 
     run_id = extract_run_name(sample_sheet)
@@ -202,8 +206,8 @@ def parse_miseq_folder(miseq_dir: Path) -> dict:
         json_stats_file = Path(list(log_folder.glob("Stats.json"))[0])
         run_data_object.json_stats_file = json_stats_file
     except IndexError as e:
-        print("WARNING: Could not locate ./Logs/Stats.json file")
-        print(f"TRACEBACK: {e}")
+        logger.info("WARNING: Could not locate ./Logs/Stats.json file")
+        logger.info(f"TRACEBACK: {e}")
 
     # Create dict for all MiSeq data
     miseq_dict = dict()

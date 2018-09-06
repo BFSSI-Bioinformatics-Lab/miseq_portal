@@ -2,6 +2,9 @@ import pandas as pd
 from pathlib import Path
 from miseq_viewer.models import SampleDataObject
 
+import logging
+logger = logging.getLogger('raven')
+
 
 def validate_samplesheet_header(header: list) -> bool:
     """
@@ -121,17 +124,17 @@ def generate_sample_objects(sample_sheet: Path) -> [SampleDataObject]:
 
     # Validate header
     validate_samplesheet_header(header=list(df))
-    print("PASS: Header is valid")
+    logger.info("PASS: Header is valid")
 
     # Grab Run Name
     run_id = extract_run_name(sample_sheet=sample_sheet)
-    print(f"\nDetected the following Run name: {run_id}")
+    logger.info(f"\nDetected the following Run name: {run_id}")
 
     # Get all Projects and associated samples from the SampleSheet
     project_dict = group_by_project(samplesheet_df=df)
-    print(f"\nDetected the following Projects within the SampleSheet:")
+    logger.info(f"\nDetected the following Projects within the SampleSheet:")
     for key, value in project_dict.items():
-        print(key)
+        logger.info(key)
 
     # Get all Sample IDs
     sample_id_list = get_sample_id_list(samplesheet_df=df)

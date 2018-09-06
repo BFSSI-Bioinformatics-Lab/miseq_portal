@@ -20,7 +20,7 @@ def get_qscore_dataframe(run_folder: Path) -> pd.DataFrame:
     options = py_interop_plot.filter_options(run_metrics.run_info().flowcell().naming_method())
     py_interop_plot.plot_qscore_histogram(run_metrics, options, bar_data, boundary)
 
-    for i in range(bar_data.size()-1):
+    for i in range(bar_data.size() - 1):
         x = [bar_data.at(i).at(j).x() for j in range(bar_data.at(i).size())]
         y = [bar_data.at(i).at(j).y() for j in range(bar_data.at(i).size())]
         x_vals += x

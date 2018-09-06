@@ -13,12 +13,15 @@ from miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterO
     upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, RunDataObject
 from miseq_portal.users.models import User
 
+import logging
+logger = logging.getLogger('raven')
+
 
 def receive_miseq_run_dir(miseq_dir: Path):
-    print(f'{"="*24}\nCHECKING MISEQ DIRECTORY\n{"="*24}')
+    logger.info(f'{"="*24}\nCHECKING MISEQ DIRECTORY\n{"="*24}')
     miseq_dict = parse_miseq_folder(miseq_dir=miseq_dir)
 
-    print(f'{"="*20}\nCHECKING SAMPLESHEET AND RUN DETAILS\n{"="*36}')
+    logger.info(f'{"="*20}\nCHECKING SAMPLESHEET AND RUN DETAILS\n{"="*36}')
     run_data_object = miseq_dict['run_data_object']
     sample_object_list = generate_sample_objects(sample_sheet=run_data_object.sample_sheet)
 
@@ -30,7 +33,7 @@ def receive_miseq_run_dir(miseq_dir: Path):
 
     upload_to_db(sample_object_list=sample_object_list,
                  run_data_object=run_data_object)
-    print(f'{"="*15}\nUPLOAD COMPLETE\n{"="*15}')
+    logger.info(f'{"="*15}\nUPLOAD COMPLETE\n{"="*15}')
 
 
 def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleDataObject]) -> [SampleDataObject]:
@@ -51,7 +54,7 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
     Given a list of SampleObjects + the Stats.json file from the same run, appends those stats to the SampleDataObject
     """
     if json_stats_file is None:
-        print("WARNING: Cannot append sample stats for this run because no Stats.json file was provided")
+        logger.info("WARNING: Cannot append sample stats for this run because no Stats.json file was provided")
         return sample_object_list
 
     sample_object_list_stats = list()
@@ -78,8 +81,6 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
 
 def upload_run_data(run_instance: Union[Run, RunInterOpData], run_data_object: RunDataObject,
                     run_model_fieldname: str, interop_flag: bool) -> Union[Run, RunInterOpData]:
-    """
-    """
     # Check if the attribute exists, quit if it doesn't
     try:
         model_attr = getattr(run_data_object, run_model_fieldname)
@@ -87,7 +88,7 @@ def upload_run_data(run_instance: Union[Run, RunInterOpData], run_data_object: R
         raise AttributeError(f"Attribute {run_model_fieldname} does not exist.")
 
     if not os.path.isfile(str(model_attr)):
-        print(f"WARNING: Could not find {str(model_attr)}. Skipping.")
+        logger.info(f"WARNING: Could not find {str(model_attr)}. Skipping.")
         return run_instance
 
     # Create destination path for InterOp file
@@ -104,7 +105,7 @@ def upload_run_data(run_instance: Union[Run, RunInterOpData], run_data_object: R
 
     # Update the run instance
     setattr(run_instance, run_model_fieldname, run_file_path)
-    print(f"Succesfully uploaded {model_attr.name} to {run_file_path}")
+    logger.info(f"Succesfully uploaded {model_attr.name} to {run_file_path}")
     return run_instance
 
 
@@ -125,7 +126,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
             # Create admin relationship to project immediately
             UserProjectRelationship.objects.create(project_id=project_instance,
                                                    user_id=User.objects.get(username="admin"))
-            print(f"\nCreated Project '{project_instance}'")
+            logger.info(f"\nCreated Project '{project_instance}'")
 
         # RUN
         run_instance, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
@@ -144,12 +145,12 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
                                                                                           'qmetrics': '',
                                                                                           'tilemetrics': ''})
         if r_created:
-            print(f"\nCreated Run '{run_instance}'")
+            logger.info(f"\nCreated Run '{run_instance}'")
 
             # Set interop_dir (no upload necessary, it's just a string path)
             interop_dir_path = upload_interop_dir(run_instance)
             run_instance.interop_directory_path = interop_dir_path
-            print(f'Set interop_directory_path to {interop_dir_path}')
+            logger.info(f'Set interop_directory_path to {interop_dir_path}')
 
             # Upload XML files + SampleSheet
             xml_field_list = ['runinfoxml', 'runparametersxml', 'sample_sheet']
@@ -160,10 +161,10 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
                                                interop_flag=False)
             # Save instance
             run_instance.save()
-            print(f"Saved {run_instance} to the database")
+            logger.info(f"Saved {run_instance} to the database")
 
         if ri_created:
-            print(f"\nCreated RunInterop '{run_interop_instance}'")
+            logger.info(f"\nCreated RunInterop '{run_interop_instance}'")
 
             # Upload InterOp files
             run_interop_data_field_list = [
@@ -186,7 +187,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
 
             # Save the changes to the run_interop model instance
             run_interop_instance.save()
-            print(f"Saved {run_interop_instance} to the database")
+            logger.info(f"Saved {run_interop_instance} to the database")
 
         # SAMPLE
         sample_instance, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
@@ -194,7 +195,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
                                                                             'project_id': project_instance})
         sample_log, sl_created = SampleLogData.objects.get_or_create(sample_id=sample_instance)
         if s_created:
-            print(f"\nUploading {sample_object.sample_id}...")
+            logger.info(f"\nUploading {sample_object.sample_id}...")
 
             # Sample data + read handling
             fwd_read_path = upload_reads(sample_instance, sample_object.fwd_read_path.name)

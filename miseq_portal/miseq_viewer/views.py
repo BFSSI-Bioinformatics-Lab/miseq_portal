@@ -12,6 +12,9 @@ from miseq_viewer.models import Project, Run, Sample, UserProjectRelationship
 from miseq_uploader import parse_samplesheet
 from miseq_uploader.parse_interop import get_qscore_json
 
+import logging
+logger = logging.getLogger('raven')
+
 
 class ProjectListView(LoginRequiredMixin, ListView):
     model = Project
@@ -63,10 +66,12 @@ class RunDetailView(LoginRequiredMixin, DetailView):
 
         # Get run folder to feed to the interop parser
         interop_folder = context['run'].interop_directory_path
+        logger.info(f'InterOp folder: {interop_folder}')
+
         if context['run'].interop_directory_path is not None:
             interop_folder = Path(interop_folder)
         else:
-            print("WARNING: The InterOp directory for this run is not stored in the database")
+            logger.info("WARNING: The InterOp directory for this run is not stored in the database")
             context['interop_data_avaiable'] = False
 
         # Grab Samplesheet path
@@ -77,10 +82,11 @@ class RunDetailView(LoginRequiredMixin, DetailView):
             context['qscore_json'] = get_qscore_json(Path(MEDIA_ROOT) / interop_folder.parent)
             context['interop_data_avaiable'] = True
         except Exception as e:
-            print(f"Could not parse InterOp files: {e}")
+            logger.info(f"Could not parse InterOp files for {context['run']}")
+            logging.error(f'TRACEBACK: {e}')
             context['interop_data_avaiable'] = False
 
-        print(f"interop_data_available: {context['interop_data_avaiable']}")
+        logger.info(f"interop_data_available: {context['interop_data_avaiable']}")
         context['project_list'] = Project.objects.all()
         context['sample_list'] = Sample.objects.all()
         context['samplesheet_df'] = parse_samplesheet.read_samplesheet_to_html(sample_sheet=samplesheet)
