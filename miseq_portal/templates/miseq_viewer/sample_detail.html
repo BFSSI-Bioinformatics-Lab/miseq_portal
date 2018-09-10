@@ -5,16 +5,24 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
         integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.5.1/css/colReorder.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.5.1/css/colReorder.dataTables.min.css">
 
 {% endblock %}
 
 {% block title %}{{ sample }}{% endblock %}
 
 {% block content %}
-  <div class="page-header">
-    <h1>{{ sample }}</h1>
+  <div class="row">
+    <div class="col">
+      <h1><strong>Sample: </strong>{{ sample }}</h1>
+    </div>
+    <div class="col">
+      <h5><strong>Project: </strong>{{ sample.project_id }}</h5>
+      <h5><strong>Run: </strong>{{ sample.run_id }}</h5>
+    </div>
   </div>
+
+  <hr>
 
   <table id="sample_detail" class="display" style="width:100%">
     <thead>
