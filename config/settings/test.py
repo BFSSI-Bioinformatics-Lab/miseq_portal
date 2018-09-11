@@ -1,5 +1,8 @@
 """
 With these settings, tests run faster.
+
+python manage.py test --settings=config.settings.test
+coverage run manage.py test --settings=config.settings.test
 """
 
 from .base import *  # noqa
@@ -8,7 +11,7 @@ from .base import env
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = False
+DEBUG = False  # This must be enabled to run 'coverage run manage.py test --settings=config.settings.test'
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="Eg3amdfR24odYg9QjHmqu2G54AJFqgt18LgzYY4aXRZyUi0arsC9fhFnSDWh4sZd")
 # https://docs.djangoproject.com/en/dev/ref/settings/#test-runner
