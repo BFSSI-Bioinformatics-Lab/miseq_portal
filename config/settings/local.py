@@ -92,7 +92,7 @@ LOGGING = {
     },
     'handlers': {
         'sentry': {
-            'level': 'INFO', # To capture more than ERROR, change to WARNING, INFO, etc.
+            'level': 'INFO',  # To capture more than ERROR, change to WARNING, INFO, etc.
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
             'tags': {'custom-tag': 'x'},
         },
@@ -120,7 +120,6 @@ LOGGING = {
         },
     },
 }
-
 
 SENTRY_CELERY_LOGLEVEL = env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO)
 RAVEN_CONFIG = {
