@@ -2,7 +2,7 @@ from django import forms
 from django.forms import ModelForm, Form
 
 from miseq_portal.users.models import User
-from miseq_viewer.models import Run, Project
+from miseq_portal.miseq_viewer.models import Run, Project
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 

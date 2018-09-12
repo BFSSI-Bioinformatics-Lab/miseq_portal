@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView
 
-from miseq_viewer.models import Sample, UserProjectRelationship
+from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
 
 class SampleSearchView(LoginRequiredMixin, ListView):

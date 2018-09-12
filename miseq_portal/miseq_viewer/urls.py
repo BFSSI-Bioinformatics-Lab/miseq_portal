@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 
-from miseq_viewer.views import (
+from miseq_portal.miseq_viewer.views import (
     project_list_view,
     project_detail_view,
     run_detail_view,

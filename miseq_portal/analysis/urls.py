@@ -1,6 +1,6 @@
 from django.urls import path
 
-from analysis.views import (
+from miseq_portal.analysis.views import (
     analysis_index_view,
     tool_selection_view,
 )

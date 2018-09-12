@@ -6,8 +6,8 @@ from django.http import Http404
 from pathlib import Path
 
 from .forms import RunModelForm, CreateProjectForm, UploadMiSeqDirectoryForm
-from miseq_viewer.models import Project
-from miseq_uploader.upload_to_db import receive_miseq_run_dir
+from miseq_portal.miseq_viewer.models import Project
+from miseq_portal.miseq_uploader.upload_to_db import receive_miseq_run_dir
 
 import logging
 logger = logging.getLogger('raven')

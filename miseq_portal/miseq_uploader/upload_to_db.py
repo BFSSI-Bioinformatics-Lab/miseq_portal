@@ -5,11 +5,11 @@ from pathlib import Path
 from typing import Union
 from config.settings.base import MEDIA_ROOT
 
-from miseq_uploader.parse_samplesheet import generate_sample_objects
-from miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
-from miseq_uploader.parse_stats_json import stats_json_to_df
+from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects
+from miseq_portal.miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
+from miseq_portal.miseq_uploader.parse_stats_json import stats_json_to_df
 
-from miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, SampleLogData, \
+from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, SampleLogData, \
     upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, RunDataObject
 from miseq_portal.users.models import User
 

@@ -4,8 +4,8 @@ from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, View
 
-from miseq_viewer.models import Sample, UserProjectRelationship
-from analysis.models import SampleAnalysisTemporaryGroup
+from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
+from miseq_portal.analysis.models import SampleAnalysisTemporaryGroup
 
 import logging
 logger = logging.getLogger('raven')

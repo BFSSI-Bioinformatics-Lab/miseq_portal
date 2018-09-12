@@ -2,6 +2,6 @@ from django.apps import AppConfig
 
 
 class AnalysisConfig(AppConfig):
-    name = 'analysis'
+    name = 'miseq_portal.analysis'
     verbose_name = "Analysis"
 

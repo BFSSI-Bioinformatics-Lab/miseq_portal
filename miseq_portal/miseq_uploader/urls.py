@@ -1,6 +1,6 @@
 from django.urls import path
 
-from miseq_uploader.views import (
+from miseq_portal.miseq_uploader.views import (
     sample_form_view,
     create_project_view,
     project_created_view,

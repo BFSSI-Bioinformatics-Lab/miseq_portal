@@ -1,6 +1,6 @@
 from pathlib import Path
-from miseq_uploader.parse_samplesheet import extract_run_name
-from miseq_viewer.models import RunDataObject
+from miseq_portal.miseq_uploader.parse_samplesheet import extract_run_name
+from miseq_portal.miseq_viewer.models import RunDataObject
 
 import logging
 

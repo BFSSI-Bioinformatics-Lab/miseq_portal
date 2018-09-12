@@ -1,6 +1,6 @@
 from django.urls import path
 
-from sample_search.views import (
+from miseq_portal.sample_search.views import (
     sample_search_view
 )
 

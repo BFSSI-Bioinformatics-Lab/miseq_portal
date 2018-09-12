@@ -1,6 +1,6 @@
 import pandas as pd
 from pathlib import Path
-from miseq_viewer.models import SampleDataObject
+from miseq_portal.miseq_viewer.models import SampleDataObject
 
 import logging
 logger = logging.getLogger('raven')

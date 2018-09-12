@@ -5,3 +5,7 @@ __version_info__ = tuple(
         for num in __version__.replace("-", ".", 1).split(".")
     ]
 )
+
+from miseq_portal.taskapp.celery import app as celery_app
+
+__all__ = ['celery_app']

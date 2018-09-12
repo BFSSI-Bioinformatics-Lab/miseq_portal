@@ -1,5 +1,6 @@
 from interop import py_interop_plot, py_interop_run_metrics, py_interop_run
 from pathlib import Path
+from celery import shared_task
 import pandas as pd
 
 
@@ -31,6 +32,7 @@ def get_qscore_dataframe(run_folder: Path) -> pd.DataFrame:
     return df
 
 
+@shared_task()
 def get_qscore_json(run_folder: Path) -> str:
     df = get_qscore_dataframe(run_folder)
     return df.to_json()

@@ -2,7 +2,7 @@ from pathlib import Path
 from django.db import models
 from django.core.exceptions import ValidationError
 
-from core.models import TimeStampedModel
+from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.users.models import User
 
 from dataclasses import dataclass
