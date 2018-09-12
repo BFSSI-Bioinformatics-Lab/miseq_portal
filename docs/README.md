@@ -1,8 +1,9 @@
-# Portal Installation Process
+# Portal Documentation
 
-## Overview
+### Overview
 The MiSeq Portal was built with `Django 2.0.7` and `PostgreSQL 9.5`. 
 
+### Installation/Getting Started Instructions
 ```bash
 # Clone project
 git clone https://github.com/bfssi-forest-dussault/miseq_portal.git
@@ -43,7 +44,7 @@ python miseq_portal/manage.py runserver 0.0.0.0:8000
 # You can now access the portal through your web browser via the IP address of the host machine
 ```
 
-## PostgreSQL
+### PostgreSQL
 **Additional setup to enable JDBC connection with DBeaver:**
 
 1. Change `listen_addresses` from `'local'` to `'*'` in postgresql.conf i.e. `#listen_addresses = '*'  `
@@ -53,3 +54,69 @@ sudo nano /etc/postgresql/10/main/postgresql.conf  # Make first change here
 sudo nano /etc/postgresql/10/main/pg_hba.conf  # Make second change here
 sudo service postgresql restart  # Restart service
 ```
+
+### Administrator Usage
+Admins and staff have the ability to upload entire runs to the MiSeq portal database. 
+This is done via the miseq_uploader app (_http://192.168.1.61:8000/miseq_uploader/_).
+
+To do this, the user must be logged into the host machine (currently brock@192.168.1.61). 
+From here, locally stored runs can be easily uploaded via the 'Upload MiSeq Run' button on the webpage.
+
+The run to be uploaded **must have been retrieved with BaseMountRetrieve with the --miseqsim parameter enabled**.
+This structures the run in a format that the portal expects when parsing and uploading run data 
+(i.e. reads, InterOp, stats, logs). The user must supply the full path to the run: 
+_e.g. /mnt/Dr-Girlfriend/MiSeq/BaseSpace_Projects/Listeria2016WGS/20180813_WGS_M01308_
+
+
+### Celery + RabbitMQ
+Computationally heavy tasks are offloaded to the server via `Celery` and `RabbitMQ`.
+Tasks are created with the `@shared_task` decorator and are detected by Celery.
+The task queue is managed by the broker, RabbitMQ.
+
+The results for tasks are stored in the backend (rpc? django-db?). TBD.
+
+Celery is distributed with this project, though RabbitMQ must be installed and set up separately.
+
+#### Installing and configuring RabbitMQ
+```bash
+sudo apt install rabbitmq-server
+```
+
+Setting up RabbitMQ with a miseq_portal user can be done with the following commands.
+```bash
+sudo rabbitmqctl add_user miseq_portal password_goes_here
+sudo rabbitmqctl add_vhost miseq_portal_vhost
+sudo rabbitmqctl set_user_tags miseq_portal administrator
+sudo rabbitmqctl set_permissions -p miseq_portal_vhost miseq_portal ".*" ".*" ".*"
+```
+
+RabbitMQ can be monitored via the `RabbitMQ Management` plugin. 
+The web interface should be accessible via 0.0.0.0:15672 with the login credentials specified above.
+```
+sudo rabbitmq-plugins enable rabbitmq_management
+```
+
+#### Configuring Celery
+A Celery worker must be launched in order to watch for incoming tasks.
+```bash
+celery -A miseq_portal.taskapp worker -l INFO -E
+```
+
+Celery can be monitored via `flower`. This package is distributed alongside this project.
+The following command will launch a web interface that will be accessible via 0.0.0.0:5555.
+```bash
+celery -A miseq_portal.taskapp flower
+```
+
+
+### Data Backup/Storage
+All user supplied Runs are stored on the **BMH-WGS-Backup NAS** (192.168.1.41), 
+which is mounted on the host machine (_/mnt/MiSeqPortal_).
+
+This is the **MEDIA_ROOT** as specified in **config.settings.base**:
+
+`MEDIA_ROOT = "/mnt/MiSeqPortal"`
+
+##### Redundant backups
+The uploaded runs are also backed up to the **Wolf_Station NAS** (192.168.1.40) into the _BMH-WGS-Backup-MiSeqPortal_ 
+shared folder. This is done via the DSM Hyper Backup application and occurs once every week (Sunday evening).
