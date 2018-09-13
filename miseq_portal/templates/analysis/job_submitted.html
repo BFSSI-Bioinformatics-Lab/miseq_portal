@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Job Submitted{% endblock %}
+
+{% block content %}
+
+  <div class="alert alert-success" role="alert">
+    <h3>Job submitted successfully</h3>
+    <h5>Visit the <a href="{% url 'analysis:my_jobs' %}">My Jobs</a> page to view its progress.</h5>
+  </div>
+
+{% endblock content %}
+
+

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
+{% endblock %}
+
+{% block title %}My Jobs{% endblock %}
+
+{% block content %}
+
+  <div class="page-header">
+    <h1>Jobs</h1>
+  </div>
+
+  <div class="list-group">
+
+  </div>
+
+  <br>
+{% endblock content %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+
+  <script>
+    $.ajaxSetup({
+      headers: {"X-CSRFToken": '{{csrf_token}}'}
+    });
+
+    $(document).ready(function () {
+      let table = $('#sample_table').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+          {
+            text: 'Select All',
+            action: function (e, dt, node, config) {
+
+              $('#sample_table tbody tr').removeClass("selected").toggleClass('selected');
+            }
+          },
+          {
+            text: 'Deselect All',
+            action: function (e, dt, node, config) {
+
+              $('#sample_table tbody tr').removeClass("selected");
+            }
+          }
+        ],
+        pageLength: 20,
+      });
+
+
+      $('#sample_table tbody').on('click', 'tr', function () {
+        $(this).toggleClass('selected');
+      });
+
+      $('#submit-button').click(function () {
+        let selected_samples = table.rows('.selected').data();
+
+        if (selected_samples.length === 0) {
+          alert("Please select at least one sample to proceed.");
+          return
+        }
+
+        let sample_id_list = [];
+        for (i = 0; i < selected_samples.length; i++) {
+          // Remove HTML tags and whitespace
+          let sample_id = selected_samples[i][0].replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
+          sample_id_list.push(sample_id);
+        }
+
+
+        $.ajax({
+          url: "",
+          type: 'POST',
+          data: {'sample_id_list': sample_id_list},
+        }).done(function (data) {
+          if (data.success) {
+            window.location.href = data.url;
+          }
+        })
+      });
+    });
+  </script>
+{% endblock %}
