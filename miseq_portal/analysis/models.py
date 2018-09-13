@@ -18,10 +18,21 @@ class AnalysisGroup(models.Model):
         ('Mash', 'Mash'),
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
+
+    status_choices = (
+        ('Queued', 'Queued'),
+        ('Working', 'Working'),
+        ('Complete', 'Complete'),
+        ('Failed', 'Failed'),
+    )
+    job_status = models.CharField(choices=status_choices, max_length=50, blank=False, default='Queued')
     group_name = models.CharField(max_length=128, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Analysis Group {str(self.id)} ({str(self.user)})"
 
 
 class AnalysisSample(models.Model):

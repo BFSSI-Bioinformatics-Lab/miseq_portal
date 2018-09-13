@@ -18,8 +18,11 @@ def submit_analysis_job(analysis_group_id: AnalysisGroup):
     job_type = analysis_group.job_type
     group_id = analysis_group.id
     user = analysis_group.user
-
     analysis_samples = AnalysisSample.objects.filter(group_id=group_id)
+
+    # Update job status from Queued to Working
+    analysis_group.job_status = 'Working'
+    analysis_group.save()
 
     if job_type == 'SendSketch':
         logger.info(f"Starting {job_type} job for {user} for samples in group_id:{group_id}")
@@ -44,3 +47,6 @@ def submit_analysis_job(analysis_group_id: AnalysisGroup):
             sendsketch_object.sendsketch_result_file = str(sendsketch_result_file)
             sendsketch_object.save()
             logger.info(f"Saved {sendsketch_object} successfully")
+        logger.info(f"Analysis for {analysis_group} completed")
+        analysis_group.job_status = 'Complete'
+        analysis_group.save()

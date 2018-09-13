@@ -11,13 +11,70 @@
 {% block content %}
 
   <div class="page-header">
-    <h1>Jobs</h1>
+    <h1>My Jobs</h1>
   </div>
 
-  <div class="list-group">
-
-  </div>
-
+  <table id="job_table" class="display compact">
+    <thead>
+    <tr>
+      <th>Job ID</th>
+      <th>Job Type</th>
+      <th>Status</th>
+      <th>Results</th>
+      <th>Date Submitted</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for group in analysis_group %}
+      <tr>
+        <td>{{ group.id }}</td>
+        <td>{{ group.job_type }}</td>
+        {% if group.job_status == "Complete" %}
+          <td>
+            <div class="progress">
+              <div class="progress-bar bg-success" role="progressbar" style="width: 100%">
+                Complete
+              </div>
+            </div>
+          </td>
+        {% elif group.job_status == "Queued" %}
+          <td>
+            <div class="progress">
+              <div class="progress-bar bg-warning" role="progressbar" style="width: 100%">
+                Queued
+              </div>
+            </div>
+          </td>
+        {% elif group.job_status == "Working" %}
+          <td>
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                   style="width: 100%">
+                Working
+              </div>
+            </div>
+          </td>
+        {% elif group.job_status == "Failed" %}
+          <td>
+            <div class="progress">
+              <div class="progress-bar bg-danger" role="progressbar" style="width: 100%">
+                Failed
+              </div>
+            </div>
+          </td>
+        {% endif %}
+        {% if group.job_status == "Complete" %}
+          <td>
+            <a href="{% url 'analysis:analysis_group_detail_view' pk=group.pk %}">Results</a>
+          </td>
+        {% else %}
+          <td>N/A</td>
+        {% endif %}
+        <td>{{ group.created }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
   <br>
 {% endblock content %}
 
@@ -33,58 +90,11 @@
     });
 
     $(document).ready(function () {
-      let table = $('#sample_table').DataTable({
-        dom: 'Bfrtip',
-        buttons: [
-          {
-            text: 'Select All',
-            action: function (e, dt, node, config) {
-
-              $('#sample_table tbody tr').removeClass("selected").toggleClass('selected');
-            }
-          },
-          {
-            text: 'Deselect All',
-            action: function (e, dt, node, config) {
-
-              $('#sample_table tbody tr').removeClass("selected");
-            }
-          }
-        ],
+      let table = $('#job_table').DataTable({
         pageLength: 20,
-      });
-
-
-      $('#sample_table tbody').on('click', 'tr', function () {
-        $(this).toggleClass('selected');
-      });
-
-      $('#submit-button').click(function () {
-        let selected_samples = table.rows('.selected').data();
-
-        if (selected_samples.length === 0) {
-          alert("Please select at least one sample to proceed.");
-          return
-        }
-
-        let sample_id_list = [];
-        for (i = 0; i < selected_samples.length; i++) {
-          // Remove HTML tags and whitespace
-          let sample_id = selected_samples[i][0].replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
-          sample_id_list.push(sample_id);
-        }
-
-
-        $.ajax({
-          url: "",
-          type: 'POST',
-          data: {'sample_id_list': sample_id_list},
-        }).done(function (data) {
-          if (data.success) {
-            window.location.href = data.url;
-          }
-        })
-      });
+        order: [[4, "desc"]]
+      })
     });
+
   </script>
 {% endblock %}

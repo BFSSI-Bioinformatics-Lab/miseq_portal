@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect
-from django.contrib import messages
 from django.http import JsonResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, View, TemplateView
+from django.views.generic import ListView, View, TemplateView, DetailView
 
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
-from miseq_portal.analysis.models import SampleAnalysisTemporaryGroup, AnalysisSample, AnalysisGroup
+from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.tasks import submit_analysis_job
 
@@ -99,14 +98,27 @@ class MyJobsView(LoginRequiredMixin, View):
 
     def get(self, request):
         # Display samples only belonging only to the requesting user
-        sample_group = SampleAnalysisTemporaryGroup.objects.filter(user_id=self.request.user)
+        analysis_group = AnalysisGroup.objects.filter(user_id=self.request.user)
         context = {
-            'sample_group': sample_group
+            'analysis_group': analysis_group
         }
         return render(request, self.template_name, context)
 
 
 my_jobs_view = MyJobsView.as_view()
+
+
+class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
+    model = AnalysisGroup
+    context_object_name = 'analysis_group'
+    template_name = "analysis/analysis_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+analysis_group_detail_view = AnalysisGroupDetailView.as_view()
 
 
 class JobSubmittedView(LoginRequiredMixin, TemplateView):
