@@ -11,7 +11,6 @@ from config.settings.base import MEDIA_ROOT
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
-from miseq_portal.analysis.tasks import add
 
 import logging
 logger = logging.getLogger('raven')
@@ -64,12 +63,6 @@ class RunDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Testing
-        res = add.delay(2, 2)
-        logger.info(res.result)
-        # logger.info(f"Celery test result: {res.result}")
-
         # Get run folder to feed to the interop parser
         interop_folder = context['run'].interop_directory_path
         logger.info(f'InterOp folder: {interop_folder}')
