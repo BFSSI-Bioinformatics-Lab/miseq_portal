@@ -80,7 +80,7 @@ SENTRY_DSN = 'https://17c3f4a0263e4b50b48f706cafb9afd0:fc8010ba656740d185a48cbaf
 SENTRY_CLIENT = env('DJANGO_SENTRY_CLIENT', default='raven.contrib.django.raven_compat.DjangoClient')
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'root': {
         'level': 'WARNING',
         'handlers': ['sentry'],
