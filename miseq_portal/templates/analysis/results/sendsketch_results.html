@@ -1,0 +1,55 @@
+<div class="alert alert-info" role="alert">
+  <h4>Tool Description</h4>
+  SendSketch compares query sketches to reference sketches hosted on a remote server via the Internet.
+  Uses the R1 and R2 reads of any given sample and compares against a sketch of <strong>RefSeq</strong>.
+  <hr>
+  <ul>
+    <li>
+      <strong>Tool URL:</strong> <a href="https://sourceforge.net/projects/bbmap/">BBMap</a>
+    </li>
+    <li>
+      <strong>Version:</strong> BBMap version 38.22 {# TODO: Automatically pull version and pass context here #}
+    </li>
+    <li>
+      <strong>Script:</strong> sendsketch.sh
+    </li>
+
+  </ul>
+</div>
+<table id="sendsketch_table" class="display compact">
+  <thead>
+  <tr>
+    <th>Sample ID</th>
+    <th>Result File</th>
+    <th>taxName</th>
+    <th>ANI</th>
+    <th>TaxID</th>
+    <th>Contam</th>
+    <th>gSize</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for sendsketch_result in sendsketch_results %}
+    <tr>
+      <td>
+        <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sendsketch_result.sample_id.pk %}">
+          {{ sendsketch_result.sample_id }}
+        </a>
+      </td>
+      <td>
+        <a class="btn btn-primary btn-block" href="{{ sendsketch_result.sendsketch_result_file.url }}" download
+           role="button"><i
+          class="fas fa-download"></i> Download
+        </a>
+      </td>
+      <td>{{ sendsketch_result.top_taxName }}</td>
+      <td>{{ sendsketch_result.top_ANI }}</td>
+      <td>{{ sendsketch_result.top_TaxID }}</td>
+      <td>{{ sendsketch_result.top_Contam }}</td>
+      <td>{{ sendsketch_result.top_gSize }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+
