@@ -34,5 +34,5 @@ def read_sendsketch_results(sendsketch_result_file: Path) -> pd.DataFrame:
 
 def get_top_sendsketch_hit(sendsketch_result_file: Path) -> pd.DataFrame:
     df = read_sendsketch_results(sendsketch_result_file)
-    top_hit = df[0]
-    return top_hit
+    top_hit = df.head(1)
+    return top_hit  # TODO: Investigate why the typing is not happy. This is still a df but PyCharm doesn't think so?
