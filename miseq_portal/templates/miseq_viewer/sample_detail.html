@@ -61,6 +61,37 @@
     </tr>
     </tbody>
   </table>
+  <hr>
+
+  {% if analysis_samples != None %}
+    <h4>Associated Analyses</h4>
+
+    {# Consider making this a datatable #}
+    <table class="table table-bordered">
+      <thead class="thead-light">
+      <tr>
+        <th>Job Type</th>
+        <th>Analysis Page</th>
+        <th>Date</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for analysis_sample in analysis_samples %}
+        <tr>
+          <td>
+            {{ analysis_sample.group_id.job_type }}
+          </td>
+          <td>
+            <a href="{% url 'analysis:analysis_group_detail_view' pk=analysis_sample.group_id.pk %}">Link</a>
+          </td>
+          <td>
+            {{ analysis_sample.group_id.created }}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
 
 {% endblock content %}
 
