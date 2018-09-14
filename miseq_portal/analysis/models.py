@@ -8,7 +8,7 @@ from miseq_portal.users.models import User
 
 
 def upload_analysis_file(instance, filename):
-    return f'uploads/runs/{instance.run_id}/Analysis/{filename}'
+    return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
 
 
 class AnalysisGroup(models.Model):
@@ -68,9 +68,11 @@ class SendsketchResult(TimeStampedModel):
     sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
     sendsketch_result_file = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
 
+    top_taxName = models.CharField(max_length=128, blank=True)
+    top_TaxID = models.CharField(max_length=32, blank=True)
+    top_ANI = models.CharField(max_length=32, blank=True)
+    top_Contam = models.CharField(max_length=32, blank=True)
+    top_gSize = models.CharField(max_length=32, blank=True)
+
     def __str__(self):
         return str(self.sample_id)
-
-    def get_top_hit(self):
-        top_hit = get_top_sendsketch_hit(sendsketch_result_file=Path(str(self.sendsketch_result_file)))
-        return top_hit
