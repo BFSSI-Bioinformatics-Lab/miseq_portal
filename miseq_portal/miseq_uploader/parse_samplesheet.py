@@ -128,11 +128,11 @@ def generate_sample_objects(sample_sheet: Path) -> [SampleDataObject]:
 
     # Grab Run Name
     run_id = extract_run_name(sample_sheet=sample_sheet)
-    logger.info(f"\nDetected the following Run name: {run_id}")
+    logger.info(f"Detected the following Run name: {run_id}")
 
     # Get all Projects and associated samples from the SampleSheet
     project_dict = group_by_project(samplesheet_df=df)
-    logger.info(f"\nDetected the following Projects within the SampleSheet:")
+    logger.info(f"Detected the following Projects within the SampleSheet:")
     for key, value in project_dict.items():
         logger.info(key)
 
