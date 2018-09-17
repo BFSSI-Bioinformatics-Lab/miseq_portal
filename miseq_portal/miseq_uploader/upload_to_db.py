@@ -8,8 +8,10 @@ from config.settings.base import MEDIA_ROOT
 from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects
 from miseq_portal.miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
 from miseq_portal.miseq_uploader.parse_stats_json import stats_json_to_df
+from miseq_portal.miseq_uploader.assemble_run import assemble_sample_object_list
 
-from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, SampleLogData, \
+from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, \
+    SampleLogData, \
     upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, RunDataObject
 from miseq_portal.users.models import User
 
@@ -18,10 +20,10 @@ logger = logging.getLogger('raven')
 
 
 def receive_miseq_run_dir(miseq_dir: Path):
-    logger.info(f'{"="*24}\nCHECKING MISEQ DIRECTORY\n{"="*24}')
+    logger.info(f'CHECKING MISEQ DIRECTORY')
     miseq_dict = parse_miseq_folder(miseq_dir=miseq_dir)
 
-    logger.info(f'{"="*20}\nCHECKING SAMPLESHEET AND RUN DETAILS\n{"="*36}')
+    logger.info(f'CHECKING SAMPLESHEET AND RUN DETAILS')
     run_data_object = miseq_dict['run_data_object']
     sample_object_list = generate_sample_objects(sample_sheet=run_data_object.sample_sheet)
 
@@ -33,7 +35,13 @@ def receive_miseq_run_dir(miseq_dir: Path):
 
     upload_to_db(sample_object_list=sample_object_list,
                  run_data_object=run_data_object)
-    logger.info(f'{"="*15}\nUPLOAD COMPLETE\n{"="*15}')
+    logger.info(f'UPLOAD COMPLETE')
+
+    # Run assembly pipeline on sample_object_list
+    # TODO: Add checkbox on the MiSeq upload page to for a boolean flag to asseble the run, or not
+    logger.info(f'ADDED RUN TO ASSEMBLY QUEUE')
+    sample_object_id_list = [sample_object.sample_id for sample_object in sample_object_list]
+    assemble_sample_object_list.delay(sample_object_id_list=sample_object_id_list)
 
 
 def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleDataObject]) -> [SampleDataObject]:
@@ -126,7 +134,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
             # Create admin relationship to project immediately
             UserProjectRelationship.objects.create(project_id=project_instance,
                                                    user_id=User.objects.get(username="admin"))
-            logger.info(f"\nCreated Project '{project_instance}'")
+            logger.info(f"Created Project '{project_instance}'")
 
         # RUN
         run_instance, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
@@ -145,7 +153,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
                                                                                           'qmetrics': '',
                                                                                           'tilemetrics': ''})
         if r_created:
-            logger.info(f"\nCreated Run '{run_instance}'")
+            logger.info(f"Created Run '{run_instance}'")
 
             # Set interop_dir (no upload necessary, it's just a string path)
             interop_dir_path = upload_interop_dir(run_instance)
@@ -164,7 +172,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
             logger.info(f"Saved {run_instance} to the database")
 
         if ri_created:
-            logger.info(f"\nCreated RunInterop '{run_interop_instance}'")
+            logger.info(f"Created RunInterop '{run_interop_instance}'")
 
             # Upload InterOp files
             run_interop_data_field_list = [
@@ -195,7 +203,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
                                                                             'project_id': project_instance})
         sample_log, sl_created = SampleLogData.objects.get_or_create(sample_id=sample_instance)
         if s_created:
-            logger.info(f"\nUploading {sample_object.sample_id}...")
+            logger.info(f"Uploading {sample_object.sample_id}...")
 
             # Sample data + read handling
             fwd_read_path = upload_reads(sample_instance, sample_object.fwd_read_path.name)
