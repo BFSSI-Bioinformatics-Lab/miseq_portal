@@ -236,3 +236,20 @@ class SampleLogData(TimeStampedModel):
     class Meta:
         verbose_name = 'SampleLogData'
         verbose_name_plural = 'SampleLogData'
+
+
+class SampleAssemblyData(TimeStampedModel):
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+    assembly = models.FileField(blank=True)
+    bbduk_version = models.TextField(blank=True, max_length=500)
+    bbmap_version = models.TextField(blank=True, max_length=500)
+    tadpole_version = models.TextField(blank=True, max_length=500)
+    skesa_version = models.TextField(blank=True, max_length=500)
+    pilon_version = models.TextField(blank=True, max_length=500)
+
+    def __str__(self):
+        return str(self.sample_id)
+
+    class Meta:
+        verbose_name = 'SampleAssemblyData'
+        verbose_name_plural = 'SampleAssemblyData'
