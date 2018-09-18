@@ -1,5 +1,12 @@
 """
-Minimal assembly pipeline
+Minimal assembly pipeline. Intended for prokaryotic assemblies.
+
+1. QC on reads with bbduk.sh (adapter trimming/quality filtering)
+2. Error-correction of reads with tadpole.sh
+3. Assembly of reads with skesa
+4. Polishing of assembly with pilon
+5. Assembly metrics with quast.py
+
 """
 import os
 import shutil
