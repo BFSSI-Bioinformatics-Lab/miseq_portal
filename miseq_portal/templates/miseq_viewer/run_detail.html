@@ -19,12 +19,6 @@
     <br>
 
     <div>
-      {{ samplesheet_df | safe }}
-    </div>
-
-    <br>
-
-    <div>
       {% if interop_data_avaiable %}
         <div id="interop-charts">
           {% include "miseq_viewer/qscore_chart.html" %}
@@ -34,59 +28,14 @@
           Could not retrieve InterOp data for {{ run.run_id }}
         </div>
       {% endif %}
-
     </div>
 
+    <div>
+      <h3>Sample Sheet</h3>
+      {{ samplesheet_df | safe }}
+    </div>
+    <br>
   </div>
-
-  {#    <table id="sample_table" class="display" style="width:100%">#}
-  {#      <thead>#}
-  {#      <tr>#}
-  {#        <th>Sample ID</th>#}
-  {#        <th>Sample Name</th>#}
-  {#        <th>NumberReads</th>#}
-  {#        <th>SampleYield</th>#}
-  {#        <th>Date Created</th>#}
-  {#        <th>Date Modified</th>#}
-  {#      </tr>#}
-  {#      </thead>#}
-  {#      <tbody>#}
-  {##}
-  {#      {% for project in project_list %}#}
-  {#        {% if run.project_id == project %}#}
-  {#          {% for sample in sample_list %}#}
-  {#            {% if sample.run_id == run %}#}
-  {#              <tr>#}
-  {#                <td>#}
-  {#                  <a#}
-  {#                    href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk_project=project.pk pk_run=run.pk pk=sample.pk %}">#}
-  {#                    {{ sample.sample_id }}#}
-  {#                  </a>#}
-  {#                </td>#}
-  {#                <td>#}
-  {#                  {{ sample.sample_name }}#}
-  {#                </td>#}
-  {#                <td>#}
-  {#                  {{ sample.samplelogdata.number_reads }}#}
-  {#                </td>#}
-  {#                <td>#}
-  {#                  {{ sample.samplelogdata.sample_yield }}#}
-  {#                </td>#}
-  {#                <td>#}
-  {#                  {{ sample.created }}#}
-  {#                </td>#}
-  {#                <td>#}
-  {#                  {{ sample.modified }}#}
-  {#                </td>#}
-  {#              </tr>#}
-  {#            {% endif %}#}
-  {#          {% endfor %}#}
-  {#        {% endif %}#}
-  {#      {% endfor %}#}
-  {#      </tbody>#}
-  {#    </table>#}
-  {#  </div>#}
-
 {% endblock content %}
 
 
