@@ -22,76 +22,130 @@
     </div>
   </div>
 
-  <hr>
+  <br>
 
-  <table id="sample_detail" class="display" style="width:100%">
-    <thead>
-    <tr>
-      <th>Sample Name</th>
-      <th>R1</th>
-      <th>R2</th>
-      <th># Reads</th>
-      <th>Sample Yield (Mbp)</th>
-      <th>Date Created</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-      <td>
-        {{ sample.sample_name }}
-      </td>
-      {# TODO: Fix these download buttons. Doesn't actually retrieve the file. #}
-      <td>
-        <a class="btn btn-primary btn-block" href="{{ sample.fwd_reads.url }}" download role="button"><i
-          class="fas fa-download"></i> Download
-        </a>
-      </td>
-      <td>
-        <a class="btn btn-primary btn-block" href="{{ sample.rev_reads.url }}" download role="button"><i
-          class="fas fa-download"></i> Download
-        </a>
-      </td>
-      <td>
-        {{ sample.samplelogdata.number_reads }}
-      </td>
-      <td>
-        {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
-      </td>
-      <td>{{ sample.created }}</td>
-    </tr>
-    </tbody>
-  </table>
-  <hr>
-
-  {% if analysis_samples != None %}
-    <h4>Associated Analyses</h4>
-
-    {# Consider making this a datatable #}
-    <table class="table table-bordered">
-      <thead class="thead-light">
+  <div class="container">
+    <h4>Sample Details</h4>
+    <table id="sample_detail" class="display" style="width:100%">
+      <thead>
       <tr>
-        <th>Job Type</th>
-        <th>Analysis Page</th>
-        <th>Date</th>
+        <th>Sample Name</th>
+        <th>R1</th>
+        <th>R2</th>
+        <th># Reads</th>
+        <th>Sample Yield (Mbp)</th>
+        <th>Date Created</th>
       </tr>
       </thead>
       <tbody>
-      {% for analysis_sample in analysis_samples %}
-        <tr>
-          <td>
-            {{ analysis_sample.group_id.job_type }}
-          </td>
-          <td>
-            <a href="{% url 'analysis:analysis_group_detail_view' pk=analysis_sample.group_id.pk %}">Link</a>
-          </td>
-          <td>
-            {{ analysis_sample.group_id.created }}
-          </td>
-        </tr>
-      {% endfor %}
+      <tr>
+        <td>
+          {{ sample.sample_name }}
+        </td>
+        {# TODO: Fix these download buttons. Doesn't actually retrieve the file. #}
+        <td>
+          <a class="btn btn-outline-primary btn-block" href="{{ sample.fwd_reads.url }}" download role="button"><i
+            class="fas fa-download"></i> Download R1
+          </a>
+        </td>
+        <td>
+          <a class="btn btn-outline-primary btn-block" href="{{ sample.rev_reads.url }}" download role="button"><i
+            class="fas fa-download"></i> Download R2
+          </a>
+        </td>
+        <td>
+          {{ sample.samplelogdata.number_reads }}
+        </td>
+        <td>
+          {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
+        </td>
+        <td>{{ sample.created }}</td>
+      </tr>
       </tbody>
     </table>
-  {% endif %}
+    <br>
+  </div>
+
+  <div class="container">
+    {% if assembly_data != None %}
+      <h4>Assembly Details
+      </h4>
+      <table id="assembly_table" class="display" style="width:100%">
+        <thead>
+        <tr>
+          <th># contigs</th>
+          <th>Largest contig</th>
+          <th>Total length</th>
+          <th>GC (%)</th>
+          <th>N50</th>
+          <th>Assembly</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>
+            {{ assembly_data.num_contigs }}
+          </td>
+          <td>
+            {{ assembly_data.largest_contig }}
+          </td>
+          <td>
+            {{ assembly_data.total_length }}
+          </td>
+          <td>
+            {{ assembly_data.gc_percent }}
+          </td>
+          <td>
+            {{ assembly_data.n50 }}
+          </td>
+          <td>
+            <a class="btn btn-outline-primary btn-block" href="{{ sample.sampleassemblydata.assembly.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <br>
+
+  <div class="container">
+    {% if analysis_samples != None %}
+      <h4>Associated Analyses</h4>
+      {# Consider making this a datatable #}
+      <table id="analysis_table" class="display">
+        <thead class="thead-light">
+        <tr>
+          <th>Job Type</th>
+          <th>Analysis Page</th>
+          <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for analysis_sample in analysis_samples %}
+          <tr>
+            <td>
+              {{ analysis_sample.group_id.job_type }}
+            </td>
+            <td>
+              <a class="btn btn-outline-info btn-block"
+                 href="{% url 'analysis:analysis_group_detail_view' pk=analysis_sample.group_id.pk %}"
+                 role="button"><i
+                class="fas fa-link"></i> Link
+              </a>
+            </td>
+            <td>
+              {{ analysis_sample.group_id.created }}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
 
 {% endblock content %}
 
@@ -105,6 +159,26 @@
   <script>
     $(document).ready(function () {
       $('#sample_detail').DataTable({
+        "paging": false,
+        "searching": false,
+        "info": false,
+        "ordering": false,
+        "colReorder": {
+          enable: true,
+        },
+      });
+
+      $('#assembly_table').DataTable({
+        "paging": false,
+        "searching": false,
+        "info": false,
+        "ordering": false,
+        "colReorder": {
+          enable: true,
+        },
+      });
+
+      $('#analysis_table').DataTable({
         "paging": false,
         "searching": false,
         "info": false,
