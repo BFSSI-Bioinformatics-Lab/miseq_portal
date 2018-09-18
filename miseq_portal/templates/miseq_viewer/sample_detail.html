@@ -17,8 +17,16 @@
       <h1><strong>Sample: </strong>{{ sample }}</h1>
     </div>
     <div class="col">
-      <h5><strong>Project: </strong>{{ sample.project_id }}</h5>
-      <h5><strong>Run: </strong>{{ sample.run_id }}</h5>
+      <h5><strong>Project: </strong>
+        <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=sample.project_id.pk %}">
+          {{ sample.project_id }}
+        </a>
+      </h5>
+      <h5><strong>Run: </strong>
+        <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
+          {{ sample.run_id }}
+        </a>
+      </h5>
     </div>
   </div>
 
@@ -44,14 +52,28 @@
         </td>
         {# TODO: Fix these download buttons. Doesn't actually retrieve the file. #}
         <td>
-          <a class="btn btn-outline-primary btn-block" href="{{ sample.fwd_reads.url }}" download role="button"><i
-            class="fas fa-download"></i> Download R1
-          </a>
+          {% if browser_flag == True %}
+            <a class="btn btn-outline-primary btn-block" href="{{ sample.fwd_reads.url }}" download role="button"><i
+              class="fas fa-download"></i> Download R1
+            </a>
+          {% else %}
+            <a class="btn btn-outline-primary btn-block disabled" href="{{ sample.fwd_reads.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download R1
+            </a>
+          {% endif %}
         </td>
         <td>
-          <a class="btn btn-outline-primary btn-block" href="{{ sample.rev_reads.url }}" download role="button"><i
-            class="fas fa-download"></i> Download R2
-          </a>
+          {% if browser_flag == True %}
+            <a class="btn btn-outline-primary btn-block" href="{{ sample.rev_reads.url }}" download role="button"><i
+              class="fas fa-download"></i> Download R2
+            </a>
+          {% else %}
+            <a class="btn btn-outline-primary btn-block disabled" href="{{ sample.rev_reads.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download R2
+            </a>
+          {% endif %}
         </td>
         <td>
           {{ sample.samplelogdata.number_reads }}
@@ -64,6 +86,16 @@
       </tbody>
     </table>
     <br>
+    {% if browser_flag == False %}
+      <div class="alert alert-warning" role="alert">
+        <strong>Warning:</strong> You do not appear to be using Firefox as your web browser. Downloading the R1 and R2
+        read files
+        is only supported in Firefox.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endif %}
   </div>
 
   <div class="container">
