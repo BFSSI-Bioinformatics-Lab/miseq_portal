@@ -119,6 +119,12 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
         else:
             context['analysis_samples'] = None
 
+        # Get user's browser details to determine whether or not to show the disclaimer RE: downloading .fastq.gz
+        if "Firefox" in self.request.META['HTTP_USER_AGENT']:
+            context['browser_flag'] = True
+        else:
+            context['browser_flag'] = False
+
         return context
 
 
