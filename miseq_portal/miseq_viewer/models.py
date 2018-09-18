@@ -246,7 +246,6 @@ class SampleLogData(TimeStampedModel):
 class SampleAssemblyData(TimeStampedModel):
     sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
     assembly = models.FileField(blank=True, max_length=512)
-    quast_report = models.FileField(blank=True, max_length=512)
 
     # Assembly metrics
     num_contigs = models.IntegerField(blank=True, null=True)
