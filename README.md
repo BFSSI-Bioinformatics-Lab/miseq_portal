@@ -120,8 +120,9 @@ sudo rabbitmq-plugins enable rabbitmq_management
 
 #### Configuring Celery
 A Celery worker must be launched in order to watch for incoming tasks.
+Bugs will occur if the concurrency parameter != 1.
 ```bash
-celery -A miseq_portal.taskapp worker -l INFO -E
+celery -A miseq_portal.taskapp worker -l INFO -E --concurrency 1
 ```
 
 Celery can be monitored via `flower`. This package is distributed alongside this project.
