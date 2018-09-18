@@ -8,7 +8,7 @@ from django.http import HttpResponse, Http404
 
 from config.settings.base import MEDIA_ROOT
 
-from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship
+from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.analysis.models import AnalysisSample
@@ -107,6 +107,13 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
 
         # Query the AnalysisSample model to see if there are any analyses associated with this sample for this user
         analysis_samples = AnalysisSample.objects.filter(sample_id=context['sample'], user_id=self.request.user)
+
+        # Get assembly data if it exists
+        try:
+            context['assembly_data'] = SampleAssemblyData.objects.get(sample_id=context['sample'])
+        except SampleAssemblyData.DoesNotExist:
+            context['assembly_data'] = None
+
         if len(analysis_samples) > 0:
             context['analysis_samples'] = analysis_samples
         else:
