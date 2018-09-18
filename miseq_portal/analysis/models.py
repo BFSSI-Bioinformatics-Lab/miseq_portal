@@ -42,6 +42,9 @@ class AnalysisSample(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"{str(self.sample_id)} - {self.group_id}"
+
 
 class SampleAnalysisTemporaryGroup(models.Model):
     """
