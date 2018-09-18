@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="/static/css/qscore_chart.css">
 
-<h3>Q Score Chart</h3>
+<h3>Q Score Histogram</h3>
 <div id="qscore-chart"></div>
 <br>
 
@@ -42,7 +42,7 @@
 
     // Setup chart size
     div_width = $("#qscore-chart").width();
-    var margin = {top: 40, right: 60, bottom: 60, left: 70};
+    var margin = {top: 10, right: 20, bottom: 60, left: 70};
     var width = div_width - margin.left - margin.right;
     var height = 360 - margin.top - margin.bottom;
 
@@ -108,7 +108,7 @@
     svg.append("text")
       .attr("transform",
         "translate(" + (width / 2) + " ," +
-        (height + margin.top + 5) + ")")
+        (height + margin.top + 30) + ")")
       .style("text-anchor", "middle")
       .text("Q score");
 
