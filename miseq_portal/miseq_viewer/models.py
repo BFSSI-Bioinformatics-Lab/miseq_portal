@@ -58,6 +58,11 @@ def upload_reads(instance, filename):
     return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
 
 
+def upload_assembly(instance, filename):
+    """This needs to be used with a SampleAssemblyData instance"""
+    return f'uploads/runs/{instance.sample_id.run_id}/{instance.sample_id}/assembly/{filename}'
+
+
 @dataclass
 class SampleDataObject:
     """Dataclass to store metadata for a sample"""
@@ -240,12 +245,23 @@ class SampleLogData(TimeStampedModel):
 
 class SampleAssemblyData(TimeStampedModel):
     sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
-    assembly = models.FileField(blank=True)
-    bbduk_version = models.TextField(blank=True, max_length=500)
-    bbmap_version = models.TextField(blank=True, max_length=500)
-    tadpole_version = models.TextField(blank=True, max_length=500)
-    skesa_version = models.TextField(blank=True, max_length=500)
-    pilon_version = models.TextField(blank=True, max_length=500)
+    assembly = models.FileField(blank=True, max_length=512)
+    quast_report = models.FileField(blank=True, max_length=512)
+
+    # Assembly metrics
+    num_contigs = models.IntegerField(blank=True, null=True)
+    largest_contig = models.BigIntegerField(blank=True, null=True)
+    total_length = models.BigIntegerField(blank=True, null=True)
+    gc_percent = models.FloatField(blank=True, null=True)
+    n50 = models.BigIntegerField(blank=True, null=True)
+
+    # Pipeline versioning
+    bbduk_version = models.TextField(blank=True)
+    bbmap_version = models.TextField(blank=True)
+    tadpole_version = models.TextField(blank=True)
+    skesa_version = models.TextField(blank=True)
+    pilon_version = models.TextField(blank=True)
+    quast_version = models.TextField(blank=True)
 
     def __str__(self):
         return str(self.sample_id)
