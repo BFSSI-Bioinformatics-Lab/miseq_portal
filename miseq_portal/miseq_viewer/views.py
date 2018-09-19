@@ -1,10 +1,8 @@
-import os
 import json
 from pathlib import Path
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
-from django.views.generic import DetailView, ListView, View
-from django.http import HttpResponse, Http404
+from django.views.generic import DetailView, ListView
 
 from config.settings.base import MEDIA_ROOT
 
@@ -133,29 +131,3 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
 
 
 sample_detail_view = SampleDetailView.as_view()
-
-#
-# class DownloadReadView(LoginRequiredMixin, View):
-#     model = Sample
-#     context_object_name = 'sample'
-#     template_name = "miseq_viewer/sample_download.html"
-#
-#     def get(self, request):
-#         response = HttpResponse(content_type="image/jpeg")
-#         file_path = os.path.join(MEDIA_ROOT, ['sample'])
-#         response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#
-#     def download(self, request, path):
-#         file_path = os.path.join(MEDIA_ROOT, path)
-#         if os.path.exists(file_path):
-#             with open(file_path, 'rb') as fh:
-#                 response = HttpResponse(fh.read(), content_type="application/gzip")
-#                 response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-#                 return response
-#         raise Http404
-#
-#
-# read_download_view = DownloadReadView.as_view()
