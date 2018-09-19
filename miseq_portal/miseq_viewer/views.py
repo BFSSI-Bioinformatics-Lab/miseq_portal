@@ -114,6 +114,10 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
         except SampleAssemblyData.DoesNotExist:
             context['assembly_data'] = None
 
+        # Set to None if the FileField for the assembly is empty
+        if str(context['assembly_data'].assembly) == '':
+            context['assembly_data'] = None
+
         if len(analysis_samples) > 0:
             context['analysis_samples'] = analysis_samples
         else:
