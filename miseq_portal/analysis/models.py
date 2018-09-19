@@ -11,6 +11,10 @@ def upload_analysis_file(instance, filename):
     return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
 
 
+def upload_mobsuite_file(instance, filename):
+    return f'uploads/runs/{instance.run_id}/{instance.sample_id}/mob_suite/{filename}'
+
+
 class AnalysisGroup(models.Model):
     job_choices = (
         ('SendSketch', 'SendSketch'),
@@ -79,3 +83,29 @@ class SendsketchResult(TimeStampedModel):
 
     def __str__(self):
         return str(self.sample_id)
+
+
+class MobSuiteAnalysisGroup(TimeStampedModel):
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+    contig_report = models.FileField(upload_to=upload_mobsuite_file, blank=True, max_length=1000)
+    mobtyper_aggregate_report = models.FileField(upload_to=upload_mobsuite_file, blank=True, max_length=1000)
+
+    def __str__(self):
+        return str(self.sample_id)
+
+
+class MobSuiteAnalysisPlasmid(TimeStampedModel):
+    sample_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    group_id = models.ForeignKey(MobSuiteAnalysisGroup, on_delete=models.CASCADE)
+    plasmid_fasta = models.FileField(upload_to=upload_mobsuite_file, blank=True, max_length=1000)
+    rep_type = models.CharField(max_length=128, blank=True)
+    num_contigs = models.IntegerField(blank=True)
+    total_length = models.BigIntegerField(blank=True)
+    gc_content = models.FloatField(blank=True)
+    rep_type_accession = models.CharField(max_length=128, blank=True)
+    relaxase_type = models.CharField(max_length=128, blank=True)
+    relaxase_type_accession = models.CharField(max_length=128, blank=True)
+    predicted_mobility = models.CharField(max_length=128, blank=True)
+
+    def __str__(self):
+        return str(f"{self.sample_id} - {self.group_id}")
