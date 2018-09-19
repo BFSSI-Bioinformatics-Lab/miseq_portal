@@ -25,38 +25,41 @@ logger = logging.getLogger('raven')
 MEDIA_ROOT = Path(MEDIA_ROOT)
 
 
+# TODO: Move this to ../tasks.py
 @shared_task()
-def assemble_sample_object_list(sample_object_id_list: [str]):
-    for sample_object_id in sample_object_id_list:
-        # Get corresponding instance of Sample
+def assemble_sample_instance(sample_object_id: str):
+    try:
         sample_instance = Sample.objects.get(sample_id=sample_object_id)
+    except Sample.DoesNotExist:
+        logger.error("Sample {} does not exist. Skipping assembly.")
+        return
 
-        # Setup assembly directory on NAS
-        outdir = MEDIA_ROOT / Path(str(sample_instance.fwd_reads)).parent / "assembly"
-        os.makedirs(outdir, exist_ok=True)
+    # Setup assembly directory on NAS
+    outdir = MEDIA_ROOT / Path(str(sample_instance.fwd_reads)).parent / "assembly"
+    os.makedirs(outdir, exist_ok=True)
 
-        # Get/create SampleAssemblyData instance
-        sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
-        if sa_created:
-            logger.info(f"Running assembly pipeline on {sample_instance}...")
-            polished_assembly = assembly_pipeline(
-                fwd_reads=MEDIA_ROOT / Path(str(sample_instance.fwd_reads)),
-                rev_reads=MEDIA_ROOT / Path(str(sample_instance.rev_reads)),
-                outdir=outdir,
-                sample_id=str(sample_instance.sample_id)
-            )
-            polished_assembly = assembly_cleanup(outdir=outdir, assembly=polished_assembly)
+    # Get/create SampleAssemblyData instance
+    sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
+    if sa_created or str(sample_assembly_instance.assembly) == '' or sample_assembly_instance.assembly is None:
+        logger.info(f"Running assembly pipeline on {sample_instance}...")
+        polished_assembly = assembly_pipeline(
+            fwd_reads=MEDIA_ROOT / Path(str(sample_instance.fwd_reads)),
+            rev_reads=MEDIA_ROOT / Path(str(sample_instance.rev_reads)),
+            outdir=outdir,
+            sample_id=str(sample_instance.sample_id)
+        )
+        polished_assembly = assembly_cleanup(outdir=outdir, assembly=polished_assembly)
 
-            # Run and parse Quast
-            report_file = run_quast(assembly=polished_assembly, outdir=outdir)
-            quast_df = get_quast_df(report_file)
+        # Run and parse Quast
+        report_file = run_quast(assembly=polished_assembly, outdir=outdir)
+        quast_df = get_quast_df(report_file)
 
-            # Push the data to the database for SampleAssemblyData
-            upload_sampleassembly_data(sample_assembly_instance=sample_assembly_instance,
-                                       assembly=polished_assembly,
-                                       quast_df=quast_df)
-        else:
-            logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
+        # Push the data to the database for SampleAssemblyData
+        upload_sampleassembly_data(sample_assembly_instance=sample_assembly_instance,
+                                   assembly=polished_assembly,
+                                   quast_df=quast_df)
+    else:
+        logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
 
 
 def assembly_pipeline(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id: str):
@@ -86,7 +89,8 @@ def upload_sampleassembly_data(sample_assembly_instance: SampleAssemblyData, ass
 
 
 def run_quast(assembly: Path, outdir: Path):
-    cmd = f"quast.py --no-plots --no-html --no-icarus -o {outdir} {assembly}"
+    # Min contig needs to be set low in order to accomodate very bad assemblies, otherwise quast will fail
+    cmd = f"quast.py --no-plots --no-html --no-icarus --min-contig 100 -o {outdir} {assembly}"
     run_subprocess(cmd)
     transposed_report = list(outdir.glob("transposed_report.tsv"))[0]
     return transposed_report
