@@ -86,16 +86,6 @@
       </tbody>
     </table>
     <br>
-    {% if browser_flag == False %}
-      <div class="alert alert-warning" role="alert">
-        <strong>Warning:</strong> You do not appear to be using Firefox as your web browser. Downloading the R1 and R2
-        read files
-        is only supported in Firefox.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-    {% endif %}
   </div>
 
   <div class="container">
@@ -178,6 +168,28 @@
       </table>
     {% endif %}
   </div>
+
+  {# ALERTS #}
+  {% if sample.samplelogdata.number_reads < 1000 %}
+    <div class="alert alert-danger" role="alert">
+      <strong>Danger:</strong> This sample has an unusually small number of reads.
+      This will likely cause severe issues with assembly or any other analysis.
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>  {% endif %}
+
+  {% if browser_flag == False %}
+    <div class="alert alert-warning" role="alert">
+      <strong>Warning:</strong> You do not appear to be using Firefox as your web browser. Downloading the R1 and R2
+      read files
+      is only supported in Firefox.
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  {% endif %}
+
 
 {% endblock content %}
 
