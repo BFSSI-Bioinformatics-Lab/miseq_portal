@@ -12,8 +12,9 @@ import os
 import shutil
 import pandas as pd
 from pathlib import Path
-from subprocess import Popen, PIPE
 from celery import shared_task
+
+from analysis.tools.helpers import run_subprocess, remove_dir_files
 from config.settings.base import MEDIA_ROOT
 
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData, upload_assembly
@@ -113,12 +114,6 @@ def assembly_cleanup(outdir: Path, assembly: Path):
     return assembly
 
 
-def remove_dir_files(outdir: Path):
-    to_delete = list(outdir.glob("*.*"))
-    for f in to_delete:
-        os.remove(str(f))
-
-
 def get_quast_version():
     cmd = f"quast.py --version"
     version = run_subprocess(cmd, get_stdout=True)
@@ -153,23 +148,6 @@ def get_pilon_version():
     cmd = f"pilon --version"
     version = run_subprocess(cmd, get_stdout=True)
     return version
-
-
-def run_subprocess(cmd: str, get_stdout=False):
-    if get_stdout:
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-        out, err = p.communicate()
-        out = out.decode().strip()
-        err = err.decode().strip()
-        if out != "":
-            return out
-        elif err != "":
-            return err
-        else:
-            return ""
-    else:
-        p = Popen(cmd, shell=True)
-        p.wait()
 
 
 def call_pilon(bamfile: Path, outdir: Path, assembly: Path, prefix: str):
