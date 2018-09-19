@@ -261,7 +261,7 @@ if USE_TZ:
 CELERY_BROKER_URL = 'amqp://miseq_portal:Star_Gate5@localhost:5672/miseq_portal_vhost'
 # BROKER_URL = 'amqp://guest:guest@localhost:5672/miseq_portal_vhost'
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_RESULT_BACKEND = 'rpc://'
 # CELERY_RESULT_BACKEND = 'django-db'
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-accept_content
 CELERY_ACCEPT_CONTENT = ['json']
@@ -282,4 +282,5 @@ CELERY_TASK_EAGER_PROPAGATES = True
 
 CELERY_IMPORTS = ('miseq_portal.analysis.tasks',
                   )
-# django-celery-results
+
+# ASSEMBLY PIPELINE SETTINGS
