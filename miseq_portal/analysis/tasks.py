@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 import os
+import shutil
 from celery import shared_task
 from pathlib import Path
 from config.settings.base import MEDIA_ROOT
@@ -52,17 +53,17 @@ def submit_mob_recon_job(sample_instance: AnalysisSample):
     else:
         assembly_path = assembly_instance.get_assembly_path()
 
+    # Remove previous analysis if it exists
+    if outdir.exists():
+        shutil.rmtree(outdir)
+
     os.makedirs(outdir, exist_ok=True)
     mob_recon_data_object = call_mob_recon(assembly=assembly_path, outdir=outdir)
 
-    mob_suite_analysis_group, mob_suite_analysis_group_created = MobSuiteAnalysisGroup.objects.get_or_create(
+    mob_suite_analysis_group = MobSuiteAnalysisGroup.objects.create(
         analysis_group=sample_instance.group_id,
         sample_id=sample_instance.sample_id
     )
-    if mob_suite_analysis_group_created:
-        logger.info("Creating new Mob Suite analysis group object")
-    else:
-        logger.info("Overwriting existing Mob Suite analysis group object")
 
     # Update database for MobSuiteAnalysisGroup
     mob_suite_analysis_group.contig_report = upload_mobsuite_file(root_sample_instance,
@@ -81,8 +82,9 @@ def submit_mob_recon_job(sample_instance: AnalysisSample):
     for plasmid_fasta in mob_recon_data_object.plasmid_fasta_list:
         logger.info(f"Processing {plasmid_fasta}")
         mob_suite_plasmid_instance = MobSuiteAnalysisPlasmid.objects.create(
+            sample_id=mob_suite_analysis_group.sample_id,
             group_id=mob_suite_analysis_group,
-            sample_id=mob_suite_analysis_group.sample_id
+
         )
 
         logger.info(f"Creating new Mob Suite Plasmid object with {plasmid_fasta}")
