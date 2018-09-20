@@ -24,3 +24,4 @@ pandas==0.23.3
 raven==6.9.0
 django-celery-results==1.0.1
 flower==0.9.2
+mob_suite==1.4.8  # NOTE: Must upgrade numpy after this installs due to some conflicts with other packages
