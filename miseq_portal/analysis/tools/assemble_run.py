@@ -13,12 +13,9 @@ import shutil
 import pandas as pd
 from pathlib import Path
 from celery import shared_task
-
-from analysis.tools.helpers import run_subprocess, remove_dir_files
+from miseq_portal.analysis.tools.helpers import run_subprocess, remove_dir_files
 from config.settings.base import MEDIA_ROOT
-
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData, upload_assembly
-
 import logging
 
 logger = logging.getLogger('raven')
