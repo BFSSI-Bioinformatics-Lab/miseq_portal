@@ -24,9 +24,15 @@
 
   <hr>
 
-  <div id="sendsketch-results">
-    {% include "analysis/results/sendsketch_results.html" %}
-  </div>
+  {% if analysis_group.job_type == "SendSketch" %}
+    <div id="sendsketch-results">
+      {% include "analysis/results/sendsketch_results.html" %}
+    </div>
+  {% elif analysis_group.job_type == "MobRecon" %}
+    <div id="mob_recon-results">
+      {% include "analysis/results/mob_recon_results.html" %}
+    </div>
+  {% endif %}
 
   <br>
 
@@ -43,9 +49,10 @@
     });
 
     $(document).ready(function () {
-      let table = $('#sendsketch_table').DataTable({
+      let table = $('#analysis_table').DataTable({
         dom: 'Bfrtip',
         pageLength: 10,
+        scrollX: true
       })
     });
 
