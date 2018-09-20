@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, View, TemplateView, DetailView
 
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
-from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult
+from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.tasks import submit_analysis_job
 
@@ -119,6 +119,8 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
 
         context['analysis_samples'] = AnalysisSample.objects.filter(group_id=context['analysis_group'])
         context['sendsketch_results'] = SendsketchResult.objects.filter(
+            sample_id__analysissample__group_id=context['analysis_group'])
+        context['mob_recon_results'] = MobSuiteAnalysisPlasmid.objects.filter(
             sample_id__analysissample__group_id=context['analysis_group'])
 
         return context
