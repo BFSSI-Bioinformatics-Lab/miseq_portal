@@ -1,0 +1,73 @@
+<link rel="stylesheet" href="/static/css/mob_recon_result.css">
+<div class="alert alert-info" role="alert">
+  <h4>Tool Description</h4>
+  This tool reconstructs individual plasmid sequences from draft genome assemblies using the clustered plasmid reference
+  databases provided by MOB-cluster. Provides in silico predictions of the replicon family, relaxase type, mate-pair
+  formation type and predicted transferability of the plasmid.
+  <br>
+  <br>
+  <strong>Note:</strong> Samples with no plasmids detected will not appear in the table below.
+  <hr>
+  <ul>
+    <li>
+      <strong>Tool URL:</strong> <a href="https://github.com/phac-nml/mob-suite">MOB-suite</a>
+    </li>
+    <li>
+      <strong>Version:</strong> 1.4.8 {# TODO: Automatically pull version and pass context here #}
+    </li>
+    <li>
+      <strong>Script:</strong> mob_recon
+    </li>
+
+  </ul>
+</div>
+
+<table id="analysis_table" class="display compact" style="width: 100%">
+  <thead>
+  <tr>
+    <th>Sample ID</th>
+    <th>Plasmid</th>
+    <th># contigs</th>
+    <th>Total length</th>
+    <th>GC %</th>
+    <th>Rep type</th>
+    <th>Rep type accession</th>
+    <th>Relaxase type</th>
+    <th>Relaxase type accession</th>
+    <th>Predicted mobility</th>
+    <th>Mash nearest neighbor</th>
+    <th>Mash neighbor distance</th>
+    <th>Mash neighbor cluster</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for mob_recon_result in mob_recon_results %}
+    <tr>
+      <td>
+        <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=mob_recon_result.sample_id.pk %}">
+          {{ mob_recon_result.sample_id }}
+        </a>
+      </td>
+      <td>
+        <a class="btn btn-primary btn-block btn-sm" href="{{ mob_recon_result.plasmid_fasta.url }}" download
+           role="button"><i
+          class="fas fa-download"></i> {{ mob_recon_result.plasmid_basename }}
+        </a>
+      </td>
+      <td>{{ mob_recon_result.num_contigs }}</td>
+      <td>{{ mob_recon_result.total_length }}</td>
+      <td>{{ mob_recon_result.gc_content|floatformat }}</td>
+      <td>{{ mob_recon_result.rep_type }}</td>
+      <td>{{ mob_recon_result.rep_type_accession }}</td>
+      <td>{{ mob_recon_result.relaxase_type }}</td>
+      <td>{{ mob_recon_result.relaxase_type_accession }}</td>
+      <td>{{ mob_recon_result.predicted_mobility }}</td>
+      <td>{{ mob_recon_result.mash_nearest_neighbor }}</td>
+      <td>{{ mob_recon_result.mash_neighbor_distance }}</td>
+      <td>{{ mob_recon_result.mash_neighbor_cluster }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+
