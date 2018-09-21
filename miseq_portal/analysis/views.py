@@ -117,13 +117,21 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context['analysis_samples'] = AnalysisSample.objects.filter(group_id=context['analysis_group'])
-        context['sendsketch_results'] = SendsketchResult.objects.filter(
-            sample_id__analysissample__group_id=context['analysis_group'])
-        mob_suite_group = MobSuiteAnalysisGroup.objects.get(analysis_group=context['analysis_group'])
-        context['mob_recon_results'] = MobSuiteAnalysisPlasmid.objects.filter(group_id=mob_suite_group)
-        return context
+
+        if context['analysis_group'].job_type == 'SendSketch':
+            context['sendsketch_results'] = SendsketchResult.objects.filter(
+                sample_id__analysissample__group_id=context['analysis_group'])
+            return context
+        elif context['analysis_group'].job_type == 'MobRecon':
+            # Get corresponding group (1:1 relationship with AnalysisGroup and MobSuiteAnalysisGroup)
+            mob_suite_group = MobSuiteAnalysisGroup.objects.get(analysis_group=context['analysis_group'])
+            # Get samples/plasmids associated with the group
+            mob_suite_samples = MobSuiteAnalysisPlasmid.objects.filter(group_id=mob_suite_group)
+            context['mob_recon_results'] = mob_suite_samples
+            return context
+        else:
+            return context
 
 
 analysis_group_detail_view = AnalysisGroupDetailView.as_view()
