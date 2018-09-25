@@ -113,7 +113,10 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
             context['assembly_data'] = None
 
         # Set to None if the FileField for the assembly is empty
-        if str(context['assembly_data'].assembly) == '':
+        try:
+            if str(context['assembly_data'].assembly) == '':
+                context['assembly_data'] = None
+        except AttributeError:
             context['assembly_data'] = None
 
         if len(analysis_samples) > 0:
