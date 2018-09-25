@@ -81,7 +81,7 @@ class ToolSelectionView(LoginRequiredMixin, View):
             analysis_group = AnalysisGroup.objects.filter(user_id=self.request.user).order_by('-id')[0]
             analysis_group.job_type = form.cleaned_data['job_type']
             analysis_group.save()
-            logger.info(f"Set job_type for {analysis_group} to {form.cleaned_data['job_type']}")
+            logger.info(f"Queued job for {analysis_group}")
 
             # Submit analysis to queue. Note that the ID must be submitted because a straight object is not serializable
             submit_analysis_job.delay(analysis_group_id=analysis_group.id)
@@ -124,11 +124,10 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
                 sample_id__analysissample__group_id=context['analysis_group'])
             return context
         elif context['analysis_group'].job_type == 'MobRecon':
-            # Get corresponding group (1:1 relationship with AnalysisGroup and MobSuiteAnalysisGroup)
-            mob_suite_group = MobSuiteAnalysisGroup.objects.get(analysis_group=context['analysis_group'])
-            # Get samples/plasmids associated with the group
-            mob_suite_samples = MobSuiteAnalysisPlasmid.objects.filter(group_id=mob_suite_group)
-            context['mob_recon_results'] = mob_suite_samples
+            context['mob_suite_analysis_samples'] = MobSuiteAnalysisGroup.objects.filter(
+                analysis_sample__group_id=context['analysis_group'])
+            context['mob_suite_analysis_plasmids'] = MobSuiteAnalysisPlasmid.objects.filter(
+                sample_id__analysissample__group_id=context['analysis_group'])
             return context
         else:
             return context

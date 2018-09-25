@@ -55,15 +55,13 @@ def submit_mob_recon_job(sample_instance: AnalysisSample):
 
     # Remove previous analysis if it exists
     if outdir.exists():
-        shutil.rmtree(outdir)
+        shutil.rmtree(outdir, ignore_errors=True)
 
     os.makedirs(outdir, exist_ok=True)
     mob_recon_data_object = call_mob_recon(assembly=assembly_path, outdir=outdir)
 
-    mob_suite_analysis_group = MobSuiteAnalysisGroup.objects.create(
-        analysis_group=sample_instance.group_id,
-        sample_id=sample_instance.sample_id
-    )
+    # We now create a new MobSuiteAnalysisGroup entry in the db for the AnalysisSample instance
+    mob_suite_analysis_group = MobSuiteAnalysisGroup.objects.create(analysis_sample=sample_instance)
 
     # Update database for MobSuiteAnalysisGroup
     mob_suite_analysis_group.contig_report = upload_mobsuite_file(root_sample_instance,
@@ -82,9 +80,8 @@ def submit_mob_recon_job(sample_instance: AnalysisSample):
     for plasmid_fasta in mob_recon_data_object.plasmid_fasta_list:
         logger.info(f"Processing {plasmid_fasta}")
         mob_suite_plasmid_instance = MobSuiteAnalysisPlasmid.objects.create(
-            sample_id=mob_suite_analysis_group.sample_id,
+            sample_id=mob_suite_analysis_group.analysis_sample.sample_id,
             group_id=mob_suite_analysis_group,
-
         )
 
         logger.info(f"Creating new Mob Suite Plasmid object with {plasmid_fasta}")
