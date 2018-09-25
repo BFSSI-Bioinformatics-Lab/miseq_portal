@@ -8,7 +8,7 @@ from config.settings.base import MEDIA_ROOT
 from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects
 from miseq_portal.miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
 from miseq_portal.miseq_uploader.parse_stats_json import stats_json_to_df
-from miseq_portal.analysis.tools.assemble_run import assemble_sample_object_list
+from miseq_portal.analysis.tools.assemble_run import assemble_sample_instance
 
 from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, \
     SampleLogData, \
@@ -16,6 +16,7 @@ from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, R
 from miseq_portal.users.models import User
 
 import logging
+
 logger = logging.getLogger('raven')
 
 
@@ -39,9 +40,10 @@ def receive_miseq_run_dir(miseq_dir: Path):
 
     # Run assembly pipeline on sample_object_list
     # TODO: Add checkbox on the MiSeq upload page to for a boolean flag to asseble the run, or not
-    logger.info(f'ADDED RUN TO ASSEMBLY QUEUE')
     sample_object_id_list = [sample_object.sample_id for sample_object in sample_object_list]
-    assemble_sample_object_list.delay(sample_object_id_list=sample_object_id_list)
+    for sample_object_id in sample_object_id_list:
+        logger.info(f"Submitted {sample_object_id} to assembly queue")
+        assemble_sample_instance.delay(sample_object_id=sample_object_id)
 
 
 def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleDataObject]) -> [SampleDataObject]:
