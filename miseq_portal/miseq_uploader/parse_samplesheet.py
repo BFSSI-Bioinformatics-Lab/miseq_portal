@@ -140,8 +140,8 @@ def generate_sample_objects(sample_sheet: Path) -> [SampleDataObject]:
     sample_id_list = get_sample_id_list(samplesheet_df=df)
 
     # Check all Sample IDs
-    for sample_id in sample_id_list:
-        validate_sample_id(value=sample_id)
+    # for sample_id in sample_id_list:
+    #     validate_sample_id(value=sample_id)
 
     # Get Sample Names
     sample_name_dictionary = get_sample_name_dictionary(df=df)

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union
 from config.settings.base import MEDIA_ROOT
 
-from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects
+from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects, validate_sample_id
 from miseq_portal.miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
 from miseq_portal.miseq_uploader.parse_stats_json import stats_json_to_df
 from miseq_portal.analysis.tools.assemble_run import assemble_sample_instance
@@ -33,6 +33,10 @@ def receive_miseq_run_dir(miseq_dir: Path):
                                                     sample_object_list=sample_object_list)
     sample_object_list = append_sample_object_stats(json_stats_file=run_data_object.json_stats_file,
                                                     sample_object_list=sample_object_list)
+
+    # Validate the sample IDs of the samples to be uploaded
+    for sample_object in sample_object_list:
+        validate_sample_id(sample_object.sample_id)
 
     upload_to_db(sample_object_list=sample_object_list,
                  run_data_object=run_data_object)
@@ -122,6 +126,7 @@ def upload_run_data(run_instance: Union[Run, RunInterOpData], run_data_object: R
 def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDataObject):
     """
     Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database
+    This should only work with sample_type=="BMH" samples
     TODO: Factor out a lot of this code into little functions. It's getting unwieldy.
     """
     for sample_object in sample_object_list:
