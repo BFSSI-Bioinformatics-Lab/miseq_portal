@@ -142,6 +142,8 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
             UserProjectRelationship.objects.create(project_id=project_instance,
                                                    user_id=User.objects.get(username="admin"))
             logger.info(f"Created Project '{project_instance}'")
+        else:
+            logger.info(f"Project '{project_instance}' already exists")
 
         # RUN
         run_instance, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
@@ -177,6 +179,8 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
             # Save instance
             run_instance.save()
             logger.info(f"Saved {run_instance} to the database")
+        else:
+            logger.info(f"Run '{run_instance}' already exists, skipping'")
 
         if ri_created:
             logger.info(f"Created RunInterop '{run_interop_instance}'")
@@ -222,6 +226,8 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
             sample_instance.rev_reads = rev_read_path
             sample_instance.sample_name = sample_object.sample_name
             sample_instance.save()
+        else:
+            logger.info(f"Sample '{sample_instance}' already exists, skipping'")
 
         # Save sample stats
         if sl_created:
