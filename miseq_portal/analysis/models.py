@@ -68,10 +68,15 @@ class SendsketchResult(TimeStampedModel):
 
 
 class MobSuiteAnalysisGroup(TimeStampedModel):
-    sample_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
-    analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
     contig_report = models.FileField(upload_to=upload_mobsuite_file, blank=True, max_length=1000)
     mobtyper_aggregate_report = models.FileField(upload_to=upload_mobsuite_file, blank=True, max_length=1000)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def group_id(self):
+        return self.analysis_sample.group_id
 
     def get_plasmid_attribute(self, plasmid_basename: str, attribute: str) -> (str, None):
         valid_attributes = [
@@ -113,7 +118,7 @@ class MobSuiteAnalysisGroup(TimeStampedModel):
             return True
 
     def __str__(self):
-        return str(f"MobSuiteAnalysis {self.pk} ({self.sample_id})")
+        return str(f"MobSuiteAnalysisGroup ({self.analysis_sample})")
 
 
 class MobSuiteAnalysisPlasmid(TimeStampedModel):
