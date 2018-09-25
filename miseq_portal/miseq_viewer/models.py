@@ -4,8 +4,11 @@ from django.core.exceptions import ValidationError
 
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.users.models import User
-
+from config.settings.base import MEDIA_ROOT
 from dataclasses import dataclass
+import logging
+
+logger = logging.getLogger('raven')
 
 
 def validate_sample_id(value: str, length: int = 15):
@@ -22,12 +25,16 @@ def validate_sample_id(value: str, length: int = 15):
     if len(components) != 3:
         raise ValidationError(f"Sample ID '{value}' does not appear to meet expected format. "
                               f"Sample ID must be in the following format: 'BMH-2018-000001'")
-    elif components[0] != "BMH":
-        raise ValidationError(f"BMH component of Sample ID ('{components[0]}') does not equal expected 'BMH'")
+    elif components[0] != "BMH" or "MER":
+        raise ValidationError(f"TEXT component of Sample ID ('{components[0]}') does not equal expected 'BMH' or 'MER'")
     elif not components[1].isdigit() or len(components[1]) != 4:
         raise ValidationError(f"YEAR component of Sample ID ('{components[1]}') does not equal expected 'YYYY' format")
     elif not components[2].isdigit() or len(components[2]) != 6:
         raise ValidationError(f"ID component of Sample ID ('{components[2]}') does not equal expected 'XXXXXX' format")
+
+
+def upload_merged_sample(instance, filename):
+    return f'uploads/merged_samples/{instance.sample_id}/{filename}'
 
 
 def upload_run_file(instance, filename):
@@ -44,18 +51,14 @@ def upload_interop_dir(instance):
 
 def upload_reads(instance, filename):
     """
-    TODO: Research and fix the below described bug
-    There is a bizarre bug when serving .fastq.gz files. When accessing a media file via the browser, e.g.
-    http://192.168.1.61:8000/media/uploads/runs/20180709_WGS_M01308/BMH-2018-000049/something.fastq.gz, the file will
-    download only a partial, UNCOMPRESSED version of the file. Changing the extension from .gz to .zip allows the file
-    to be fully downloaded, though when the user tries to open it, they will receive an error from their decompression
-    program - the fix is to then change the extension back to .gz.
-
     :param instance:
     :param filename:
     :return:
     """
-    return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
+    if instance.sample_type == 'BMH':
+        return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
+    elif instance.sample_type == 'MER':
+        return f'uploads/merged_samples/{instance.sample_id}/{filename}'
 
 
 def upload_assembly(instance, filename):
@@ -120,6 +123,8 @@ class Project(TimeStampedModel):
     project_id = models.CharField(max_length=256, unique=True)
     project_owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    # TODO: Consider adding viral, prokaryotic, eukaryotic flags, etc
+
     def __str__(self):
         return self.project_id
 
@@ -157,6 +162,8 @@ class Run(TimeStampedModel):
     runparametersxml = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=1000)
     interop_directory_path = models.CharField(unique=True, blank=True, null=True, max_length=1000)
 
+    # TODO: Add sequencing type e.g. amplicon, metagenomic, WGS
+
     def __str__(self):
         return str(self.run_id)
 
@@ -189,19 +196,54 @@ class RunInterOpData(TimeStampedModel):
         verbose_name_plural = 'RunInterOpData'
 
 
+class MergedSampleComponentGroup(models.Model):
+    """
+    Model for reference by MergedSample.
+    Maintains the linkage between a MergedSample and its constituent Sample objects via MergedSampleComponent
+    """
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"MergedSampleComponentGroup ({str(self.pk)})"
+
+    class Meta:
+        verbose_name = 'Merged Sample Component Group'
+        verbose_name_plural = 'Merged Sample Component Groups'
+
+
 class Sample(TimeStampedModel):
     """
     Stores basic information relating to a single BMH sample (i.e. R1, R2, corresponding assembly, etc.)
-    - Must follow the BMH-YYYY-ZZZZZZ format, e.g. "BMH-2018-000001"
+    - Must follow the XXX-YYYY-ZZZZZZ format, e.g. "BMH-2018-000001", "MER-2019-000004"
     - Each Sample must be associated with a Project + Run
     """
     sample_id = models.CharField(max_length=15, unique=True, validators=[validate_sample_id])
-    sample_name = models.CharField(max_length=64, unique=False, blank=True)
-    project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
-    run_id = models.ForeignKey(Run, on_delete=models.CASCADE)
+    sample_name = models.CharField(max_length=128, unique=False, blank=True)
 
+    # The sample_type and component_group fields exist to accommodate merged samples
+    sample_type_choices = (
+        ('BMH', 'BMH'),
+        ('MER', 'MERGED'),
+        ('ACA', 'ACADEMIC')
+    )
+    sample_type = models.CharField(choices=sample_type_choices, max_length=3, default='BMH')
+    component_group = models.ForeignKey(MergedSampleComponentGroup, on_delete=models.CASCADE, blank=True, null=True)
+
+    # All BMH samples must be associated with a Project and Run
+    project_id = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=True)
+    run_id = models.ForeignKey(Run, on_delete=models.CASCADE, blank=True, null=True)
+
+    # Read upload location varies depending on sample_type
     fwd_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=1000)
     rev_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=1000)
+
+    def generate_sample_id(self):
+        return f'{self.sample_type}-{self.sample_year()}-{self.pk:06})'
+
+    def sample_year(self):
+        return str(self.created.year)
 
     def __str__(self):
         return self.sample_id
@@ -209,6 +251,14 @@ class Sample(TimeStampedModel):
     class Meta:
         verbose_name = 'Sample'
         verbose_name_plural = 'Samples'
+
+
+class MergedSampleComponent(models.Model):
+    """
+    Model to store the relationship between a Sample (i.e. a "component") and a MergedSampleComponentGroup
+    """
+    component_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    group_id = models.ForeignKey(MergedSampleComponentGroup, on_delete=models.CASCADE)
 
 
 class SampleLogData(TimeStampedModel):
@@ -264,6 +314,20 @@ class SampleAssemblyData(TimeStampedModel):
 
     def __str__(self):
         return str(self.sample_id)
+
+    def get_assembly_path(self) -> Path:
+        assembly_path = MEDIA_ROOT / Path(str(self.assembly))
+        if self.assembly_exists():
+            return assembly_path
+        else:
+            raise FileNotFoundError(f"Assembly at {self.assembly} for {self.sample_id} does not exist!")
+
+    def assembly_exists(self) -> bool:
+        assembly_path = MEDIA_ROOT / Path(str(self.assembly))
+        if not assembly_path.exists() or self.assembly is None or str(self.assembly) == "":
+            return False
+        elif assembly_path.exists():
+            return True
 
     class Meta:
         verbose_name = 'SampleAssemblyData'
