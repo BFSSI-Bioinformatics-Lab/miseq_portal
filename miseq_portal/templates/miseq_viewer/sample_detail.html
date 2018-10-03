@@ -91,7 +91,36 @@
   <div class="container">
     {% if assembly_data != None %}
       <h4>Assembly Details
+        <!-- Button trigger for assembly pipeline modal -->
+        <button type="button" class="btn btn-sm btn-light" data-toggle="modal" data-target="#assemblyModal">
+          <i class="fas fa-question-circle fa-lg"></i>
+        </button>
       </h4>
+
+      <!-- Assembly Pipeline Modal -->
+      <div class="modal fade" id="assemblyModal" tabindex="-1" role="dialog"
+           aria-labelledby="assemblyModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="assemblyModalTitle">Assembly Pipeline Overview</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <ol>
+                <li>QC on reads with <a href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/">BBDuk</a> (adapter trimming/quality filtering)</li>
+                <li>Error-correction of reads with <a href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/tadpole-guide/">Tadpole</a></li>
+                <li>Assembly of reads with <a href="https://github.com/ncbi/SKESA">SKESA</a></li>
+                <li>Polishing of assembly with <a href="https://github.com/broadinstitute/pilon/wiki">Pilon</a></li>
+                <li>Assembly metrics with <a href="http://bioinf.spbau.ru/quast">QUAST</a></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <table id="assembly_table" class="display" style="width:100%">
         <thead>
         <tr>
@@ -144,6 +173,7 @@
           <th>Job Type</th>
           <th>Analysis Page</th>
           <th>Date</th>
+          <th>Delete Analysis</th>
         </tr>
         </thead>
         <tbody>
@@ -161,6 +191,13 @@
             </td>
             <td>
               {{ analysis_sample.group_id.created }}
+            </td>
+            <td>
+              {# TODO: Implement this delete functionality #}
+              <a class="btn btn-outline-danger btn-block"
+                 href="#"
+                 role="button"><i class="fas fa-trash"></i> Delete
+              </a>
             </td>
           </tr>
         {% endfor %}
