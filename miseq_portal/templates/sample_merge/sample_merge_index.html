@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
+{% endblock %}
+
+{% block title %}Sample Merge{% endblock %}
+
+{% block content %}
+
+  <div class="page-header">
+    <h1>Sample Merge Selection</h1>
+  </div>
+
+  <div class="alert alert-info" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+    <ul>
+      <li><strong>Click</strong> to select samples to add to your sample merge group</li>
+      <li>Use the <strong>Search</strong> bar to
+        filter the Sample table
+      </li>
+      <li>Once you have created a selection, click <kbd>Submit</kbd> to move on to the confirmation page
+      </li>
+    </ul>
+  </div>
+
+  <div class="list-group">
+    <table id="sample_table" class="display compact">
+      <thead>
+      <tr>
+        <th>Sample ID</th>
+        <th>Sample Name</th>
+        <th>Run ID</th>
+        <th>Project ID</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for sample in sample_list %}
+        {% if user.is_staff %}
+          <tr>
+            <td>
+              <a
+                href="/miseq_viewer/sample/{{ sample.pk }}">
+                {{ sample.sample_id }}
+              </a>
+            </td>
+            <td>
+              {{ sample.sample_name }}
+            </td>
+            <td>
+              {{ sample.run_id }}
+            </td>
+            <td>
+              {{ sample.project_id }}
+            </td>
+          </tr>
+        {% else %}
+          {% for approved_user in approved_users %}
+            {% if sample.project_id == approved_user.project_id %}
+              <tr>
+                <td>
+                  <a
+                    href="/miseq_viewer/sample/{{ sample.pk }}">
+                    {{ sample.sample_id }}
+                  </a>
+                </td>
+                <td>
+                  {{ sample.sample_name }}
+                </td>
+                <td>
+                  {{ sample.run_id }}
+                </td>
+                <td>
+                  {{ sample.project_id }}
+                </td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+  <br>
+  <button id="submit-button" class="btn btn-block btn-success">Submit</button>
+  <br>
+{% endblock content %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+
+  <script>
+    $.ajaxSetup({
+      headers: {"X-CSRFToken": '{{csrf_token}}'}
+    });
+
+    $(document).ready(function () {
+      let table = $('#sample_table').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+          {
+            text: 'Select All',
+            action: function (e, dt, node, config) {
+              $('#sample_table tbody tr').removeClass("selected").toggleClass('selected');
+            }
+          },
+          {
+            text: 'Deselect All',
+            action: function (e, dt, node, config) {
+              $('#sample_table tbody tr').removeClass("selected");
+            }
+          }
+        ],
+        pageLength: 20,
+      });
+
+
+      $('#sample_table tbody').on('click', 'tr', function () {
+        $(this).toggleClass('selected');
+      });
+
+      $('#submit-button').click(function () {
+        let selected_samples = table.rows('.selected').data();
+
+        if (selected_samples.length === 0) {
+          alert("Please select at least one sample to proceed.");
+          return
+        }
+
+        let sample_id_list = [];
+        for (i = 0; i < selected_samples.length; i++) {
+          // Remove HTML tags and whitespace
+          let sample_id = selected_samples[i][0].replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
+          sample_id_list.push(sample_id);
+        }
+
+
+        $.ajax({
+          url: "",
+          type: 'POST',
+          data: {'sample_id_list': sample_id_list},
+        }).done(function (data) {
+          if (data.success) {
+            window.location.href = data.url;
+          }
+        })
+      });
+    });
+  </script>
+{% endblock %}
