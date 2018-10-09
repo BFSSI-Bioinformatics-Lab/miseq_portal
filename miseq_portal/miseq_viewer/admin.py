@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import Project, Run, RunInterOpData, Sample, UserProjectRelationship, SampleLogData, SampleAssemblyData
+from .models import Project, Run, RunInterOpData, Sample, UserProjectRelationship, SampleLogData, SampleAssemblyData, \
+    MergedSampleComponentGroup, MergedSampleComponent
 
 
 class SampleAdmin(admin.ModelAdmin):
@@ -19,3 +20,5 @@ admin.site.register(Sample, SampleAdmin)
 admin.site.register(UserProjectRelationship)
 admin.site.register(SampleLogData)
 admin.site.register(SampleAssemblyData, SampleAssemblyDataAdmin)
+admin.site.register(MergedSampleComponent)
+admin.site.register(MergedSampleComponentGroup)
