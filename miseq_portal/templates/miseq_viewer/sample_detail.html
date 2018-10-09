@@ -16,21 +16,37 @@
     <div class="col">
       <h1><strong>Sample: </strong>{{ sample }}</h1>
     </div>
-    <div class="col">
-      <h5><strong>Project: </strong>
-        <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=sample.project_id.pk %}">
-          {{ sample.project_id }}
-        </a>
-      </h5>
-      <h5><strong>Run: </strong>
-        <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
-          {{ sample.run_id }}
-        </a>
-      </h5>
-    </div>
+    {% if sample.sample_type == 'BMH' %}
+      <div class="col">
+        <h5><strong>Project: </strong>
+          <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=sample.project_id.pk %}">
+            {{ sample.project_id }}
+          </a>
+        </h5>
+        <h5><strong>Run: </strong>
+          <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
+            {{ sample.run_id }}
+          </a>
+        </h5>
+      </div>
+    {% endif %}
   </div>
 
   <br>
+
+  {#  Merged component dialog #}
+  {% if sample.sample_type == 'MER' %}
+    <div class="container">
+      <h4>Merged Sample Components</h4>
+      <ul class="list-group">
+        {% for sample in sample_components %}
+          <a href="/miseq_viewer/sample/{{ sample.pk }}"
+             class="list-group-item list-group-item-action">{{ sample.component_id }} <i class="fas fa-link"></i></a>
+        {% endfor %}
+      </ul>
+    </div>
+    <br>
+  {% endif %}
 
   <div class="container">
     <h4>Sample Details</h4>
@@ -48,38 +64,37 @@
       <tbody>
       <tr>
         <td>
-          {{ sample.sample_name }}
+          {{ sample.sample_name | default:"N/A" }}
         </td>
-        {# TODO: Fix these download buttons. Doesn't actually retrieve the file. #}
         <td>
-          {% if browser_flag == True %}
+          {% if browser_flag == True and sample.fwd_reads != None %}
             <a class="btn btn-outline-primary btn-block" href="{{ sample.fwd_reads.url }}" download role="button"><i
               class="fas fa-download"></i> Download R1
             </a>
           {% else %}
-            <a class="btn btn-outline-primary btn-block disabled" href="{{ sample.fwd_reads.url }}" download
+            <a class="btn btn-outline-primary btn-block disabled" href="#" download
                role="button"><i
               class="fas fa-download"></i> Download R1
             </a>
           {% endif %}
         </td>
         <td>
-          {% if browser_flag == True %}
+          {% if browser_flag == True and sample.fwd_reads != None %}
             <a class="btn btn-outline-primary btn-block" href="{{ sample.rev_reads.url }}" download role="button"><i
               class="fas fa-download"></i> Download R2
             </a>
           {% else %}
-            <a class="btn btn-outline-primary btn-block disabled" href="{{ sample.rev_reads.url }}" download
+            <a class="btn btn-outline-primary btn-block disabled" href="#" download
                role="button"><i
               class="fas fa-download"></i> Download R2
             </a>
           {% endif %}
         </td>
         <td>
-          {{ sample.samplelogdata.number_reads }}
+          {{ sample.samplelogdata.number_reads | default:"N/A" }}
         </td>
         <td>
-          {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
+          {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 | default:"N/A" }}
         </td>
         <td>{{ sample.created }}</td>
       </tr>
@@ -110,11 +125,15 @@
             </div>
             <div class="modal-body">
               <ol>
-                <li>QC on reads with <a href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/">BBDuk</a> (adapter trimming/quality filtering)</li>
-                <li>Error-correction of reads with <a href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/tadpole-guide/">Tadpole</a></li>
+                <li>QC on reads with <a
+                  href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/">BBDuk</a> (adapter
+                  trimming/quality filtering)
+                </li>
+                <li>Error-correction of reads with <a
+                  href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/tadpole-guide/">Tadpole</a></li>
                 <li>Assembly of reads with <a href="https://github.com/ncbi/SKESA">SKESA</a></li>
                 <li>Polishing of assembly with <a href="https://github.com/broadinstitute/pilon/wiki">Pilon</a></li>
-                <li>Assembly metrics with <a href="http://bioinf.spbau.ru/quast">QUAST</a></li>
+                <li>Assembly metrics with <a href="http://quast.sourceforge.net/quast">QUAST</a></li>
               </ol>
             </div>
           </div>
@@ -158,10 +177,9 @@
         </tr>
         </tbody>
       </table>
+      <br>
     {% endif %}
   </div>
-
-  <br>
 
   <div class="container">
     {% if analysis_samples != None %}
@@ -194,7 +212,7 @@
             </td>
             <td>
               {# TODO: Implement this delete functionality #}
-              <a class="btn btn-outline-danger btn-block"
+              <a class="btn btn-outline-danger btn-block disabled"
                  href="#"
                  role="button"><i class="fas fa-trash"></i> Delete
               </a>
@@ -205,27 +223,42 @@
       </table>
     {% endif %}
   </div>
-  <br>
-  {# ALERTS #}
-  {% if sample.samplelogdata.number_reads < 1000 %}
-    <div class="alert alert-danger" role="alert">
-      <strong>Danger:</strong> This sample has an unusually small number of reads.
-      This will likely cause severe issues with assembly or any other analysis.
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>  {% endif %}
 
-  {% if browser_flag == False %}
-    <div class="alert alert-warning" role="alert">
-      <strong>Warning:</strong> You do not appear to be using Firefox as your web browser. Downloading the R1 and R2
-      read files
-      is only supported in Firefox.
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
+
+  {% if sample.sample_type == 'MER' %}
+    <div class="container">
+      {# TODO: Implement this delete functionality #}
+      <a class="btn btn-outline-danger disabled"
+         href="#"
+         role="button"><i class="fas fa-trash"></i> Delete Merged Sample
+      </a>
     </div>
   {% endif %}
+
+  <br>
+  <div class="container">
+    {# ALERTS #}
+    {% if sample.samplelogdata.number_reads < 1000 %}
+      <div class="alert alert-danger" role="alert">
+        <strong>Danger:</strong> This sample has an unusually small number of reads.
+        This will likely cause severe issues with assembly or any other analysis.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>  {% endif %}
+
+    {% if browser_flag == False %}
+      <div class="alert alert-warning" role="alert">
+        <strong>Warning:</strong> You do not appear to be using Firefox as your web browser. Downloading the R1 and R2
+        read files
+        is only supported in Firefox.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endif %}
+  </div>
+
 
 
 {% endblock content %}
