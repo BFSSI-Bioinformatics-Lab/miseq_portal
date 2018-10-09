@@ -46,8 +46,8 @@ def receive_miseq_run_dir(miseq_dir: Path):
     # TODO: Add checkbox on the MiSeq upload page to for a boolean flag to asseble the run, or not
     sample_object_id_list = [sample_object.sample_id for sample_object in sample_object_list]
     for sample_object_id in sample_object_id_list:
-        logger.info(f"Submitted {sample_object_id} to assembly queue")
         assemble_sample_instance.delay(sample_object_id=sample_object_id)
+        logger.info(f"Submitted {sample_object_id} to assembly queue")
 
 
 def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleDataObject]) -> [SampleDataObject]:
@@ -123,126 +123,159 @@ def upload_run_data(run_instance: Union[Run, RunInterOpData], run_data_object: R
     return run_instance
 
 
+def db_create_project(sample_object: SampleDataObject):
+    # PROJECT
+    project_instance, p_created = Project.objects.get_or_create(project_id=sample_object.project_id,
+                                                                defaults={
+                                                                    # Default to admin ownership
+                                                                    'project_owner': User.objects.get(
+                                                                        username="admin")
+                                                                })
+    if p_created:
+        # Create admin relationship to project immediately
+        UserProjectRelationship.objects.create(project_id=project_instance,
+                                               user_id=User.objects.get(username="admin"))
+        logger.info(f"Created Project '{project_instance}'")
+    else:
+        logger.info(f"Project '{project_instance}' already exists")
+    return project_instance
+
+
+def db_create_run(sample_object: SampleDataObject, run_data_object: RunDataObject):
+    run_instance, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
+                                                        defaults={'sample_sheet': '',
+                                                                  'runinfoxml': '',
+                                                                  'runparametersxml': '',
+                                                                  'interop_directory_path': ''})
+
+    if r_created:
+        logger.info(f"Created Run '{run_instance}'")
+
+        # Set interop_dir (no upload necessary, it's just a string path)
+        interop_dir_path = upload_interop_dir(run_instance)
+        run_instance.interop_directory_path = interop_dir_path
+        logger.info(f'Set interop_directory_path to {interop_dir_path}')
+
+        # Upload XML files + SampleSheet
+        xml_field_list = ['runinfoxml', 'runparametersxml', 'sample_sheet']
+        for field in xml_field_list:
+            run_instance = upload_run_data(run_instance=run_instance,
+                                           run_data_object=run_data_object,
+                                           run_model_fieldname=field,
+                                           interop_flag=False)
+        # Save instance
+        run_instance.save()
+        logger.info(f"Saved {run_instance} to the database")
+    else:
+        logger.info(f"Run '{run_instance}' already exists, skipping'")
+
+    return run_instance
+
+
+def db_create_run_interop(run_instance: Run, run_data_object: RunDataObject):
+    run_interop_instance, ri_created = RunInterOpData.objects.get_or_create(run_id=run_instance,
+                                                                            defaults={'control_metrics': '',
+                                                                                      'correctedintmetrics': '',
+                                                                                      'errormetrics': '',
+                                                                                      'extractionmetrics': '',
+                                                                                      'indexmetrics': '',
+                                                                                      'qmetrics2030': '',
+                                                                                      'qmetricsbylane': '',
+                                                                                      'qmetrics': '',
+                                                                                      'tilemetrics': ''})
+
+    if ri_created:
+        logger.info(f"Created RunInterop '{run_interop_instance}'")
+
+        # Upload InterOp files
+        run_interop_data_field_list = [
+            'control_metrics',
+            'correctedintmetrics',
+            'errormetrics',
+            'extractionmetrics',
+            'indexmetrics',
+            'qmetrics2030',
+            'qmetricsbylane',
+            'qmetrics',
+            'tilemetrics'
+        ]
+
+        for field in run_interop_data_field_list:
+            run_interop_instance = upload_run_data(run_instance=run_interop_instance,
+                                                   run_data_object=run_data_object,
+                                                   run_model_fieldname=field,
+                                                   interop_flag=True)
+
+        # Save the changes to the run_interop model instance
+        run_interop_instance.save()
+        logger.info(f"Saved {run_interop_instance} to the database")
+
+        return run_interop_instance
+
+
+def db_create_sample(sample_object: SampleDataObject, run_instance: Run, project_instance: Project):
+    sample_instance, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
+                                                              defaults={'run_id': run_instance,
+                                                                        'project_id': project_instance})
+    if s_created:
+        logger.info(f"Uploading {sample_object.sample_id}...")
+
+        # Sample data + read handling
+        fwd_read_path = upload_reads(sample_instance, sample_object.fwd_read_path.name)
+        rev_read_path = upload_reads(sample_instance, sample_object.rev_read_path.name)
+        os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path), exist_ok=True)
+        shutil.copy(str(sample_object.fwd_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
+        shutil.copy(str(sample_object.rev_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
+        sample_instance.fwd_reads = fwd_read_path
+        sample_instance.rev_reads = rev_read_path
+        sample_instance.sample_name = sample_object.sample_name
+        sample_instance.save()
+    else:
+        logger.info(f"Sample '{sample_instance}' already exists, skipping'")
+    return sample_instance
+
+
+def db_create_sample_log(sample_object: SampleDataObject, sample_instance: Sample):
+    # Save sample stats
+    sample_log_instance, sl_created = SampleLogData.objects.get_or_create(sample_id=sample_instance)
+    if sl_created:
+        sample_log_attribute_list = [
+            'number_reads',
+            'sample_yield',
+            'r1_qualityscoresum',
+            'r2_qualityscoresum',
+            'r1_trimmedbases',
+            'r2_trimmedbases',
+            'r1_yield',
+            'r2_yield',
+            'r1_yieldq30',
+            'r2_yieldq30'
+        ]
+        for attribute in sample_log_attribute_list:
+            setattr(sample_log_instance, attribute, getattr(sample_object, attribute))
+        sample_log_instance.save()
+    return sample_log_instance
+
+
 def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDataObject):
     """
     Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database
     This should only work with sample_type=="BMH" samples
-    TODO: Factor out a lot of this code into little functions. It's getting unwieldy.
     """
     for sample_object in sample_object_list:
         # PROJECT
-        project_instance, p_created = Project.objects.get_or_create(project_id=sample_object.project_id,
-                                                                    defaults={
-                                                                        # Default to admin ownership
-                                                                        'project_owner': User.objects.get(
-                                                                            username="admin")
-                                                                    })
-        if p_created:
-            # Create admin relationship to project immediately
-            UserProjectRelationship.objects.create(project_id=project_instance,
-                                                   user_id=User.objects.get(username="admin"))
-            logger.info(f"Created Project '{project_instance}'")
-        else:
-            logger.info(f"Project '{project_instance}' already exists")
+        project_instance = db_create_project(sample_object=sample_object)
 
         # RUN
-        run_instance, r_created = Run.objects.get_or_create(run_id=sample_object.run_id,
-                                                            defaults={'sample_sheet': '',
-                                                                      'runinfoxml': '',
-                                                                      'runparametersxml': '',
-                                                                      'interop_directory_path': ''})
-        run_interop_instance, ri_created = RunInterOpData.objects.get_or_create(run_id=run_instance,
-                                                                                defaults={'control_metrics': '',
-                                                                                          'correctedintmetrics': '',
-                                                                                          'errormetrics': '',
-                                                                                          'extractionmetrics': '',
-                                                                                          'indexmetrics': '',
-                                                                                          'qmetrics2030': '',
-                                                                                          'qmetricsbylane': '',
-                                                                                          'qmetrics': '',
-                                                                                          'tilemetrics': ''})
-        if r_created:
-            logger.info(f"Created Run '{run_instance}'")
+        run_instance = db_create_run(sample_object=sample_object, run_data_object=run_data_object)
 
-            # Set interop_dir (no upload necessary, it's just a string path)
-            interop_dir_path = upload_interop_dir(run_instance)
-            run_instance.interop_directory_path = interop_dir_path
-            logger.info(f'Set interop_directory_path to {interop_dir_path}')
-
-            # Upload XML files + SampleSheet
-            xml_field_list = ['runinfoxml', 'runparametersxml', 'sample_sheet']
-            for field in xml_field_list:
-                run_instance = upload_run_data(run_instance=run_instance,
-                                               run_data_object=run_data_object,
-                                               run_model_fieldname=field,
-                                               interop_flag=False)
-            # Save instance
-            run_instance.save()
-            logger.info(f"Saved {run_instance} to the database")
-        else:
-            logger.info(f"Run '{run_instance}' already exists, skipping'")
-
-        if ri_created:
-            logger.info(f"Created RunInterop '{run_interop_instance}'")
-
-            # Upload InterOp files
-            run_interop_data_field_list = [
-                'control_metrics',
-                'correctedintmetrics',
-                'errormetrics',
-                'extractionmetrics',
-                'indexmetrics',
-                'qmetrics2030',
-                'qmetricsbylane',
-                'qmetrics',
-                'tilemetrics'
-            ]
-
-            for field in run_interop_data_field_list:
-                run_interop_instance = upload_run_data(run_instance=run_interop_instance,
-                                                       run_data_object=run_data_object,
-                                                       run_model_fieldname=field,
-                                                       interop_flag=True)
-
-            # Save the changes to the run_interop model instance
-            run_interop_instance.save()
-            logger.info(f"Saved {run_interop_instance} to the database")
+        # RUN INTEROP
+        run_interop_instance = db_create_run_interop(run_instance)
 
         # SAMPLE
-        sample_instance, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
-                                                                  defaults={'run_id': run_instance,
-                                                                            'project_id': project_instance})
-        sample_log, sl_created = SampleLogData.objects.get_or_create(sample_id=sample_instance)
-        if s_created:
-            logger.info(f"Uploading {sample_object.sample_id}...")
+        sample_instance = db_create_sample(sample_object=sample_object,
+                                           run_instance=run_instance,
+                                           project_instance=project_instance)
 
-            # Sample data + read handling
-            fwd_read_path = upload_reads(sample_instance, sample_object.fwd_read_path.name)
-            rev_read_path = upload_reads(sample_instance, sample_object.rev_read_path.name)
-            os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path), exist_ok=True)
-            shutil.copy(str(sample_object.fwd_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
-            shutil.copy(str(sample_object.rev_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
-            sample_instance.fwd_reads = fwd_read_path
-            sample_instance.rev_reads = rev_read_path
-            sample_instance.sample_name = sample_object.sample_name
-            sample_instance.save()
-        else:
-            logger.info(f"Sample '{sample_instance}' already exists, skipping'")
-
-        # Save sample stats
-        if sl_created:
-            sample_log_attribute_list = [
-                'number_reads',
-                'sample_yield',
-                'r1_qualityscoresum',
-                'r2_qualityscoresum',
-                'r1_trimmedbases',
-                'r2_trimmedbases',
-                'r1_yield',
-                'r2_yield',
-                'r1_yieldq30',
-                'r2_yieldq30'
-            ]
-            for attribute in sample_log_attribute_list:
-                setattr(sample_log, attribute, getattr(sample_object, attribute))
-            sample_log.save()
+        # SAMPLE LOG
+        sample_log_instance = db_create_sample_log(sample_object=sample_object, sample_instance=sample_instance)
