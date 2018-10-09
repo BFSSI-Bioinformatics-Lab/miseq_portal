@@ -284,7 +284,7 @@ CELERY_TASK_ALWAYS_EAGER = False
 CELERY_TASK_EAGER_PROPAGATES = True
 
 CELERY_IMPORTS = ('miseq_portal.analysis.tasks',
-                  )
+                  'miseq_portal.sample_merge.tasks')
 
 # ASSEMBLY PIPELINE SETTINGS
 MOB_SUITE_PATH = Path("/home/brock/miniconda3/envs/mob_suite/bin/")
