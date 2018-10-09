@@ -3,6 +3,7 @@ Base settings to build other settings files upon.
 """
 
 import environ
+from pathlib import Path
 
 ROOT_DIR = environ.Path(__file__) - 3  # (miseq_portal/config/settings/base.py - 3 = miseq_portal/)
 APPS_DIR = ROOT_DIR.path('miseq_portal')
@@ -76,7 +77,8 @@ LOCAL_APPS = [
     'miseq_portal.miseq_viewer.apps.MiseqViewerConfig',
     'miseq_portal.miseq_uploader.apps.MiseqUploaderConfig',
     'miseq_portal.sample_search.apps.SampleSearchConfig',
-    'miseq_portal.analysis.apps.AnalysisConfig'
+    'miseq_portal.analysis.apps.AnalysisConfig',
+    'miseq_portal.sample_merge.apps.SampleMergeConfig'
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -262,6 +264,7 @@ CELERY_BROKER_URL = 'amqp://miseq_portal:Star_Gate5@localhost:5672/miseq_portal_
 # BROKER_URL = 'amqp://guest:guest@localhost:5672/miseq_portal_vhost'
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
 CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_RESULT_PERSISTENT = True
 # CELERY_RESULT_BACKEND = 'django-db'
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-accept_content
 CELERY_ACCEPT_CONTENT = ['json']
@@ -284,3 +287,6 @@ CELERY_IMPORTS = ('miseq_portal.analysis.tasks',
                   )
 
 # ASSEMBLY PIPELINE SETTINGS
+MOB_SUITE_PATH = Path("/home/brock/miniconda3/envs/mob_suite/bin/")
+ABRICATE_PATH = Path("/home/brock/miniconda3/envs/abricate/bin/")
+STAR_AMR_PATH = Path("/home/brock/miniconda3/envs/staramr/bin/")
