@@ -17,16 +17,18 @@ def validate_sample_id(value: str, length: int = 15):
     :param value: sample_id
     :param length: expected length of string
     """
+    components = value.split("-")
+
     if len(value) != length:
         raise ValidationError(f"Sample ID '{value}' does not meet the expected length of 15 characters. "
                               f"Sample ID must be in the following format: 'BMH-2018-000001'")
 
-    components = value.split("-")
     if len(components) != 3:
         raise ValidationError(f"Sample ID '{value}' does not appear to meet expected format. "
                               f"Sample ID must be in the following format: 'BMH-2018-000001'")
-    elif components[0] != "BMH" or "MER":
-        raise ValidationError(f"TEXT component of Sample ID ('{components[0]}') does not equal expected 'BMH' or 'MER'")
+    elif components[0] != 'BMH' and components[0] != 'MER' and components[0] != 'ACA':
+        raise ValidationError(
+            f"TEXT component of Sample ID ('{components[0]}') does not equal expected 'BMH', 'MER', or 'ACA'")
     elif not components[1].isdigit() or len(components[1]) != 4:
         raise ValidationError(f"YEAR component of Sample ID ('{components[1]}') does not equal expected 'YYYY' format")
     elif not components[2].isdigit() or len(components[2]) != 6:
@@ -58,7 +60,7 @@ def upload_reads(instance, filename):
     if instance.sample_type == 'BMH':
         return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
     elif instance.sample_type == 'MER':
-        return f'uploads/merged_samples/{instance.sample_id}/{filename}'
+        return f'merged_samples/{instance.sample_id}/{filename}'
 
 
 def upload_assembly(instance, filename):
@@ -240,7 +242,7 @@ class Sample(TimeStampedModel):
     rev_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=1000)
 
     def generate_sample_id(self):
-        return f'{self.sample_type}-{self.sample_year()}-{self.pk:06})'
+        return f'{self.sample_type}-{self.sample_year()}-{self.pk:06}'
 
     def sample_year(self):
         return str(self.created.year)
@@ -259,6 +261,13 @@ class MergedSampleComponent(models.Model):
     """
     component_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
     group_id = models.ForeignKey(MergedSampleComponentGroup, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.component_id} ({self.group_id})"
+
+    class Meta:
+        verbose_name = 'Merged Sample Component'
+        verbose_name_plural = 'Merged Sample Components'
 
 
 class SampleLogData(TimeStampedModel):
