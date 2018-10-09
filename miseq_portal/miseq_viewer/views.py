@@ -6,7 +6,8 @@ from django.views.generic import DetailView, ListView
 
 from config.settings.base import MEDIA_ROOT
 
-from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData
+from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
+    MergedSampleComponentGroup, MergedSampleComponent
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.analysis.models import AnalysisSample
@@ -123,6 +124,11 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
             context['analysis_samples'] = analysis_samples
         else:
             context['analysis_samples'] = None
+
+        # Get associated samples if sample type is MER
+        if context['sample'].sample_type == 'MER':
+            sample_components = MergedSampleComponent.objects.filter(group_id=context['sample'].component_group)
+            context['sample_components'] = sample_components
 
         # Get user's browser details to determine whether or not to show the disclaimer RE: downloading .fastq.gz
         if "Firefox" in self.request.META['HTTP_USER_AGENT']:
