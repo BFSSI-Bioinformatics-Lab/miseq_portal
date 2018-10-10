@@ -2,6 +2,8 @@ from django.http import JsonResponse
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, TemplateView
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.decorators import method_decorator
 
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship, MergedSampleComponentGroup, \
     MergedSampleComponent
@@ -12,6 +14,7 @@ import logging
 logger = logging.getLogger('raven')
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class SampleMergeIndexView(LoginRequiredMixin, ListView):
     template_name = 'sample_merge/sample_merge_index.html'
     success_url = 'merge_success/'
@@ -62,6 +65,7 @@ class SampleMergeIndexView(LoginRequiredMixin, ListView):
 sample_merge_index_view = SampleMergeIndexView.as_view()
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class MergeSuccessView(LoginRequiredMixin, TemplateView):
     template_name = 'sample_merge/merge_success.html'
 
