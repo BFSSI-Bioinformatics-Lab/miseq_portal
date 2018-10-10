@@ -49,13 +49,13 @@
               </a>
             </td>
             <td>
-              {{ sample.sample_name }}
+              {{ sample.sample_name|default:"N/A" }}
             </td>
             <td>
-              {{ sample.run_id }}
+              {{ sample.run_id|default:"N/A" }}
             </td>
             <td>
-              {{ sample.project_id }}
+              {{ sample.project_id|default:"N/A" }}
             </td>
           </tr>
         {% else %}
@@ -69,13 +69,13 @@
                   </a>
                 </td>
                 <td>
-                  {{ sample.sample_name }}
+                  {{ sample.sample_name|default:"N/A" }}
                 </td>
                 <td>
-                  {{ sample.run_id }}
+                  {{ sample.run_id|default:"N/A" }}
                 </td>
                 <td>
-                  {{ sample.project_id }}
+                  {{ sample.project_id|default:"N/A" }}
                 </td>
               </tr>
             {% endif %}
