@@ -3,6 +3,9 @@ from django.views.generic import View, TemplateView
 from django.shortcuts import render, redirect
 from django.http import Http404
 
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.decorators import method_decorator
+
 from pathlib import Path
 
 from .forms import RunModelForm, CreateProjectForm, UploadMiSeqDirectoryForm
@@ -10,9 +13,11 @@ from miseq_portal.miseq_viewer.models import Project
 from miseq_portal.miseq_uploader.upload_to_db import receive_miseq_run_dir
 
 import logging
+
 logger = logging.getLogger('raven')
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class MiseqUploaderView(LoginRequiredMixin, TemplateView):
     template_name = 'miseq_uploader/miseq_uploader.html'
 
@@ -20,6 +25,7 @@ class MiseqUploaderView(LoginRequiredMixin, TemplateView):
 miseq_uploader_view = MiseqUploaderView.as_view()
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class SampleFormView(LoginRequiredMixin, View):
     template_name = 'miseq_uploader/sample_uploader.html'
 
@@ -30,6 +36,7 @@ class SampleFormView(LoginRequiredMixin, View):
 sample_form_view = SampleFormView.as_view()
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class CreateProjectView(LoginRequiredMixin, View):
     form_class = CreateProjectForm
     template_name = 'miseq_uploader/create_project.html'
@@ -55,6 +62,7 @@ class CreateProjectView(LoginRequiredMixin, View):
 create_project_view = CreateProjectView.as_view()
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class MiSeqFormView(LoginRequiredMixin, UserPassesTestMixin, View):
     form_class = UploadMiSeqDirectoryForm
     template_name = 'miseq_uploader/upload_miseq_directory.html'
@@ -87,6 +95,7 @@ class MiSeqFormView(LoginRequiredMixin, UserPassesTestMixin, View):
 miseq_form_view = MiSeqFormView.as_view()
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class RunFormView(LoginRequiredMixin, View):
     form_class = RunModelForm
     template_name = 'miseq_uploader/run_uploader.html'
@@ -131,6 +140,7 @@ class RunFormView(LoginRequiredMixin, View):
 run_form_view = RunFormView.as_view()
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class RunSubmittedView(LoginRequiredMixin, TemplateView):
     template_name = 'miseq_uploader/run_submitted.html'
 
@@ -138,6 +148,7 @@ class RunSubmittedView(LoginRequiredMixin, TemplateView):
 run_submitted_view = RunSubmittedView.as_view()
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class ProjectCreatedView(LoginRequiredMixin, TemplateView):
     template_name = 'miseq_uploader/project_created.html'
 
