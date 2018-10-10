@@ -1,0 +1,23 @@
+table.dataTable td {
+  padding: 3px 10px;
+  width: 1px;
+  white-space: nowrap;
+}
+
+table.dataTable th {
+  padding: 3px 10px;
+  width: 1px;
+  white-space: nowrap;
+}
+
+.mob_suite_result_container {
+  border: 1px solid grey;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: .25rem;
+}
+
+.dataTables_wrapper {
+  padding: 10px;
+}
+
