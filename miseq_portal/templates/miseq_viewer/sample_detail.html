@@ -39,9 +39,9 @@
     <div class="container">
       <h4>Merged Sample Components</h4>
       <ul class="list-group">
-        {% for sample in sample_components %}
-          <a href="/miseq_viewer/sample/{{ sample.pk }}"
-             class="list-group-item list-group-item-action">{{ sample.component_id }} <i class="fas fa-link"></i></a>
+        {% for component in sample_components %}
+          <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=component.pk %}"
+             class="list-group-item list-group-item-action">{{ component.sample_id }} <i class="fas fa-link"></i></a>
         {% endfor %}
       </ul>
     </div>
