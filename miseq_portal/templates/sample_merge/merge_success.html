@@ -8,9 +8,10 @@
   <div class="alert alert-success" role="alert">
     <h3>Merge job submitted successfully</h3>
     <p>Samples have been queued for merging and
-      <a class="btn btn-outline-primary btn-sm" href="/miseq_viewer/sample/{{ merged_sample.pk }}">{{ merged_sample }}</a>
- will be available for usage soon.
-    The sample will also be added to the assembly queue once the merging is completed.
+      <a class="btn btn-outline-primary btn-sm"
+         href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=merged_sample.pk %}">{{ merged_sample }}</a>
+      will be available for usage soon.
+      The sample will also be added to the assembly queue once the merging is completed.
     </p>
   </div>
 
