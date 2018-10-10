@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.urls import reverse_lazy
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, View, TemplateView, DetailView
+from django.views.generic import ListView, View, TemplateView, DetailView, DeleteView
 
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
@@ -141,3 +142,18 @@ class JobSubmittedView(LoginRequiredMixin, TemplateView):
 
 
 job_submitted_view = JobSubmittedView.as_view()
+
+
+class AnalysisGroupDeleteView(LoginRequiredMixin, DeleteView):
+    model = AnalysisGroup
+    success_url = reverse_lazy('analysis:analysis_group_delete_success_view')
+
+
+analysis_group_delete_view = AnalysisGroupDeleteView.as_view()
+
+
+class AnalysisGroupDeleteSuccessView(LoginRequiredMixin, TemplateView):
+    template_name = 'analysis/analysisgroup_delete_success.html'
+
+
+analysis_group_delete_success_view = AnalysisGroupDeleteSuccessView.as_view()
