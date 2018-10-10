@@ -36,19 +36,27 @@
                 </a>
               </td>
               <td>
-                {{ sample.sample_name }}
+                {{ sample.sample_name|default:"N/A" }}
               </td>
               <td>
-                <a
-                  href="/miseq_viewer/run/{{ sample.run_id_id }}">
-                  {{ sample.run_id }}
-                </a>
+                {% if sample.run_id != None %}
+                  <a
+                    href="/miseq_viewer/run/{{ sample.run_id_id }}">
+                    {{ sample.run_id }}
+                  </a>
+                {% else %}
+                  N/A
+                {% endif %}
               </td>
               <td>
-                <a
-                  href="/miseq_viewer/project/{{ sample.project_id_id }}/">
-                  {{ sample.project_id }}
-                </a>
+                {% if sample.project_id != None %}
+                  <a
+                    href="/miseq_viewer/project/{{ sample.project_id_id }}/">
+                    {{ sample.project_id }}
+                  </a>
+                {% else %}
+                  N/A
+                {% endif %}
               </td>
               <td>
                 {{ sample.created }}
@@ -68,19 +76,27 @@
                     </a>
                   </td>
                   <td>
-                    {{ sample.sample_name }}
+                    {{ sample.sample_name|default:"N/A" }}
                   </td>
-                  <td>
-                    <a
-                      href="/miseq_viewer/run/{{ sample.run_id_id }}">
-                      {{ sample.run_id }}
-                    </a>
+                  <td> {# TODO: Make this more robust with {% url '' pk=something %} #}
+                    {% if sample.run_id != None %}
+                      <a
+                        href="/miseq_viewer/run/{{ sample.run_id_id }}">
+                        {{ sample.run_id }}
+                      </a>
+                    {% else %}
+                      N/A
+                    {% endif %}
                   </td>
-                  <td>
-                    <a
-                      href="/miseq_viewer/project/{{ sample.project_id_id }}/">
-                      {{ sample.project_id }}
-                    </a>
+                  <td> {# TODO: Make this more robust with {% url '' pk=something %} #}
+                    {% if sample.project_id != None %}
+                      <a
+                        href="/miseq_viewer/project/{{ sample.project_id_id }}/">
+                        {{ sample.project_id }}
+                      </a>
+                    {% else %}
+                      N/A
+                    {% endif %}
                   </td>
                   <td>
                     {{ sample.created }}
