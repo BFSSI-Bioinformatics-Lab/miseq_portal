@@ -1,7 +1,7 @@
 from django.http import JsonResponse
-
+from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, TemplateView
+from django.views.generic import ListView, TemplateView, DeleteView
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 
@@ -85,3 +85,19 @@ class MergeSuccessView(LoginRequiredMixin, TemplateView):
 
 
 merge_success_view = MergeSuccessView.as_view()
+
+
+class SampleDeleteView(LoginRequiredMixin, DeleteView):
+    model = Sample
+    template_name = 'sample_merge/sample_confirm_delete.html'
+    success_url = reverse_lazy('sample_merge:sample_delete_success_view')
+
+
+sample_delete_view = SampleDeleteView.as_view()
+
+
+class SampleDeleteSuccessView(LoginRequiredMixin, TemplateView):
+    template_name = 'sample_merge/sample_delete_success.html'
+
+
+sample_delete_success_view = SampleDeleteSuccessView.as_view()
