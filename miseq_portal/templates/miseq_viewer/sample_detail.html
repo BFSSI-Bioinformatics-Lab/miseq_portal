@@ -46,7 +46,6 @@
           This sample appears to be a component of the following merged sample:
           <a class="btn btn-outline-primary btn-sm"
              href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=merged_sample_reference.pk %}">{{ merged_sample_reference }}</a>
-
         </div>
       {% endfor %}
     </div>
@@ -54,7 +53,7 @@
 
   {#  Merged component dialog #}
   {% if sample.sample_type == 'MER' %}
-    <div class="container">
+    <div class="container" id="merged-sample-div">
       <h4>Merged Sample Components</h4>
       <ul class="list-group">
         {% for component in sample_components %}
@@ -125,7 +124,8 @@
     {% if assembly_data != None %}
       <h4>Assembly Details
         <!-- Button trigger for assembly pipeline modal -->
-        <button type="button" class="btn btn-sm btn-light" data-toggle="modal" data-target="#assemblyModal">
+        <button type="button" class="btn btn-sm btn-light" data-toggle="modal"
+                data-target="#assemblyModal">
           <i class="fas fa-question-circle fa-lg"></i>
         </button>
       </h4>
@@ -187,7 +187,8 @@
             {{ assembly_data.n50 }}
           </td>
           <td>
-            <a class="btn btn-outline-primary btn-block" href="{{ sample.sampleassemblydata.assembly.url }}" download
+            <a class="btn btn-outline-primary btn-block" id="assembly-button"
+               href="{{ sample.sampleassemblydata.assembly.url }}" download
                role="button"><i
               class="fas fa-download"></i> Download
             </a>
@@ -230,9 +231,8 @@
               {{ analysis_sample.group_id.created }}
             </td>
             <td>
-              {# TODO: Implement this delete functionality #}
-              <a class="btn btn-outline-danger btn-block disabled"
-                 href="#"
+              <a class="btn btn-outline-danger btn-block"
+                 href="{% url 'analysis:analysis_group_delete_view' pk=analysis_sample.group_id.pk %}"
                  role="button"><i class="fas fa-trash"></i> Delete
               </a>
             </td>
@@ -245,11 +245,10 @@
   {% endif %}
 
 
-  {% if sample.sample_type == 'MER' %}
+  {% if sample.sample_type == 'MER' and request.user.is_staff %}
     <div class="container">
-      {# TODO: Implement this delete functionality #}
-      <a class="btn btn-outline-danger disabled"
-         href="#"
+      <a class="btn btn-outline-danger btn-block" id="delete-sample-button"
+         href="{% url 'sample_merge:sample_delete_view' pk=sample.pk %}"
          role="button"><i class="fas fa-trash"></i> Delete Merged Sample
       </a>
     </div>
@@ -322,6 +321,33 @@
         },
       });
     });
+  </script>
+
+  {# Disable delete button for merged samples if the assembly hasn't completed yet #}
+  <script>
+    function merge_sample_button_management() {
+      let assembly_button = $("#assembly-button");
+      let merge_div = $("#merged-sample-div");
+      let merge_present = false;
+      let assembly_present = false;
+
+      if (merge_div.length > 0) {
+        merge_present = true;
+      }
+      else {
+        return
+      }
+
+      if (assembly_button.length > 0) {
+        assembly_present = true;
+      }
+
+      if (merge_present === true && assembly_present === false) {
+        console.log("Disabling delete button until assembly is completed!");
+        $("#delete-sample-button").addClass("disabled");
+      }
+    }
+    merge_sample_button_management();
   </script>
 
   {# D3.js #}
