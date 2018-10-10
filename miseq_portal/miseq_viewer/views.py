@@ -136,9 +136,14 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
             context['sample_components'] = sample_components
 
         # Check if sample is part of a MER sample
-        # if context['sample'].sample_type == 'BMH':
-        #     component_query = MergedSampleComponent.objects.filter(component_id=context['sample'].sample_id)
-        #     logger.info(component_query)
+        if context['sample'].sample_type == 'BMH':
+            component_query = MergedSampleComponent.objects.filter(component_id=context['sample'])
+            if len(component_query) > 0:
+                merged_sample_references = []
+                for component in component_query:
+                    merged_sample_reference = Sample.objects.get(component_group=component.group_id)
+                    merged_sample_references.append(merged_sample_reference)
+                context['merged_sample_references'] = merged_sample_references
 
         # Get user's browser details to determine whether or not to show the disclaimer RE: downloading .fastq.gz
         if "Firefox" in self.request.META['HTTP_USER_AGENT']:
