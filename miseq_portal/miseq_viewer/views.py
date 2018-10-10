@@ -141,8 +141,11 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
             if len(component_query) > 0:
                 merged_sample_references = []
                 for component in component_query:
-                    merged_sample_reference = Sample.objects.get(component_group=component.group_id)
-                    merged_sample_references.append(merged_sample_reference)
+                    try:
+                        merged_sample_reference = Sample.objects.get(component_group=component.group_id)
+                        merged_sample_references.append(merged_sample_reference)
+                    except Sample.DoesNotExist:
+                        pass
                 context['merged_sample_references'] = merged_sample_references
 
         # Get user's browser details to determine whether or not to show the disclaimer RE: downloading .fastq.gz
