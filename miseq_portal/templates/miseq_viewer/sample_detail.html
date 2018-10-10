@@ -34,6 +34,24 @@
 
   <br>
 
+  {# Display alert if sample is part of a merged sample #}
+  {% if merged_sample_references %}
+    <div class="container">
+      {% for merged_sample_reference in merged_sample_references %}
+        <div class="alert alert-primary" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h5>Merged Sample Detected</h5>
+          This sample appears to be a component of the following merged sample:
+          <a class="btn btn-outline-primary btn-sm"
+             href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=merged_sample_reference.pk %}">{{ merged_sample_reference }}</a>
+
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   {#  Merged component dialog #}
   {% if sample.sample_type == 'MER' %}
     <div class="container">
@@ -249,12 +267,12 @@
 
     {% if browser_flag == False %}
       <div class="alert alert-warning" role="alert">
-        <strong>Warning:</strong> You do not appear to be using Firefox as your web browser. Downloading the R1 and R2
-        read files
-        is only supported in Firefox.
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
+        <strong>Warning:</strong> You do not appear to be using Firefox as your web browser. Downloading the R1 and R2
+        read files
+        is only supported in Firefox.
       </div>
     {% endif %}
   </div>
