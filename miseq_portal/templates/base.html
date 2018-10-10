@@ -68,17 +68,19 @@
             <a class="nav-link "
                href="{% url 'analysis:analysis_index' %}"><i class="fas fa-flask"></i> Analysis Suite</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link "
-               href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Sample Merge</a>
-          </li>
+          {% if request.user.is_staff %}  {# Only staff can view the sample merge and uploader sections #}
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> MiSeq Uploader</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Sample Merge</a>
+            </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link "
                href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link "
-               href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> MiSeq Uploader</a>
           </li>
           <li class="nav-item">
             {# URL provided by django-allauth/account/urls.py #}
