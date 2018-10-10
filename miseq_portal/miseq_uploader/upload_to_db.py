@@ -43,7 +43,6 @@ def receive_miseq_run_dir(miseq_dir: Path):
     logger.info(f'UPLOAD COMPLETE')
 
     # Run assembly pipeline on sample_object_list
-    # TODO: Add checkbox on the MiSeq upload page to for a boolean flag to asseble the run, or not
     sample_object_id_list = [sample_object.sample_id for sample_object in sample_object_list]
     for sample_object_id in sample_object_id_list:
         assemble_sample_instance.delay(sample_object_id=sample_object_id)
