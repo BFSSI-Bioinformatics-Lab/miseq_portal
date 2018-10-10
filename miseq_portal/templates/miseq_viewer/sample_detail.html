@@ -199,8 +199,9 @@
     {% endif %}
   </div>
 
-  <div class="container">
-    {% if analysis_samples != None %}
+  {% if analysis_samples != None %}
+    <div class="container">
+
       <h4>Associated Analyses</h4>
       {# Consider making this a datatable #}
       <table id="analysis_table" class="display">
@@ -239,8 +240,9 @@
         {% endfor %}
         </tbody>
       </table>
-    {% endif %}
-  </div>
+    </div>
+    <br>
+  {% endif %}
 
 
   {% if sample.sample_type == 'MER' %}
