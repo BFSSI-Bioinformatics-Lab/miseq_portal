@@ -283,8 +283,13 @@ CELERY_TASK_ALWAYS_EAGER = False
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-eager-propagates
 CELERY_TASK_EAGER_PROPAGATES = True
 
+# Celery tasks were occasionally hanging and the whole server had to be restarted as a result. This fixes that issue.
+CELERY_BROKER_POOL_LIMIT = None
+
 CELERY_IMPORTS = ('miseq_portal.analysis.tasks',
                   'miseq_portal.sample_merge.tasks')
+
+
 
 # ASSEMBLY PIPELINE SETTINGS
 MOB_SUITE_PATH = Path("/home/brock/miniconda3/envs/mob_suite/bin/")
