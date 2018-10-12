@@ -44,7 +44,8 @@ def submit_analysis_job(analysis_group_id: AnalysisGroup):
 
 def submit_mob_recon_job(sample_instance: AnalysisSample):
     assembly_instance = SampleAssemblyData.objects.get(sample_id=sample_instance.sample_id)
-    outdir = Path(MEDIA_ROOT) / Path(str(sample_instance.sample_id.fwd_reads)).parent / 'mob_suite'
+    outdir = Path(MEDIA_ROOT) / Path(str(sample_instance.sample_id.fwd_reads)) \
+        .parent / f'mob_suite_{sample_instance.user}_{sample_instance.created}'
     root_sample_instance = Sample.objects.get(sample_id=sample_instance.sample_id)
 
     if not assembly_instance.assembly_exists():
@@ -111,7 +112,8 @@ def submit_sendsketch_job(sample_instance: AnalysisSample):
     fwd_reads = Path(MEDIA_ROOT) / str(sample_instance.sample_id.fwd_reads)
     rev_reads = Path(MEDIA_ROOT) / str(sample_instance.sample_id.rev_reads)
     outpath = Path(MEDIA_ROOT) / Path(
-        str(sample_instance.sample_id.fwd_reads)).parent / 'SendSketch_results.txt'
+        str(sample_instance.sample_id.fwd_reads)) \
+        .parent / f'{sample_instance.user}_{sample_instance.created}_SendSketch_results.txt'
     parent_sample = Sample.objects.get(sample_id=sample_instance.sample_id)
 
     sendsketch_result_file = run_sendsketch(fwd_reads=fwd_reads,
