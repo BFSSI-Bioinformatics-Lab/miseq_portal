@@ -38,11 +38,13 @@
 
   {#  Delete analysis#}
   <div>
-    <a class="btn btn-outline-danger btn-block"
+    <a class="btn btn-outline-danger"
        href="{% url 'analysis:analysis_group_delete_view' pk=analysis_group.pk %}"
        role="button"><i class="fas fa-trash"></i> Delete Analysis
     </a>
   </div>
+  <br>
+
 
 {% endblock content %}
 
