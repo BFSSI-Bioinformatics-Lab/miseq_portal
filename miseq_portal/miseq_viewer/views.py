@@ -7,7 +7,7 @@ from django.views.generic import DetailView, ListView
 from config.settings.base import MEDIA_ROOT
 
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
-    MergedSampleComponentGroup, MergedSampleComponent
+    MergedSampleComponent
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.analysis.models import AnalysisSample
