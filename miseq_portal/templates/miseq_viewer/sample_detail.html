@@ -211,7 +211,6 @@
           <th>Job Type</th>
           <th>Analysis Page</th>
           <th>Date</th>
-          <th>Delete Analysis</th>
         </tr>
         </thead>
         <tbody>
@@ -229,12 +228,6 @@
             </td>
             <td>
               {{ analysis_sample.group_id.created }}
-            </td>
-            <td>
-              <a class="btn btn-outline-danger btn-block"
-                 href="{% url 'analysis:analysis_group_delete_view' pk=analysis_sample.group_id.pk %}"
-                 role="button"><i class="fas fa-trash"></i> Delete
-              </a>
             </td>
           </tr>
         {% endfor %}
