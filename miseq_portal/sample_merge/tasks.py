@@ -13,23 +13,31 @@ logger = logging.getLogger('raven')
 
 @shared_task()
 def merge_reads(sample_object_id_list: [int], merged_sample_id: int):
+    """
+    Receives a list of Sample object pk values (components for the merged sample) as well as the pk for a
+    newly created merged sample. Retrieves relevant objects by their pk values, then passes the Sample objects to the
+    actual merging function.
+    """
     sample_object_list = [Sample.objects.get(pk=sample_id) for sample_id in sample_object_id_list]
     merged_sample = Sample.objects.get(pk=merged_sample_id)
+    merge_reads_sample_objects(sample_object_list=sample_object_list, merged_sample=merged_sample)
 
-    fwd_reads = []
-    rev_reads = []
-    for sample_object in sample_object_list:
-        fwd_reads.append(Path(MEDIA_ROOT) / str(sample_object.fwd_reads))
-        rev_reads.append(Path(MEDIA_ROOT) / str(sample_object.rev_reads))
+
+def merge_reads_sample_objects(sample_object_list: [Sample], merged_sample: Sample):
     fwd_out, rev_out = create_merge_sample_dir(merged_sample)
+
+    # Create full file paths to R1 and R2 reads for each sample object, then concatenate R1 and R2 respectively
+    fwd_reads = [Path(MEDIA_ROOT) / str(sample_object.fwd_reads) for sample_object in sample_object_list]
+    rev_reads = [Path(MEDIA_ROOT) / str(sample_object.rev_reads) for sample_object in sample_object_list]
     concatenate_read_files(fwd_read_list=fwd_reads, rev_read_list=rev_reads, fwd_out=fwd_out, rev_out=rev_out)
 
+    # Update merged_sample object in database
     merged_sample.fwd_reads = upload_reads(merged_sample, fwd_out.name)
     merged_sample.rev_reads = upload_reads(merged_sample, rev_out.name)
     logger.info(f"Successfully updated {merged_sample} with merged R1 and R2 read files!")
     merged_sample.save()
 
-    # Assemble sample
+    # Queue up assembly for the newly merged sample
     assemble_sample_instance.delay(sample_object_id=merged_sample.sample_id)
 
 
