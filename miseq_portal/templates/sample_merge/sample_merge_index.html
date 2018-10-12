@@ -23,7 +23,7 @@
       <li>Use the <strong>Search</strong> bar to
         filter the Sample table
       </li>
-      <li>Once you have created a selection, click <kbd>Submit</kbd> to move on to the confirmation page
+      <li>Once you have created a selection, click <kbd>Submit</kbd> to merge your selection
       </li>
       <li>
        Once a merged sample has been submitted, it will be automatically queued in the assembly pipeline
@@ -133,8 +133,8 @@
       $('#submit-button').click(function () {
         let selected_samples = table.rows('.selected').data();
 
-        if (selected_samples.length === 0) {
-          alert("Please select at least one sample to proceed.");
+        if (selected_samples.length < 2) {
+          alert("Please select at least two samples to proceed.");
           return
         }
 
