@@ -149,7 +149,7 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
                 context['merged_sample_references'] = merged_sample_references
 
         # Get user's browser details to determine whether or not to show the disclaimer RE: downloading .fastq.gz
-        if "Firefox" in self.request.META['HTTP_USER_AGENT']:
+        if "firefox" in self.request.META['HTTP_USER_AGENT'].lower():
             context['browser_flag'] = True
         else:
             context['browser_flag'] = False
