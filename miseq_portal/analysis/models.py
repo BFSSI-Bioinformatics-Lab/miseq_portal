@@ -7,15 +7,18 @@ from miseq_portal.users.models import User
 from config.settings.base import MEDIA_ROOT
 
 
-def upload_analysis_file(instance, filename):
+def upload_analysis_file(instance: Sample, filename: str):
     return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
 
 
-def upload_mobsuite_file(instance, filename):
-    return f'uploads/runs/{instance.run_id}/{instance.sample_id}/mob_suite/{filename}'
+def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str):
+    return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
 
 
 class AnalysisGroup(models.Model):
+    """
+
+    """
     job_choices = (
         ('SendSketch', 'SendSketch'),
         ('MobRecon', 'MobRecon'),
