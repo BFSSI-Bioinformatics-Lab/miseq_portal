@@ -52,11 +52,7 @@ def upload_interop_dir(instance):
 
 
 def upload_reads(instance, filename):
-    """
-    :param instance:
-    :param filename:
-    :return:
-    """
+    """Must be used with a Sample instance"""
     if instance.sample_type == 'BMH':
         return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
     elif instance.sample_type == 'MER':
@@ -65,7 +61,10 @@ def upload_reads(instance, filename):
 
 def upload_assembly(instance, filename):
     """This needs to be used with a SampleAssemblyData instance"""
-    return f'uploads/runs/{instance.sample_id.run_id}/{instance.sample_id}/assembly/{filename}'
+    if instance.sample_id.sample_type == 'BMH':
+        return f'uploads/runs/{instance.sample_id.run_id}/{instance.sample_id}/assembly/{filename}'
+    elif instance.sample_id.sample_type == 'MER':
+        return f'merged_samples/{instance.sample_id}/assembly/{filename}'
 
 
 @dataclass
