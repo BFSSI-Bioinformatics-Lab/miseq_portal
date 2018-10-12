@@ -35,32 +35,31 @@ def validate_sample_id(value: str, length: int = 15):
         raise ValidationError(f"ID component of Sample ID ('{components[2]}') does not equal expected 'XXXXXX' format")
 
 
-def upload_merged_sample(instance, filename):
-    return f'uploads/merged_samples/{instance.sample_id}/{filename}'
-
-
-def upload_run_file(instance, filename):
+def upload_run_file(instance, filename: str):
+    """instance must be Run"""
     return f'uploads/runs/{instance.run_id}/{filename}'
 
 
-def upload_interop_file(instance, filename):
+def upload_interop_file(instance, filename: str):
+    """instance must be Run"""
     return f'uploads/runs/{instance.run_id}/InterOp/{filename}'
 
 
 def upload_interop_dir(instance):
+    """instance must be Run"""
     return f'uploads/runs/{instance.run_id}/InterOp/'
 
 
-def upload_reads(instance, filename):
-    """Must be used with a Sample instance"""
+def upload_reads(instance, filename: str):
+    """instance must be Sample"""
     if instance.sample_type == 'BMH':
         return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
     elif instance.sample_type == 'MER':
         return f'merged_samples/{instance.sample_id}/{filename}'
 
 
-def upload_assembly(instance, filename):
-    """This needs to be used with a SampleAssemblyData instance"""
+def upload_assembly(instance, filename: str):
+    """instance must be SampleAssemblyData"""
     if instance.sample_id.sample_type == 'BMH':
         return f'uploads/runs/{instance.sample_id.run_id}/{instance.sample_id}/assembly/{filename}'
     elif instance.sample_id.sample_type == 'MER':
