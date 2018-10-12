@@ -44,8 +44,8 @@ def submit_analysis_job(analysis_group_id: AnalysisGroup):
 
 def submit_mob_recon_job(sample_instance: AnalysisSample):
     assembly_instance = SampleAssemblyData.objects.get(sample_id=sample_instance.sample_id)
-    outdir = Path(MEDIA_ROOT) / Path(str(sample_instance.sample_id.fwd_reads)) \
-        .parent / f'mob_suite_{sample_instance.user}_{sample_instance.created}'
+    mobsuite_dir_name = f'mob_suite_{sample_instance.user}_{sample_instance.pk}'
+    outdir = Path(MEDIA_ROOT) / Path(str(sample_instance.sample_id.fwd_reads)).parent / mobsuite_dir_name
     root_sample_instance = Sample.objects.get(sample_id=sample_instance.sample_id)
 
     if not assembly_instance.assembly_exists():
@@ -66,9 +66,11 @@ def submit_mob_recon_job(sample_instance: AnalysisSample):
 
     # Update database for MobSuiteAnalysisGroup
     mob_suite_analysis_group.contig_report = upload_mobsuite_file(root_sample_instance,
-                                                                  mob_recon_data_object.contig_report.name)
+                                                                  mob_recon_data_object.contig_report.name,
+                                                                  mobsuite_dir_name=mobsuite_dir_name)
     mob_suite_analysis_group.mobtyper_aggregate_report = upload_mobsuite_file(root_sample_instance,
-                                                                              mob_recon_data_object.mobtyper_aggregate_report.name)
+                                                                              mob_recon_data_object.mobtyper_aggregate_report.name,
+                                                                              mobsuite_dir_name=mobsuite_dir_name)
     mob_suite_analysis_group.save()
 
     # Update database for MobSuiteAnalysisPlasmid
@@ -86,7 +88,7 @@ def submit_mob_recon_job(sample_instance: AnalysisSample):
         )
 
         logger.info(f"Creating new Mob Suite Plasmid object with {plasmid_fasta}")
-        plasmid_db_path = upload_mobsuite_file(root_sample_instance, plasmid_fasta.name)
+        plasmid_db_path = upload_mobsuite_file(root_sample_instance, plasmid_fasta.name, mobsuite_dir_name)
         mob_suite_plasmid_instance.plasmid_fasta = plasmid_db_path
 
         # Pull data from mobtype_aggregate_report.txt and place it in the database
@@ -111,9 +113,8 @@ def submit_mob_recon_job(sample_instance: AnalysisSample):
 def submit_sendsketch_job(sample_instance: AnalysisSample):
     fwd_reads = Path(MEDIA_ROOT) / str(sample_instance.sample_id.fwd_reads)
     rev_reads = Path(MEDIA_ROOT) / str(sample_instance.sample_id.rev_reads)
-    outpath = Path(MEDIA_ROOT) / Path(
-        str(sample_instance.sample_id.fwd_reads)) \
-        .parent / f'{sample_instance.user}_{sample_instance.created}_SendSketch_results.txt'
+    sendsketch_filename = f'{sample_instance.user}_{sample_instance.pk}_SendSketch_results.txt'
+    outpath = Path(MEDIA_ROOT) / Path(str(sample_instance.sample_id.fwd_reads)).parent / sendsketch_filename
     parent_sample = Sample.objects.get(sample_id=sample_instance.sample_id)
 
     sendsketch_result_file = run_sendsketch(fwd_reads=fwd_reads,
