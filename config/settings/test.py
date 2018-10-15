@@ -5,8 +5,7 @@ python manage.py test --settings=config.settings.test
 coverage run manage.py test --settings=config.settings.test
 """
 
-from .base import *  # noqa
-from .base import env
+from .local import *
 
 # GENERAL
 # ------------------------------------------------------------------------------
