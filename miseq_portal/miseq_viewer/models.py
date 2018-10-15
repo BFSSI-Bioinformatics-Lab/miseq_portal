@@ -66,6 +66,11 @@ def upload_assembly(instance, filename: str):
         return f'merged_samples/{instance.sample_id}/assembly/{filename}'
 
 
+def upload_merged_sample(instance, filename: str):
+    """Deprecated, can't delete due to it being stuck in earlier migrations"""
+    return f'uploads/merged_samples/{instance.sample_id}/{filename}'
+
+
 @dataclass
 class SampleDataObject:
     """
