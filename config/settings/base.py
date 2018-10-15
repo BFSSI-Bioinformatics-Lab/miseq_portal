@@ -259,8 +259,9 @@ if USE_TZ:
     # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-timezone
     CELERY_TIMEZONE = TIME_ZONE
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-broker_url
-# CELERY_BROKER_URL = 'amqp://localhost'
-CELERY_BROKER_URL = 'amqp://miseq_portal:Star_Gate5@localhost:5672/miseq_portal_vhost'
+# CELERY_BROKER_URL = 'amqp://localhost:5672/miseq_portal_vhost'
+CELERY_BROKER_URL_CREDENTIALS = env('CELERY_BROKER_URL_CREDENTIALS')
+CELERY_BROKER_URL = f'amqp://{CELERY_BROKER_URL_CREDENTIALS}@localhost:5672/miseq_portal_vhost'
 # BROKER_URL = 'amqp://guest:guest@localhost:5672/miseq_portal_vhost'
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
 CELERY_RESULT_BACKEND = 'rpc://'
@@ -283,13 +284,12 @@ CELERY_TASK_ALWAYS_EAGER = False
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-eager-propagates
 CELERY_TASK_EAGER_PROPAGATES = True
 
-# Celery tasks were occasionally hanging and the whole server had to be restarted as a result. This fixes that issue.
+# Celery tasks were occasionally hanging and the whole server had to be restarted as a result. This fixes(?) that issue.
 CELERY_BROKER_POOL_LIMIT = None
+CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
 
 CELERY_IMPORTS = ('miseq_portal.analysis.tasks',
                   'miseq_portal.sample_merge.tasks')
-
-
 
 # ASSEMBLY PIPELINE SETTINGS
 MOB_SUITE_PATH = Path("/home/brock/miniconda3/envs/mob_suite/bin/")
