@@ -33,6 +33,7 @@ def validate_sample_id(value: str, length: int = 15):
         raise ValidationError(f"YEAR component of Sample ID ('{components[1]}') does not equal expected 'YYYY' format")
     elif not components[2].isdigit() or len(components[2]) != 6:
         raise ValidationError(f"ID component of Sample ID ('{components[2]}') does not equal expected 'XXXXXX' format")
+    return True
 
 
 def upload_run_file(instance, filename: str):
