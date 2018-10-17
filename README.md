@@ -32,7 +32,7 @@ sudo -u postgres createdb [your username goes here]
 
 # Now that the DB is created, we can populate it with the requisite tables
 # This is done with the makemigrations command - note that each app name must be provided 
-python miseq_portal/manage.py makemigrations analysis miseq_viewer sample_search users core
+python miseq_portal/manage.py makemigrations analysis miseq_viewer users core
 
 # Commit the changes to the DB
 python miseq_portal/manage.py migrate
