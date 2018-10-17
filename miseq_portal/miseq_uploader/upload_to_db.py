@@ -11,8 +11,8 @@ from miseq_portal.miseq_uploader.parse_stats_json import stats_json_to_df
 from miseq_portal.analysis.tools.assemble_run import assemble_sample_instance
 
 from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, \
-    SampleLogData, \
-    upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, RunDataObject
+    SampleLogData, upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, \
+    RunDataObject
 from miseq_portal.users.models import User
 
 import logging
@@ -269,7 +269,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
         run_instance = db_create_run(sample_object=sample_object, run_data_object=run_data_object)
 
         # RUN INTEROP
-        run_interop_instance = db_create_run_interop(run_instance)
+        run_interop_instance = db_create_run_interop(run_instance, run_data_object=run_data_object)
 
         # SAMPLE
         sample_instance = db_create_sample(sample_object=sample_object,
