@@ -81,7 +81,8 @@ class MobSuiteAnalysisGroup(TimeStampedModel):
     def group_id(self):
         return self.analysis_sample.group_id
 
-    def get_plasmid_attribute(self, plasmid_basename: str, attribute: str) -> (str, None):
+    def get_plasmid_attribute(self, plasmid_basename: str, attribute: str, aggregate_report_path: Path = None) -> (
+    str, None):
         valid_attributes = [
             'file_id', 'num_contigs', 'total_length',
             'gc', 'rep_type(s)', 'rep_type_accession(s)',
@@ -91,16 +92,17 @@ class MobSuiteAnalysisGroup(TimeStampedModel):
         if attribute not in valid_attributes:
             raise AttributeError(f"Attribute {attribute} is not valid. "
                                  f"List of acceptable attributes: {valid_attributes}")
-        df = self.read_aggregate_report()
+        df = self.read_aggregate_report(aggregate_report_path=aggregate_report_path)
         if len(df) == 0:
             return None
         else:
             plasmid_row = df[df["file_id"] == plasmid_basename].reset_index()
             return plasmid_row[attribute][0]
 
-    def read_aggregate_report(self) -> pd.DataFrame:
-        agg_report_path = self.get_aggregate_report_path()
-        df = pd.read_csv(agg_report_path, sep="\t")
+    def read_aggregate_report(self, aggregate_report_path: Path = None) -> pd.DataFrame:
+        if aggregate_report_path is None:
+            aggregate_report_path = self.get_aggregate_report_path()
+        df = pd.read_csv(aggregate_report_path, sep="\t")
         return df
 
     def get_aggregate_report_path(self):
