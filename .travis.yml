@@ -6,7 +6,6 @@ addons:
 python:
 - 3.6
 install:
-- pip install -r requirements/base.txt
 - pip install -r requirements/local.txt
 before_script:
 - psql -c 'create database miseq_portal;' -U postgres
