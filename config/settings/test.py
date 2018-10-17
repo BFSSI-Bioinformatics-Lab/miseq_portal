@@ -1,7 +1,9 @@
 """
 With these settings, tests run faster.
 
-python manage.py test --settings=config.settings.test
+Run 'pytest' from the root directory to run tests.
+
+For coverage, use the following:
 coverage run manage.py test --settings=config.settings.test
 """
 
@@ -10,7 +12,7 @@ from .local import *
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = False  # This must be enabled to run 'coverage run manage.py test --settings=config.settings.test'
+DEBUG = True  # This must be enabled to run 'coverage run manage.py test --settings=config.settings.test'
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="Eg3amdfR24odYg9QjHmqu2G54AJFqgt18LgzYY4aXRZyUi0arsC9fhFnSDWh4sZd")
 # https://docs.djangoproject.com/en/dev/ref/settings/#test-runner
