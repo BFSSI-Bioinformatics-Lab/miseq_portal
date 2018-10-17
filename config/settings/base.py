@@ -19,15 +19,14 @@ if READ_DOT_ENV_FILE:
 if 'TRAVIS' in os.environ:
     DATABASES = {
         'default': {
-            'ENGINE':   'django.db.backends.postgresql_psycopg2',
-            'NAME':     'miseq_portal',
-            'USER':     'postgres',
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'miseq_portal',
+            'USER': 'postgres',
             'PASSWORD': '',
-            'HOST':     'localhost',
-            'PORT':     '',
+            'HOST': 'localhost',
+            'PORT': '',
         }
     }
-
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -90,10 +89,10 @@ LOCAL_APPS = [
     'miseq_portal.users.apps.UsersAppConfig',
     'miseq_portal.core.apps.CoreConfig',
     'miseq_portal.miseq_viewer.apps.MiseqViewerConfig',
-    'miseq_portal.miseq_uploader.apps.MiseqUploaderConfig',
     'miseq_portal.sample_search.apps.SampleSearchConfig',
     'miseq_portal.analysis.apps.AnalysisConfig',
-    'miseq_portal.sample_merge.apps.SampleMergeConfig'
+    'miseq_portal.sample_merge.apps.SampleMergeConfig',
+    'miseq_portal.miseq_uploader.apps.MiseqUploaderConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
