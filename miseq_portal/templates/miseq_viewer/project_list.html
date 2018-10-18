@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static i18n %}
+{% load miseq_viewer_extras %}
 {% block extra_css %}
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
@@ -19,8 +20,9 @@
         <tr>
           <th>Project ID</th>
           <th>Project Owner</th>
+          <th># Samples</th>
           <th>Date Created</th>
-          <th>Date Modified</th>
+          {{ sample_count_dict }}
         </tr>
         </thead>
         <tbody>
@@ -36,10 +38,10 @@
                 {{ project.project_owner }}
               </td>
               <td>
-                {{ project.created }}
+                {{ sample_count_dict|get_item:project.project_id }}
               </td>
               <td>
-                {{ project.modified }}
+                {{ project.created }}
               </td>
             </tr>
           {% else %}
@@ -55,18 +57,16 @@
                     {{ project.project_owner }}
                   </td>
                   <td>
-                    {{ project.created }}
+                    {{ sample_count_dict|get_item:project.project_id }}
                   </td>
                   <td>
-                    {{ project.modified }}
+                    {{ project.created }}
                   </td>
                 </tr>
               {% endif %}
             {% endfor %}
           {% endif %}
         {% endfor %}
-
-
         </tbody>
       </table>
       <br>

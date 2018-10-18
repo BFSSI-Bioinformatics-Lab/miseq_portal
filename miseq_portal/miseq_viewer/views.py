@@ -28,6 +28,8 @@ class ProjectListView(LoginRequiredMixin, ListView):
         context['user'] = self.request.user
         context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user)
         context['overview_json'] = self.get_overview_data()
+        context['sample_count_dict'] = {project.project_id: len(Sample.objects.filter(project_id_id=project)) for
+                                        project in Project.objects.all()}
         return context
 
     @staticmethod
