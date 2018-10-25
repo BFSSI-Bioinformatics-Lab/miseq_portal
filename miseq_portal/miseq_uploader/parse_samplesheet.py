@@ -3,6 +3,7 @@ from pathlib import Path
 from miseq_portal.miseq_viewer.models import SampleDataObject
 
 import logging
+
 logger = logging.getLogger('raven')
 
 
@@ -95,6 +96,27 @@ def extract_run_name(sample_sheet: Path) -> str:
             raise Exception(f"Could not find 'Experiment Name' in {sample_sheet}")
 
 
+def check_sample_id(value: str, length: int = 15) -> bool:
+    """
+    Light validation of BMH Sample ID
+    :param value: sample_id
+    :param length: expected length of string
+    """
+    if len(value) != length:
+        return False
+    components = value.split("-")
+    if len(components) != 3:
+        return False
+    elif components[0] != "BMH":
+        return False
+    elif not components[1].isdigit() or len(components[1]) != 4:
+        return False
+    elif not components[2].isdigit() or len(components[2]) != 6:
+        return False
+    else:
+        return True
+
+
 def validate_sample_id(value: str, length: int = 15) -> bool:
     """
     Strict validation of BMH Sample ID
@@ -139,9 +161,14 @@ def generate_sample_objects(sample_sheet: Path) -> [SampleDataObject]:
     # Get all Sample IDs
     sample_id_list = get_sample_id_list(samplesheet_df=df)
 
-    # Check all Sample IDs
-    # for sample_id in sample_id_list:
-    #     validate_sample_id(value=sample_id)
+    # Check all Sample IDs - if they are valid, assign sample_type BMH to each. Otherwise, assign EXT.
+    valid_list = []
+    for sample_id in sample_id_list:
+        valid_list.append(check_sample_id(value=sample_id))
+    if False not in valid_list:
+        sample_type = "BMH"
+    else:
+        sample_type = "EXT"
 
     # Get Sample Names
     sample_name_dictionary = get_sample_name_dictionary(df=df)
@@ -154,7 +181,8 @@ def generate_sample_objects(sample_sheet: Path) -> [SampleDataObject]:
                 sample_object = SampleDataObject(sample_id=sample_id,
                                                  sample_name=sample_name_dictionary[sample_id],
                                                  run_id=run_id,
-                                                 project_id=project_id)
+                                                 project_id=project_id,
+                                                 sample_type=sample_type)
                 sample_object_list.append(sample_object)
 
     return sample_object_list

@@ -20,6 +20,17 @@ import logging
 logger = logging.getLogger('raven')
 
 
+def determine_run_type(sample_object_list: list) -> str:
+    sample_types = []
+    for sample_object in sample_object_list:
+        sample_types.append(sample_object.sample_type)
+    sample_types = list(set(sample_types))
+    if len(sample_types) != 1:
+        raise Exception(f"Something went wrong. The sample type should be consistent but it was not: {sample_types}")
+    run_type = sample_types[0]
+    return run_type
+
+
 def receive_miseq_run_dir(miseq_dir: Path):
     logger.info(f'CHECKING MISEQ DIRECTORY')
     miseq_dict = parse_miseq_folder(miseq_dir=miseq_dir)
@@ -34,9 +45,14 @@ def receive_miseq_run_dir(miseq_dir: Path):
     sample_object_list = append_sample_object_stats(json_stats_file=run_data_object.json_stats_file,
                                                     sample_object_list=sample_object_list)
 
-    # Validate the sample IDs of the samples to be uploaded
+    # Assign run_type to run_data_object
+    run_type = determine_run_type(sample_object_list)
+    run_data_object.run_type = run_type
+
+    # Perform one final validation of the sample IDs of the samples to be uploaded
     for sample_object in sample_object_list:
-        validate_sample_id(sample_object.sample_id)
+        if sample_object.sample_type == 'BMH':
+            validate_sample_id(sample_object.sample_id)
 
     upload_to_db(sample_object_list=sample_object_list,
                  run_data_object=run_data_object)
@@ -145,10 +161,14 @@ def db_create_run(sample_object: SampleDataObject, run_data_object: RunDataObjec
                                                         defaults={'sample_sheet': '',
                                                                   'runinfoxml': '',
                                                                   'runparametersxml': '',
+                                                                  'run_type': '',
                                                                   'interop_directory_path': ''})
 
     if r_created:
         logger.info(f"Created Run '{run_instance}'")
+
+        # Set run type of instance
+        run_instance.run_type = run_data_object.run_type
 
         # Set interop_dir (no upload necessary, it's just a string path)
         interop_dir_path = upload_interop_dir(run_instance)
@@ -213,9 +233,15 @@ def db_create_run_interop(run_instance: Run, run_data_object: RunDataObject):
 
 
 def db_create_sample(sample_object: SampleDataObject, run_instance: Run, project_instance: Project):
-    sample_instance, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
-                                                              defaults={'run_id': run_instance,
-                                                                        'project_id': project_instance})
+    if project_instance is not None:
+        sample_instance, s_created = Sample.objects.get_or_create(sample_id=sample_object.sample_id,
+                                                                  defaults={'run_id': run_instance,
+                                                                            'project_id': project_instance})
+    else:
+        # EXT sample creation
+        sample_instance, s_created = Sample.objects.get_or_create(sample_type='EXT', run_id=run_instance)
+        sample_instance.sample_id = sample_instance.generate_sample_id()
+
     if s_created:
         logger.info(f"Uploading {sample_object.sample_id}...")
 
@@ -263,7 +289,11 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
     """
     for sample_object in sample_object_list:
         # PROJECT
-        project_instance = db_create_project(sample_object=sample_object)
+        # Accomodate EXT samples -> project_instance is None if the sample is EXT
+        if sample_object.sample_type == "BMH":
+            project_instance = db_create_project(sample_object=sample_object)
+        else:
+            project_instance = None
 
         # RUN
         run_instance = db_create_run(sample_object=sample_object, run_data_object=run_data_object)
