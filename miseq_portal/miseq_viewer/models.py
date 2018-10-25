@@ -26,9 +26,9 @@ def validate_sample_id(value: str, length: int = 15):
     if len(components) != 3:
         raise ValidationError(f"Sample ID '{value}' does not appear to meet expected format. "
                               f"Sample ID must be in the following format: 'BMH-2018-000001'")
-    elif components[0] != 'BMH' and components[0] != 'MER' and components[0] != 'ACA':
+    elif components[0] != 'BMH' and components[0] != 'MER' and components[0] != 'EXT':
         raise ValidationError(
-            f"TEXT component of Sample ID ('{components[0]}') does not equal expected 'BMH', 'MER', or 'ACA'")
+            f"TEXT component of Sample ID ('{components[0]}') does not equal expected 'BMH', 'MER', or 'EXT'")
     elif not components[1].isdigit() or len(components[1]) != 4:
         raise ValidationError(f"YEAR component of Sample ID ('{components[1]}') does not equal expected 'YYYY' format")
     elif not components[2].isdigit() or len(components[2]) != 6:
@@ -38,17 +38,26 @@ def validate_sample_id(value: str, length: int = 15):
 
 def upload_run_file(instance, filename: str):
     """instance must be Run"""
-    return f'uploads/runs/{instance.run_id}/{filename}'
+    if instance.sample_type == "BMH":
+        return f'uploads/runs/{instance.run_id}/{filename}'
+    elif instance.sample_type == "EXT":
+        return f'external_samples/runs/{instance.run_id}/{filename}'
 
 
 def upload_interop_file(instance, filename: str):
     """instance must be Run"""
-    return f'uploads/runs/{instance.run_id}/InterOp/{filename}'
+    if instance.sample_type == "BMH":
+        return f'uploads/runs/{instance.run_id}/InterOp/{filename}'
+    elif instance.sample_type == "EXT":
+        return f'external_samples/runs/{instance.run_id}/InterOp/{filename}'
 
 
 def upload_interop_dir(instance):
     """instance must be Run"""
-    return f'uploads/runs/{instance.run_id}/InterOp/'
+    if instance.sample_type == "BMH":
+        return f'uploads/runs/{instance.run_id}/InterOp/'
+    elif instance.sample_type == "EXT":
+        return f'external_samples/runs/{instance.run_id}/InterOp/'
 
 
 def upload_reads(instance, filename: str):
@@ -57,6 +66,8 @@ def upload_reads(instance, filename: str):
         return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
     elif instance.sample_type == 'MER':
         return f'merged_samples/{instance.sample_id}/{filename}'
+    elif instance.sample_type == 'EXT':
+        return f'external_samples/runs/{instance.run_id}/{instance.sample_id}/{filename}'
 
 
 def upload_assembly(instance, filename: str):
@@ -68,7 +79,7 @@ def upload_assembly(instance, filename: str):
 
 
 def upload_merged_sample(instance, filename: str):
-    """Deprecated, can't delete due to it being stuck in earlier migrations"""
+    """Deprecated, replaced by upload_reads, can't delete due to it being stuck in earlier migrations"""
     return f'uploads/merged_samples/{instance.sample_id}/{filename}'
 
 
@@ -85,6 +96,7 @@ class SampleDataObject:
     sample_name: str
 
     # Updated later in the lifecycle
+    sample_type: str = None
     fwd_read_path: Path = None
     rev_read_path: Path = None
     number_reads: int = None
@@ -173,6 +185,12 @@ class Run(TimeStampedModel):
     runparametersxml = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=1000)
     interop_directory_path = models.CharField(unique=True, blank=True, null=True, max_length=1000)
 
+    RUN_TYPES = (
+        ('BMH', 'BMH'),
+        ('EXT', 'EXT'),
+    )
+    run_type = models.CharField(max_length=3, choices=RUN_TYPES, default="BMH")
+
     # TODO: Add sequencing type e.g. amplicon, metagenomic, WGS
 
     def __str__(self):
@@ -242,7 +260,7 @@ class Sample(TimeStampedModel):
     sample_type_choices = (
         ('BMH', 'BMH'),
         ('MER', 'MERGED'),
-        ('ACA', 'ACADEMIC')
+        ('EXT', 'EXTERNAL')
     )
     sample_type = models.CharField(choices=sample_type_choices, max_length=3, default='BMH')
     component_group = models.ForeignKey(MergedSampleComponentGroup, on_delete=models.CASCADE, blank=True, null=True)
@@ -257,7 +275,7 @@ class Sample(TimeStampedModel):
 
     def generate_sample_id(self):
         """
-        This method must be used for ACA or MER samples. First, instantiate the object, then call this method and assign
+        This method must be used for EXT or MER samples. First, instantiate the object, then call this method and assign
         the generated value to Sample.sample_id
         """
         return f'{self.sample_type}-{self.sample_year()}-{self.pk:06}'
