@@ -38,25 +38,25 @@ def validate_sample_id(value: str, length: int = 15):
 
 def upload_run_file(instance, filename: str):
     """instance must be Run"""
-    if instance.sample_type == "BMH":
+    if instance.run_type == "BMH":
         return f'uploads/runs/{instance.run_id}/{filename}'
-    elif instance.sample_type == "EXT":
+    elif instance.run_type == "EXT":
         return f'external_samples/runs/{instance.run_id}/{filename}'
 
 
 def upload_interop_file(instance, filename: str):
     """instance must be Run"""
-    if instance.sample_type == "BMH":
+    if instance.run_type == "BMH":
         return f'uploads/runs/{instance.run_id}/InterOp/{filename}'
-    elif instance.sample_type == "EXT":
+    elif instance.run_type == "EXT":
         return f'external_samples/runs/{instance.run_id}/InterOp/{filename}'
 
 
 def upload_interop_dir(instance):
     """instance must be Run"""
-    if instance.sample_type == "BMH":
+    if instance.run_type == "BMH":
         return f'uploads/runs/{instance.run_id}/InterOp/'
-    elif instance.sample_type == "EXT":
+    elif instance.run_type == "EXT":
         return f'external_samples/runs/{instance.run_id}/InterOp/'
 
 
@@ -118,6 +118,7 @@ class RunDataObject:
     """
     run_id: str
 
+    run_type: str = None
     interop_dir: Path = None
     sample_sheet: Path = None
     json_stats_file: Path = None
