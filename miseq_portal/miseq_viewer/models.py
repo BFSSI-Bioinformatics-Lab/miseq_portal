@@ -45,10 +45,10 @@ def upload_run_file(instance, filename: str):
 
 
 def upload_interop_file(instance, filename: str):
-    """instance must be Run"""
-    if instance.run_type == "BMH":
+    """instance must be RunInterOpData"""
+    if instance.run_id.run_type == "BMH":
         return f'uploads/runs/{instance.run_id}/InterOp/{filename}'
-    elif instance.run_type == "EXT":
+    elif instance.run_id.run_type == "EXT":
         return f'external_samples/runs/{instance.run_id}/InterOp/{filename}'
 
 
@@ -76,6 +76,8 @@ def upload_assembly(instance, filename: str):
         return f'uploads/runs/{instance.sample_id.run_id}/{instance.sample_id}/assembly/{filename}'
     elif instance.sample_id.sample_type == 'MER':
         return f'merged_samples/{instance.sample_id}/assembly/{filename}'
+    elif instance.sample_id.sample_type == 'EXT':
+        return f'external_samples/runs/{instance.sample_id.run_id}/{instance.sample_id}/assembly/{filename}'
 
 
 def upload_merged_sample(instance, filename: str):
