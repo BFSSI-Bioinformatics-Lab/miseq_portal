@@ -51,18 +51,19 @@
               <td>
                 {% if sample.project_id != None %}
                   <a
-                    href="/miseq_viewer/project/{{ sample.project_id_id }}/">
+                    href="/miseq_viewer/project/{{ sample.project_id_id }}">
                     {{ sample.project_id }}
                   </a>
                 {% else %}
                   N/A
                 {% endif %}
               </td>
-              <td>
-                {{ sample.created }}
+              {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
+              <td data-sort="{{ sample.created|date:"d N Y" }}">
+                {{ sample.created|date:"d N Y" }}
               </td>
-              <td>
-                {{ sample.modified }}
+              <td data-sort="{{ sample.modified|date:"d N Y" }}">
+                {{ sample.modified|date:"d N Y" }}
               </td>
             </tr>
           {% else %}
@@ -91,18 +92,19 @@
                   <td> {# TODO: Make this more robust with {% url '' pk=something %} #}
                     {% if sample.project_id != None %}
                       <a
-                        href="/miseq_viewer/project/{{ sample.project_id_id }}/">
+                        href="/miseq_viewer/project/{{ sample.project_id_id }}">
                         {{ sample.project_id }}
                       </a>
                     {% else %}
                       N/A
                     {% endif %}
                   </td>
-                  <td>
-                    {{ sample.created }}
+                  {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
+                  <td data-sort="{{ sample.created|date:"d N Y" }}">
+                    {{ sample.created|date:"d N Y" }}
                   </td>
-                  <td>
-                    {{ sample.modified }}
+                  <td data-sort="{{ sample.modified|date:"d N Y" }}">
+                    {{ sample.modified|date:"d N Y" }}
                   </td>
                 </tr>
               {% endif %}
@@ -121,7 +123,6 @@
   <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
-
   <script>
     $(document).ready(function () {
       $('#sample_table').DataTable({
