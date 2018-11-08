@@ -55,7 +55,8 @@ USE_TZ = True
 DATABASES = {
     'default': env.db('DATABASE_URL', default='postgres:///miseq_portal'),
 }
-DATABASES['default']['ATOMIC_REQUESTS'] = True
+# https://stackoverflow.com/questions/15790380/django-celery-task-newly-created-model-doesnotexist
+DATABASES['default']['ATOMIC_REQUESTS'] = False
 
 # URLS
 # ------------------------------------------------------------------------------
