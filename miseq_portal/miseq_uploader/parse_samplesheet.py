@@ -173,6 +173,8 @@ def generate_sample_objects(sample_sheet: Path) -> [SampleDataObject]:
     # Get Sample Names
     sample_name_dictionary = get_sample_name_dictionary(df=df)
 
+    # TODO: Fix bug where empty values in the 'Sample_Project' column will crash an upload - happens with EXT samples
+
     # Create SampleDataObject list. Need to consolidate sample_id, sample_name, project_id, and run_id per-sample
     sample_object_list = list()
     for sample_id in sample_id_list:
