@@ -54,13 +54,14 @@ def receive_miseq_run_dir(miseq_dir: Path):
         if sample_object.sample_type == 'BMH':
             validate_sample_id(sample_object.sample_id)
 
-    upload_to_db(sample_object_list=sample_object_list,
-                 run_data_object=run_data_object)
+    sample_object_list = upload_to_db(sample_object_list=sample_object_list,
+                                      run_data_object=run_data_object)
     logger.info(f'UPLOAD COMPLETE')
 
     # Run assembly pipeline on sample_object_list
     sample_object_id_list = [sample_object.sample_id for sample_object in sample_object_list]
     for sample_object_id in sample_object_id_list:
+        logging.info(sample_object_id)
         assemble_sample_instance.delay(sample_object_id=sample_object_id)
         logger.info(f"Submitted {sample_object_id} to assembly queue")
 
@@ -238,9 +239,16 @@ def db_create_sample(sample_object: SampleDataObject, run_instance: Run, project
                                                                   defaults={'run_id': run_instance,
                                                                             'project_id': project_instance})
     else:
-        # EXT sample creation
-        sample_instance, s_created = Sample.objects.get_or_create(sample_type='EXT', run_id=run_instance)
-        sample_instance.sample_id = sample_instance.generate_sample_id()
+        # EXT sample creation - check if SAMPLE_NAME is already in the DB so duplicates aren't created
+        sample_name_exists = Sample.objects.filter(sample_name=sample_object.sample_name).exists()
+        if not sample_name_exists:
+            sample_instance = Sample.objects.create(sample_type='EXT', run_id=run_instance)
+            s_created = True
+            sample_instance.sample_id = sample_instance.generate_sample_id()
+            sample_instance.save()
+        else:
+            sample_instance = Sample.objects.filter(sample_name=sample_object.sample_name)[0]
+            s_created = False
 
     if s_created:
         logger.info(f"Uploading {sample_object.sample_id}...")
@@ -282,11 +290,12 @@ def db_create_sample_log(sample_object: SampleDataObject, sample_instance: Sampl
     return sample_log_instance
 
 
-def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDataObject):
+def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDataObject) -> [SampleDataObject]:
     """
     Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database
     This should only work with sample_type=="BMH" samples
     """
+    updated_sample_object_list = []
     for sample_object in sample_object_list:
         # PROJECT
         # Accomodate EXT samples -> project_instance is None if the sample is EXT
@@ -305,6 +314,8 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
         sample_instance = db_create_sample(sample_object=sample_object,
                                            run_instance=run_instance,
                                            project_instance=project_instance)
+        updated_sample_object_list.append(sample_instance)
 
         # SAMPLE LOG
         sample_log_instance = db_create_sample_log(sample_object=sample_object, sample_instance=sample_instance)
+    return updated_sample_object_list
