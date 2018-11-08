@@ -10,6 +10,7 @@
 
 {% block content %}
   <div class="container">
+
     <div class="page-header">
       <h1>Projects</h1>
     </div>
@@ -22,7 +23,6 @@
           <th>Project Owner</th>
           <th># Samples</th>
           <th>Date Created</th>
-          {{ sample_count_dict }}
         </tr>
         </thead>
         <tbody>
@@ -70,8 +70,9 @@
         </tbody>
       </table>
       <br>
-      {% include "miseq_viewer/overview_chart.html" %}
     </div>
+    {% include "miseq_viewer/overview_chart.html" %}
+    <br>
   </div>
 
 {% endblock content %}
