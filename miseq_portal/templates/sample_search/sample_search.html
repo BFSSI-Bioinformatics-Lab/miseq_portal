@@ -59,10 +59,10 @@
                 {% endif %}
               </td>
               {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
-              <td data-sort="{{ sample.created|date:"d N Y" }}">
+              <td data-order="{{ sample.created|date:"Y-m-d" }}">
                 {{ sample.created|date:"d N Y" }}
               </td>
-              <td data-sort="{{ sample.modified|date:"d N Y" }}">
+              <td data-order="{{ sample.modified|date:"Y-m-d" }}">
                 {{ sample.modified|date:"d N Y" }}
               </td>
             </tr>
@@ -100,10 +100,10 @@
                     {% endif %}
                   </td>
                   {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
-                  <td data-sort="{{ sample.created|date:"d N Y" }}">
+                  <td data-order="{{ sample.created|date:"Y-m-d" }}">
                     {{ sample.created|date:"d N Y" }}
                   </td>
-                  <td data-sort="{{ sample.modified|date:"d N Y" }}">
+                  <td data-order="{{ sample.modified|date:"Y-m-d" }}">
                     {{ sample.modified|date:"d N Y" }}
                   </td>
                 </tr>
