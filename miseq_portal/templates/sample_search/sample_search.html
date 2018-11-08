@@ -22,7 +22,6 @@
           <th>Run ID</th>
           <th>Project ID</th>
           <th>Date Created</th>
-          <th>Date Modified</th>
         </tr>
         </thead>
         <tbody>
@@ -59,11 +58,8 @@
                 {% endif %}
               </td>
               {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
-              <td data-order="{{ sample.created|date:"Y-m-d" }}">
+              <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
                 {{ sample.created|date:"d N Y" }}
-              </td>
-              <td data-order="{{ sample.modified|date:"Y-m-d" }}">
-                {{ sample.modified|date:"d N Y" }}
               </td>
             </tr>
           {% else %}
@@ -100,11 +96,8 @@
                     {% endif %}
                   </td>
                   {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
-                  <td data-order="{{ sample.created|date:"Y-m-d" }}">
+                  <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
                     {{ sample.created|date:"d N Y" }}
-                  </td>
-                  <td data-order="{{ sample.modified|date:"Y-m-d" }}">
-                    {{ sample.modified|date:"d N Y" }}
                   </td>
                 </tr>
               {% endif %}
