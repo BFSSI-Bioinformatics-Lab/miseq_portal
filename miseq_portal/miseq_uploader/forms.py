@@ -46,9 +46,12 @@ class CreateProjectForm(ModelForm):
 # RUN
 class RunModelForm(ModelForm):
     # Retrieve unique Project IDs and display in dropdown
-    iquery = Project.objects.values_list('project_id', flat=True)
-    iquery_choices = sorted([(id, id) for id in iquery])
-    project_id = forms.ChoiceField(choices=iquery_choices, required=True, widget=forms.Select(), label="Project ID")
+    try:
+        iquery = Project.objects.values_list('project_id', flat=True)
+        iquery_choices = sorted([(id, id) for id in iquery])
+        project_id = forms.ChoiceField(choices=iquery_choices, required=True, widget=forms.Select(), label="Project ID")
+    except:
+        pass
 
     # Run ID
     run_id = forms.CharField(label="Run ID", required=True)
