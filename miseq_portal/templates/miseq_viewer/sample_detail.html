@@ -240,7 +240,7 @@
 
   {% if sample.sample_type == 'MER' and request.user.is_staff %}
     <div class="container">
-      <a class="btn btn-outline-danger btn-block" id="delete-sample-button"
+      <a class="btn btn-outline-danger" id="delete-sample-button"
          href="{% url 'sample_merge:sample_delete_view' pk=sample.pk %}"
          role="button"><i class="fas fa-trash"></i> Delete Merged Sample
       </a>
