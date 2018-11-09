@@ -1,10 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.decorators import method_decorator
 from django.views.generic import View, TemplateView
 from django.shortcuts import render, redirect
 from django.http import Http404
-
-from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.decorators import method_decorator
 
 from pathlib import Path
 
