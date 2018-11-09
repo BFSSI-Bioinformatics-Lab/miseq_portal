@@ -45,6 +45,11 @@ def read_samplesheet(sample_sheet: Path) -> pd.DataFrame:
             else:
                 counter += 1
     df = pd.read_csv(sample_sheet, sep=",", index_col=False, skiprows=counter)
+
+    # Fill in missing projects
+    df['Sample_Project'] = df['Sample_Project'].replace(r"\s+", "MISSING_PROJECT", regex=True)
+    df['Sample_Project'] = df['Sample_Project'].fillna(value="MISSING_PROJECT")
+
     return df
 
 
@@ -74,6 +79,7 @@ def group_by_project(samplesheet_df: pd.DataFrame) -> dict:
     :param samplesheet_df: df returned from read_samplesheet()
     :return: project dictionary (Keys are project names, values are lists of associated samples)
     """
+    print(samplesheet_df)
     project_list = list(samplesheet_df.groupby(['Sample_Project']).groups.keys())
     project_dict = {}
     for project in project_list:
@@ -172,8 +178,6 @@ def generate_sample_objects(sample_sheet: Path) -> [SampleDataObject]:
 
     # Get Sample Names
     sample_name_dictionary = get_sample_name_dictionary(df=df)
-
-    # TODO: Fix bug where empty values in the 'Sample_Project' column will crash an upload - happens with EXT samples
 
     # Create SampleDataObject list. Need to consolidate sample_id, sample_name, project_id, and run_id per-sample
     sample_object_list = list()
