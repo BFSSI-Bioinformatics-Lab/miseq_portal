@@ -20,7 +20,7 @@
         <thead>
         <tr>
           <th>Project ID</th>
-          <th>Project Owner</th>
+{#          <th>Project Owner</th>#}
           <th># Samples</th>
           <th>Date Created</th>
         </tr>
@@ -34,9 +34,9 @@
                   {{ project.project_id }}
                 </a>
               </td>
-              <td>
-                {{ project.project_owner }}
-              </td>
+{#              <td>#}
+{#                {{ project.project_owner }}#}
+{#              </td>#}
               <td>
                 {{ sample_count_dict|get_item:project.project_id }}
               </td>
@@ -53,9 +53,9 @@
                       {{ project.project_id }}
                     </a>
                   </td>
-                  <td>
-                    {{ project.project_owner }}
-                  </td>
+{#                  <td>#}
+{#                    {{ project.project_owner }}#}
+{#                  </td>#}
                   <td>
                     {{ sample_count_dict|get_item:project.project_id }}
                   </td>
