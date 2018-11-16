@@ -79,7 +79,6 @@ def group_by_project(samplesheet_df: pd.DataFrame) -> dict:
     :param samplesheet_df: df returned from read_samplesheet()
     :return: project dictionary (Keys are project names, values are lists of associated samples)
     """
-    print(samplesheet_df)
     project_list = list(samplesheet_df.groupby(['Sample_Project']).groups.keys())
     project_dict = {}
     for project in project_list:
