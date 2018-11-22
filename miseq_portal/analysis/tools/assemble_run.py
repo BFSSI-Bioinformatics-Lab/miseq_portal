@@ -5,7 +5,8 @@ Minimal assembly pipeline. Intended for prokaryotic assemblies.
 2. Error-correction of reads with tadpole.sh
 3. Assembly of reads with skesa
 4. Polishing of assembly with pilon
-5. Assembly metrics with quast.py
+5. Assembly metrics with quast.py # TODO: Add genefinding flag to predict # genes
+6. # TODO: Add Qualimap coverage stats and show per assembly
 
 """
 import os
@@ -29,7 +30,7 @@ def assemble_sample_instance(sample_object_id: str):
     try:
         sample_instance = Sample.objects.get(sample_id=sample_object_id)
     except Sample.DoesNotExist:
-        logger.error("Sample {} does not exist. Skipping assembly.")
+        logger.error(f"Could not retrieve {sample_object_id} does not exist. Skipping assembly.")
         return
 
     # Setup assembly directory on NAS
@@ -40,12 +41,17 @@ def assemble_sample_instance(sample_object_id: str):
     sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
     if sa_created or str(sample_assembly_instance.assembly) == '' or sample_assembly_instance.assembly is None:
         logger.info(f"Running assembly pipeline on {sample_instance}...")
-        polished_assembly = assembly_pipeline(
+        bamfile, polished_assembly = assembly_pipeline(
             fwd_reads=MEDIA_ROOT / Path(str(sample_instance.fwd_reads)),
             rev_reads=MEDIA_ROOT / Path(str(sample_instance.rev_reads)),
             outdir=outdir,
             sample_id=str(sample_instance.sample_id)
         )
+        # Run and parse Qualimap
+        qualimap_result_file = call_qualimap(bamfile=bamfile, outdir=outdir)
+        mean_coverage, std_coverage = extract_coverage_from_qualimap_results(qualimap_result_file=qualimap_result_file)
+
+        # Clean up extraneous files and move the assembly to the root of the sample folder
         polished_assembly = assembly_cleanup(outdir=outdir, assembly=polished_assembly)
 
         # Run and parse Quast
@@ -55,9 +61,36 @@ def assemble_sample_instance(sample_object_id: str):
         # Push the data to the database for SampleAssemblyData
         upload_sampleassembly_data(sample_assembly_instance=sample_assembly_instance,
                                    assembly=polished_assembly,
-                                   quast_df=quast_df)
+                                   quast_df=quast_df,
+                                   mean_coverage=mean_coverage,
+                                   std_coverage=std_coverage)
     else:
         logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
+
+
+def extract_coverage_from_qualimap_results(qualimap_result_file: Path) -> tuple:
+    mean_coverage = None
+    std_coverage = None
+    with open(str(qualimap_result_file), 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if 'mean coverageData' in line:
+                mean_coverage = line.split(" = ")[1]
+            elif 'std coverageData' in line:
+                std_coverage = line.split(" = ")[1]
+            else:
+                continue
+    return mean_coverage, std_coverage
+
+
+def call_qualimap(bamfile: Path, outdir: Path) -> Path:
+    qualimap_dir = outdir / 'qualimap'
+    cmd = f"qualimap bamqc -bam {bamfile} -outdir {qualimap_dir} --java-mem-size=32G"
+    run_subprocess(cmd)
+    qualimap_result_file = qualimap_dir / 'genome_results.txt'
+    if not qualimap_result_file.is_file():
+        logging.error(f"ERROR: Could not find genome_results.txt in {qualimap_dir}")
+    return qualimap_result_file
 
 
 def assembly_pipeline(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id: str):
@@ -66,10 +99,11 @@ def assembly_pipeline(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id:
     assembly = call_skesa(fwd_reads=fwd_reads, rev_reads=rev_reads, outdir=outdir, sample_id=sample_id)
     bamfile = call_bbmap(fwd_reads=fwd_reads, rev_reads=rev_reads, outdir=outdir, assembly=assembly)
     polished_assembly = call_pilon(outdir=outdir, assembly=assembly, prefix=sample_id, bamfile=bamfile)
-    return polished_assembly
+    return bamfile, polished_assembly
 
 
-def upload_sampleassembly_data(sample_assembly_instance: SampleAssemblyData, assembly: Path, quast_df: pd.DataFrame):
+def upload_sampleassembly_data(sample_assembly_instance: SampleAssemblyData, assembly: Path, quast_df: pd.DataFrame,
+                               mean_coverage: str, std_coverage: str):
     # Save to the DB
     sample_assembly_instance.assembly = upload_assembly(sample_assembly_instance, str(assembly.name))
     sample_assembly_instance.num_contigs = quast_df["# contigs"][0]
@@ -77,6 +111,9 @@ def upload_sampleassembly_data(sample_assembly_instance: SampleAssemblyData, ass
     sample_assembly_instance.total_length = quast_df["Total length"][0]
     sample_assembly_instance.gc_percent = quast_df["GC (%)"][0]
     sample_assembly_instance.n50 = quast_df["N50"][0]
+    sample_assembly_instance.num_predicted_genes = quast_df["# predicted genes (unique)"][0]
+    sample_assembly_instance.mean_coverage = mean_coverage
+    sample_assembly_instance.std_coverage = std_coverage
     sample_assembly_instance.bbduk_version = get_bbduk_version()
     sample_assembly_instance.bbmap_version = get_bbmap_version()
     sample_assembly_instance.tadpole_version = get_tadpole_version()
@@ -88,7 +125,7 @@ def upload_sampleassembly_data(sample_assembly_instance: SampleAssemblyData, ass
 
 def run_quast(assembly: Path, outdir: Path):
     # Min contig needs to be set low in order to accomodate very bad assemblies, otherwise quast will fail
-    cmd = f"quast.py --no-plots --no-html --no-icarus --min-contig 100 -o {outdir} {assembly}"
+    cmd = f"quast.py --no-plots --no-html --no-icarus --gene-finding --min-contig 100 -o {outdir} {assembly}"
     run_subprocess(cmd)
     transposed_report = list(outdir.glob("transposed_report.tsv"))[0]
     return transposed_report

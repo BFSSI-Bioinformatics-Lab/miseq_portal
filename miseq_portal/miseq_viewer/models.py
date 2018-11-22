@@ -354,6 +354,9 @@ class SampleAssemblyData(TimeStampedModel):
     total_length = models.BigIntegerField(blank=True, null=True)
     gc_percent = models.FloatField(blank=True, null=True)
     n50 = models.BigIntegerField(blank=True, null=True)
+    num_predicted_genes = models.BigIntegerField(blank=True, null=True)
+    mean_coverage = models.TextField(blank=True, null=True)
+    std_coverage = models.TextField(blank=True, null=True)
 
     # Pipeline versioning
     bbduk_version = models.TextField(blank=True)
