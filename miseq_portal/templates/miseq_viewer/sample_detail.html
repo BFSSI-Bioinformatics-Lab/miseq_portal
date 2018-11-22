@@ -166,6 +166,9 @@
           <th>Total length</th>
           <th>GC (%)</th>
           <th>N50</th>
+          <th># Predicted genes</th>
+          <th>Mean Coverage</th>
+          <th>Std Coverage</th>
           <th>Assembly</th>
         </tr>
         </thead>
@@ -185,6 +188,15 @@
           </td>
           <td>
             {{ assembly_data.n50 }}
+          </td>
+          <td>
+            {{ assembly_data.num_predicted_genes }}
+          </td>
+          <td>
+            {{ assembly_data.mean_coverage }}
+          </td>
+          <td>
+            {{ assembly_data.std_coverage }}
           </td>
           <td>
             <a class="btn btn-outline-primary btn-block" id="assembly-button"
@@ -340,6 +352,7 @@
         $("#delete-sample-button").addClass("disabled");
       }
     }
+
     merge_sample_button_management();
   </script>
 
