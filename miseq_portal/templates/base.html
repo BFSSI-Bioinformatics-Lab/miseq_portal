@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   <title>{% block title %}BFSSI-Portal{% endblock title %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0 shrink-to-fit=no">
   <meta name="description" content="">
-  <meta name="author" content="">
+  <meta name="author" content="Forest Dussault">
 
   <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
   <!--[if lt IE 9]>
@@ -30,6 +30,8 @@
     <!-- This file stores project-specific CSS -->
     <link href="{% static 'css/project.css' %}" rel="stylesheet">
 
+    {# Dashboard styling #}
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
 
   {% endblock %}
   {% block extra_css %}
@@ -39,93 +41,179 @@
 
 <body>
 
-<div class="m-b-1">
-  <nav class="navbar navbar-expand-md navbar-dark bg-dark">
-    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
-            data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-            aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <a class="navbar-brand" href="{% url 'home' %}"><i class="fas fa-dna"></i> MiSeq-Portal</a>
+<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="{% url 'home' %}"><i class="fas fa-dna"></i> MiSeq-Portal</a>
+  <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+  {% if request.user.is_authenticated %}
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a class="nav-link "
+           href="{% url 'users:detail' request.user.username %}"><i class="fas fa-user"></i> Profile
+          ({{ request.user.username }})</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a class="nav-link " href="{% url 'account_logout' %}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+      </li>
+    </ul>
+  {% else %}
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a id="sign-up-link" class="nav-link "
+           href="{% url 'account_signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a id="log-in-link" class="nav-link "
+           href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+      </li>
+    </ul>
+  {% endif %}
+  {% if request.user.is_staff %}
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a class="btn btn-outline-warning" href="{% url 'admin:index' %}"><span> Admin </span></a>
+      </li>
+    </ul>
+  {% endif %}
+</nav>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto nav-fill w-100">
-        <li class="nav-item active">
-          <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i>
-            Home <span class="sr-only">(current)</span></a>
-        </li>
-        {% if request.user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link "
-               href="{% url 'sample_search:sample_search' %}"><i class="fas fa-search"></i> Sample Search</a>
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+      <div class="sidebar-sticky">
+        <ul class="nav flex-column">
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i>
+              Home <span class="sr-only">(current)</span></a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link "
-               href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i> Project
-              Viewer</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link "
-               href="{% url 'analysis:analysis_index' %}"><i class="fas fa-flask"></i> Analysis</a>
-          </li>
-          {% if request.user.is_staff %}  {# Only staff can view the sample merge and uploader sections #}
+          {% if request.user.is_authenticated %}
             <li class="nav-item">
               <a class="nav-link "
-                 href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> MiSeq Uploader</a>
+                 href="{% url 'sample_search:sample_search' %}"><i class="fas fa-search"></i> Sample Search</a>
             </li>
             <li class="nav-item">
               <a class="nav-link "
-                 href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Sample Merge</a>
+                 href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i> Project
+                Viewer</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'analysis:analysis_index' %}"><i class="fas fa-flask"></i> Analysis</a>
+            </li>
+            {% if request.user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link "
+                   href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> Uploader</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link "
+                   href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Merge</a>
+              </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>
             </li>
           {% endif %}
-          <li class="nav-item">
-            <a class="nav-link "
-               href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>
-          </li>
-          <li class="nav-item">
-            {# URL provided by django-allauth/account/urls.py #}
-            <a class="nav-link "
-               href="{% url 'users:detail' request.user.username %}"><i class="fas fa-user"></i> Profile
-              ({{ request.user.username }})</a>
-          </li>
-          <li class="nav-item">
-            {# URL provided by django-allauth/account/urls.py #}
-            <a class="nav-link " href="{% url 'account_logout' %}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
-          </li>
-        {% else %}
-          <li class="nav-item">
-            {# URL provided by django-allauth/account/urls.py #}
-            <a id="sign-up-link" class="nav-link "
-               href="{% url 'account_signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a>
-          </li>
-          <li class="nav-item">
-            {# URL provided by django-allauth/account/urls.py #}
-            <a id="log-in-link" class="nav-link "
-               href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
-          </li>
-        {% endif %}
-        {% if request.user.is_staff %}
-          <li class="nav-item">
-            <a class="nav-link btn btn-outline-danger" href="{% url 'admin:index' %}"><span>Admin Panel</span></a>
-          </li>
-        {% endif %}
-      </ul>
-    </div>
-  </nav>
+        </ul>
+      </div>
+    </nav>
 
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+      {% block content %}
+      {% endblock content %}
+    </main>
+
+  </div>
 </div>
+
+{##}
+{#<div class="m-b-1">#}
+{#  <nav class="navbar navbar-expand-md navbar-dark bg-dark">#}
+{#    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"#}
+{#            data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"#}
+{#            aria-label="Toggle navigation">#}
+{#      <span class="navbar-toggler-icon"></span>#}
+{#    </button>#}
+{#    <a class="navbar-brand" href="{% url 'home' %}"><i class="fas fa-dna"></i> MiSeq-Portal</a>#}
+{##}
+{#    <div class="collapse navbar-collapse" id="navbarSupportedContent">#}
+{#      <ul class="navbar-nav mr-auto nav-fill w-100">#}
+{#        <li class="nav-item active">#}
+{#          <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i>#}
+{#            Home <span class="sr-only">(current)</span></a>#}
+{#        </li>#}
+{#        {% if request.user.is_authenticated %}#}
+{#          <li class="nav-item">#}
+{#            <a class="nav-link "#}
+{#               href="{% url 'sample_search:sample_search' %}"><i class="fas fa-search"></i> Sample Search</a>#}
+{#          </li>#}
+{#          <li class="nav-item">#}
+{#            <a class="nav-link "#}
+{#               href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i> Project#}
+{#              Viewer</a>#}
+{#          </li>#}
+{#          <li class="nav-item">#}
+{#            <a class="nav-link "#}
+{#               href="{% url 'analysis:analysis_index' %}"><i class="fas fa-flask"></i> Analysis</a>#}
+{#          </li>#}
+{#          {% if request.user.is_staff %}  {# Only staff can view the sample merge and uploader sections #}
+{#            <li class="nav-item">#}
+{#              <a class="nav-link "#}
+{#                 href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> Uploader</a>#}
+{#            </li>#}
+{#            <li class="nav-item">#}
+{#              <a class="nav-link "#}
+{#                 href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Merge</a>#}
+{#            </li>#}
+{#          {% endif %}#}
+{#          <li class="nav-item">#}
+{#            <a class="nav-link "#}
+{#               href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>#}
+{#          </li>#}
+{#          <li class="nav-item">#}
+{# URL provided by django-allauth/account/urls.py #}
+{#            <a class="nav-link "#}
+{#               href="{% url 'users:detail' request.user.username %}"><i class="fas fa-user"></i> Profile#}
+{#              ({{ request.user.username }})</a>#}
+{#          </li>#}
+{#          <li class="nav-item">#}
+{# URL provided by django-allauth/account/urls.py #}
+{#            <a class="nav-link " href="{% url 'account_logout' %}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>#}
+{#          </li>#}
+{#        {% else %}#}
+{#          <li class="nav-item">#}
+{# URL provided by django-allauth/account/urls.py #}
+{#            <a id="sign-up-link" class="nav-link "#}
+{#               href="{% url 'account_signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a>#}
+{#          </li>#}
+{#          <li class="nav-item">#}
+{# URL provided by django-allauth/account/urls.py #}
+{#            <a id="log-in-link" class="nav-link "#}
+{#               href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>#}
+{#          </li>#}
+{#        {% endif %}#}
+{#        {% if request.user.is_staff %}#}
+{#          <li class="nav-item">#}
+{#            <a class="nav-link btn btn-outline-danger" href="{% url 'admin:index' %}"><span>Admin Panel</span></a>#}
+{#          </li>#}
+{#        {% endif %}#}
+{#      </ul>#}
+{#    </div>#}
+{#  </nav>#}
+{##}
+{#</div>#}
 <br>
-<div class="container">
+<div class="container-fluid">
 
   {% if messages %}
     {% for message in messages %}
       <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
     {% endfor %}
   {% endif %}
-
-  {% block content %}
-    <p>Use this document as a way to quick start any new project.</p>
-  {% endblock content %}
 
 </div> <!-- /container -->
 
