@@ -5,6 +5,9 @@ from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
 
 class SampleSearchView(LoginRequiredMixin, ListView):
+    """
+    TODO: This desperately needs to be refactored to load data on the fly rather than in one huge chunk
+    """
     template_name = 'sample_search/sample_search.html'
     model = Sample
     context_object_name = 'sample_list'
