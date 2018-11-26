@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>{% block title %}BFSSI-Portal{% endblock title %}</title>
+  <title>{% block title %}MiSeq Portal{% endblock title %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0 shrink-to-fit=no">
   <meta name="description" content="">
   <meta name="author" content="Forest Dussault">
@@ -13,7 +13,7 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
 
-  <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+  <link rel="icon" href="{% static 'favicon.png' %}">
 
   {% block css %}
 
@@ -42,8 +42,11 @@
 <body>
 
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
-  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="{% url 'home' %}"><i class="fas fa-dna"></i> MiSeq-Portal</a>
-  <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="{% url 'home' %}" id="portal-brand">
+    <i class="fas fa-dna"></i>
+    <span class="text">MiSeq Portal</span>
+  </a>
+  {#  <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">#}
   {% if request.user.is_authenticated %}
     <ul class="navbar-nav px-3">
       <li class="nav-item text-nowrap">
@@ -58,12 +61,12 @@
       </li>
     </ul>
   {% else %}
-    <ul class="navbar-nav px-3">
-      <li class="nav-item text-nowrap">
-        <a id="sign-up-link" class="nav-link "
-           href="{% url 'account_signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a>
-      </li>
-    </ul>
+    {#    <ul class="navbar-nav px-3">#}
+    {#      <li class="nav-item text-nowrap">#}
+    {#        <a id="sign-up-link" class="nav-link "#}
+    {#           href="{% url 'account_signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a>#}
+    {#      </li>#}
+    {#    </ul>#}
     <ul class="navbar-nav px-3">
       <li class="nav-item text-nowrap">
         <a id="log-in-link" class="nav-link "
@@ -71,10 +74,10 @@
       </li>
     </ul>
   {% endif %}
-  {% if request.user.is_staff %}
+  {% if request.user.is_superuser %}
     <ul class="navbar-nav px-3">
       <li class="nav-item text-nowrap">
-        <a class="btn btn-outline-warning" href="{% url 'admin:index' %}"><span> Admin </span></a>
+        <a class="btn btn-outline-danger" href="{% url 'admin:index' %}"><span> Admin Panel </span></a>
       </li>
     </ul>
   {% endif %}
@@ -106,10 +109,6 @@
             {% if request.user.is_staff %}
               <li class="nav-item">
                 <a class="nav-link "
-                   href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> Uploader</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link "
                    href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Merge</a>
               </li>
             {% endif %}
@@ -118,104 +117,35 @@
                  href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>
             </li>
           {% endif %}
+          {% if request.user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> Uploader <span
+                class="badge badge-danger">Admin only</span></a>
+            </li>
+          {% endif %}
         </ul>
       </div>
     </nav>
 
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+      <div class="container">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
       {% block content %}
       {% endblock content %}
+      <br>
     </main>
 
   </div>
 </div>
 
-{##}
-{#<div class="m-b-1">#}
-{#  <nav class="navbar navbar-expand-md navbar-dark bg-dark">#}
-{#    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"#}
-{#            data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"#}
-{#            aria-label="Toggle navigation">#}
-{#      <span class="navbar-toggler-icon"></span>#}
-{#    </button>#}
-{#    <a class="navbar-brand" href="{% url 'home' %}"><i class="fas fa-dna"></i> MiSeq-Portal</a>#}
-{##}
-{#    <div class="collapse navbar-collapse" id="navbarSupportedContent">#}
-{#      <ul class="navbar-nav mr-auto nav-fill w-100">#}
-{#        <li class="nav-item active">#}
-{#          <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i>#}
-{#            Home <span class="sr-only">(current)</span></a>#}
-{#        </li>#}
-{#        {% if request.user.is_authenticated %}#}
-{#          <li class="nav-item">#}
-{#            <a class="nav-link "#}
-{#               href="{% url 'sample_search:sample_search' %}"><i class="fas fa-search"></i> Sample Search</a>#}
-{#          </li>#}
-{#          <li class="nav-item">#}
-{#            <a class="nav-link "#}
-{#               href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i> Project#}
-{#              Viewer</a>#}
-{#          </li>#}
-{#          <li class="nav-item">#}
-{#            <a class="nav-link "#}
-{#               href="{% url 'analysis:analysis_index' %}"><i class="fas fa-flask"></i> Analysis</a>#}
-{#          </li>#}
-{#          {% if request.user.is_staff %}  {# Only staff can view the sample merge and uploader sections #}
-{#            <li class="nav-item">#}
-{#              <a class="nav-link "#}
-{#                 href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> Uploader</a>#}
-{#            </li>#}
-{#            <li class="nav-item">#}
-{#              <a class="nav-link "#}
-{#                 href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Merge</a>#}
-{#            </li>#}
-{#          {% endif %}#}
-{#          <li class="nav-item">#}
-{#            <a class="nav-link "#}
-{#               href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>#}
-{#          </li>#}
-{#          <li class="nav-item">#}
-{# URL provided by django-allauth/account/urls.py #}
-{#            <a class="nav-link "#}
-{#               href="{% url 'users:detail' request.user.username %}"><i class="fas fa-user"></i> Profile#}
-{#              ({{ request.user.username }})</a>#}
-{#          </li>#}
-{#          <li class="nav-item">#}
-{# URL provided by django-allauth/account/urls.py #}
-{#            <a class="nav-link " href="{% url 'account_logout' %}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>#}
-{#          </li>#}
-{#        {% else %}#}
-{#          <li class="nav-item">#}
-{# URL provided by django-allauth/account/urls.py #}
-{#            <a id="sign-up-link" class="nav-link "#}
-{#               href="{% url 'account_signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a>#}
-{#          </li>#}
-{#          <li class="nav-item">#}
-{# URL provided by django-allauth/account/urls.py #}
-{#            <a id="log-in-link" class="nav-link "#}
-{#               href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>#}
-{#          </li>#}
-{#        {% endif %}#}
-{#        {% if request.user.is_staff %}#}
-{#          <li class="nav-item">#}
-{#            <a class="nav-link btn btn-outline-danger" href="{% url 'admin:index' %}"><span>Admin Panel</span></a>#}
-{#          </li>#}
-{#        {% endif %}#}
-{#      </ul>#}
-{#    </div>#}
-{#  </nav>#}
-{##}
-{#</div>#}
 <br>
-<div class="container-fluid">
 
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
-
-</div> <!-- /container -->
 
 {% block modal %}{% endblock modal %}
 
