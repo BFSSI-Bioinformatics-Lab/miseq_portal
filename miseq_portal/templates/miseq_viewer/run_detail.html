@@ -7,7 +7,7 @@
 {% block title %}{{ run.run_id }}{% endblock %}
 
 {% block content %}
-  <div class="container">
+  <div class="container-fluid">
 
     <div class="page-header">
       <h1>{{ run }}</h1>
@@ -16,9 +16,9 @@
       </a>
     </div>
 
-    <br>
+    <hr>
 
-    <div>
+    <div class="container">
       {% if interop_data_avaiable %}
         <div id="interop-charts">
           {% include "miseq_viewer/qscore_chart.html" %}
@@ -30,7 +30,7 @@
       {% endif %}
     </div>
 
-    <div>
+    <div class="container">
       <h3>Sample Sheet</h3>
       {{ samplesheet_df | safe }}
     </div>
