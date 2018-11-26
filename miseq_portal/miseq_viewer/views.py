@@ -85,7 +85,7 @@ class RunDetailView(LoginRequiredMixin, DetailView):
             context['interop_data_avaiable'] = True
         except Exception as e:
             logger.info(f"Could not parse InterOp files for {context['run']}")
-            logging.error(f'TRACEBACK: {e}')
+            logging.debug(f'TRACEBACK: {e}')
             context['interop_data_avaiable'] = False
 
         logger.info(f"interop_data_available: {context['interop_data_avaiable']}")
