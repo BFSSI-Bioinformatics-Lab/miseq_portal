@@ -14,20 +14,25 @@
     <h1>Analysis Sample Selection</h1>
   </div>
 
-  <div class="alert alert-info" role="alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
-    <ul>
-      <li><strong>Click</strong> to select samples to add to your analysis group</li>
-      <li>Use the <strong>Search</strong> bar to
-        filter the Sample table
-      </li>
-      <li>Once you have created a selection, click <kbd>Submit</kbd> to move on to the analysis page
-      </li>
-    </ul>
+  <div class="row">
+    <div class="col-sm">
+      <div class="alert alert-info" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <ul>
+          <li><strong>Click</strong> to select samples to add to your analysis group</li>
+          <li>Use the <strong>Search</strong> bar to
+            filter the Sample table
+          </li>
+          <li>Once you have created a selection, click <kbd>Submit</kbd> to move on to the analysis page
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-sm"></div>
   </div>
-
+  <hr>
   <div class="list-group">
     <table id="sample_table" class="display compact">
       <thead>
@@ -82,12 +87,19 @@
           {% endfor %}
         {% endif %}
       {% endfor %}
-
       </tbody>
     </table>
   </div>
   <br>
-  <button id="submit-button" class="btn btn-block btn-success">Submit</button>
+
+  <div class="row">
+    <div class="col-sm"></div>
+    <div class="col-sm">
+      <button id="submit-button" class="btn btn-block btn-success">Submit Analysis Group</button>
+    </div>
+    <div class="col-sm"></div>
+  </div>
+
   <br>
 {% endblock content %}
 
