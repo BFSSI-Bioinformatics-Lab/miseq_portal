@@ -1,5 +1,5 @@
 body {
-  font-size: .875rem;
+  font-size: .9rem;
 }
 
 /*
@@ -41,7 +41,7 @@ body {
 }
 
 .sidebar-heading {
-  font-size: .75rem;
+  font-size: .8rem;
   text-transform: uppercase;
 }
 
@@ -58,7 +58,8 @@ body {
 }
 
 .sidebar .nav-link:hover {
-  background-color: #d3d0d6;
+  background-color: #243850;
+  color: white;
 }
 
 .navbar .form-control {
@@ -78,9 +79,41 @@ body {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
 }
 
+#portal-brand {
+  font-size: 1vw;
+  /*max-width: 10%;*/
+}
+
+#search_bar {
+  background-color: #e0e0e0;
+}
+
+#portal-navbar {
+  background-color: #335075 !important;
+}
+
+#portal-sidebar {
+  /*max-width: 10%;*/
+}
+
+#home_jumbo {
+  background-color: #e0e0e0;
+}
+
+#canada-brand {
+  position: relative;
+  min-height: 100%;
+  padding-top: 20px;
+}
+
 /*
  * Utilities
  */
 
-.border-top { border-top: 1px solid #e5e5e5; }
-.border-bottom { border-bottom: 1px solid #e5e5e5; }
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
