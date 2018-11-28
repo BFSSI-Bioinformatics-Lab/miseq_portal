@@ -19,11 +19,12 @@ class AnalysisGroup(models.Model):
     """
 
     """
+    # This determines what options appear on the Analysis tool selection form
     job_choices = (
         ('SendSketch', 'SendSketch'),
         ('MobRecon', 'MobRecon'),
-        ('PlasmidAMR', 'PlasmidAMR'),
-        ('TotalAMR', 'TotalAMR')
+        # ('PlasmidAMR', 'PlasmidAMR'),
+        # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
 
