@@ -82,7 +82,9 @@
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script>
     $(document).ready(function () {
-      $('#project_table').DataTable();
+      $('#project_table').DataTable({
+        "pageLength": 20
+      });
     });
   </script>
 {% endblock %}
