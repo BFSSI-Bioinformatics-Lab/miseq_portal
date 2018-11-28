@@ -29,6 +29,15 @@
           </a>
         </h5>
       </div>
+
+    {% elif sample.sample_type == 'EXT' %}
+      <div class="col">
+        <h5><strong>Run: </strong>
+          <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
+            {{ sample.run_id }}
+          </a>
+        </h5>
+      </div>
     {% endif %}
   </div>
 
