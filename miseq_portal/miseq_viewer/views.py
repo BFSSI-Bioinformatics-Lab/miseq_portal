@@ -68,7 +68,6 @@ class RunDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         # Get run folder to feed to the interop parser
         interop_folder = context['run'].interop_directory_path
-        logger.info(f'InterOp folder: {interop_folder}')
 
         if context['run'].interop_directory_path is not None:
             interop_folder = Path(interop_folder)
@@ -84,11 +83,10 @@ class RunDetailView(LoginRequiredMixin, DetailView):
             context['qscore_json'] = get_qscore_json(Path(MEDIA_ROOT) / interop_folder.parent)
             context['interop_data_avaiable'] = True
         except Exception as e:
-            logger.info(f"Could not parse InterOp files for {context['run']}")
             logging.debug(f'TRACEBACK: {e}')
             context['interop_data_avaiable'] = False
 
-        logger.info(f"interop_data_available: {context['interop_data_avaiable']}")
+        logger.debug(f"interop_data_available: {context['interop_data_avaiable']}")
         context['project_list'] = Project.objects.all()
         context['sample_list'] = Sample.objects.all()
         context['samplesheet_df'] = parse_samplesheet.read_samplesheet_to_html(sample_sheet=samplesheet)
