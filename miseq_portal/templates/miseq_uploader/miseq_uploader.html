@@ -9,13 +9,15 @@
     <h1>Manual MiSeq Upload</h1>
   </div>
 
-  <div class="alert alert-info" role="alert">
-    <p>Use this page to manually add <strong>Projects</strong>, <strong>Runs</strong> and <strong>Samples</strong>
-      to the MiSeq-Portal database</p>
+  <div class="row">
+    <div class="alert alert-info">
+      <p>Use this page to manually add <strong>Projects</strong>, <strong>Runs</strong> and <strong>Samples</strong>
+        to the MiSeq-Portal database</p>
+    </div>
   </div>
 
-    <h3>MiSeq Directory Upload <span class="badge badge-danger">Admin only</span></h3>
-    <div class="list-group">
+  <h3>MiSeq Directory Upload</h3>
+  <div class="list-group">
     <a href="{% url 'miseq_uploader:miseq_form' %}"
        class="list-group-item list-group-item-action flex-column align-items-start">
       <div class="d-flex w-100 justify-content-between">
@@ -27,34 +29,34 @@
   </div>
 
   <br>
-
-  <h3>Single Project, Run, or Sample Uploads</h3>
-  <div class="list-group">
-    <a href="{% url 'miseq_uploader:create_project' %}"
-       class="list-group-item list-group-item-action flex-column align-items-start">
-      <div class="d-flex w-100 justify-content-between">
-        <h4 class="mb-1">Create Project</h4>
-      </div>
-      <p class="mb-1">Click to manually create a project. The project must have a <strong>unique</strong> name not
-        already present in the database.</p>
-    </a>
-    <a href="{% url 'miseq_uploader:run_uploader' %}"
-       class="list-group-item list-group-item-action flex-column align-items-start">
-      <div class="d-flex w-100 justify-content-between">
-        <h4 class="mb-1">Upload Run</h4>
-      </div>
-      <p class="mb-1">Click to manually upload a MiSeq run. This must be attached to an <strong>existing project
-      </strong>, and must also have an accompanying SampleSheet.</p>
-    </a>
-    <a href="{% url 'miseq_uploader:sample_uploader' %}"
-       class="list-group-item list-group-item-action flex-column align-items-start">
-      <div class="d-flex w-100 justify-content-between">
-        <h4 class="mb-1">Upload Sample</h4>
-      </div>
-      <p class="mb-1">Click to manually upload a sample <i>(paired-end .fastq.gz files)</i>. This must be attached to an
-        <strong>existing run</strong> with a SampleSheet which contains a corresponding Sample ID.</p>
-    </a>
-  </div>
+{##}
+{#  <h3>Single Project, Run, or Sample Uploads</h3>#}
+{#  <div class="list-group">#}
+{#    <a href="{% url 'miseq_uploader:create_project' %}"#}
+{#       class="list-group-item list-group-item-action flex-column align-items-start">#}
+{#      <div class="d-flex w-100 justify-content-between">#}
+{#        <h4 class="mb-1">Create Project</h4>#}
+{#      </div>#}
+{#      <p class="mb-1">Click to manually create a project. The project must have a <strong>unique</strong> name not#}
+{#        already present in the database.</p>#}
+{#    </a>#}
+{#    <a href="{% url 'miseq_uploader:run_uploader' %}"#}
+{#       class="list-group-item list-group-item-action flex-column align-items-start">#}
+{#      <div class="d-flex w-100 justify-content-between">#}
+{#        <h4 class="mb-1">Upload Run</h4>#}
+{#      </div>#}
+{#      <p class="mb-1">Click to manually upload a MiSeq run. This must be attached to an <strong>existing project#}
+{#      </strong>, and must also have an accompanying SampleSheet.</p>#}
+{#    </a>#}
+{#    <a href="{% url 'miseq_uploader:sample_uploader' %}"#}
+{#       class="list-group-item list-group-item-action flex-column align-items-start">#}
+{#      <div class="d-flex w-100 justify-content-between">#}
+{#        <h4 class="mb-1">Upload Sample</h4>#}
+{#      </div>#}
+{#      <p class="mb-1">Click to manually upload a sample <i>(paired-end .fastq.gz files)</i>. This must be attached to an#}
+{#        <strong>existing run</strong> with a SampleSheet which contains a corresponding Sample ID.</p>#}
+{#    </a>#}
+{#  </div>#}
 
 
 {% endblock content %}
