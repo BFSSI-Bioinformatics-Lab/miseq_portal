@@ -16,9 +16,23 @@
     <h1>Upload MiSeq Run Directory</h1>
   </div>
 
-  <div class="alert alert-warning" role="alert">
-    Paste the full path to the MiSeq run directory you wish to upload.
-    <strong>Note that this will only work for administrators.</strong>
+  <div class="alert alert-info" role="alert">
+    <h5>Upload Instructions</h5>
+    <p>
+      <strong>NOTE:</strong> For uploads to work, all local run data must be on the same machine as the MiSeq portal
+      host machine (Venture).
+    </p>
+    <hr>
+    <ol>
+      <li>Retrieve runs for a project from BaseMount with <a
+        href="https://github.com/bfssi-forest-dussault/BaseMountRetrieve/">BaseMountRetrieve</a>, or transfer a local
+        run from the MiSeq to the host machine.
+      </li>
+      <li>
+        Copy the path to a particular <strong>run</strong> to the input box below, and submit.
+      </li>
+
+    </ol>
   </div>
 
   <form action="{% url "miseq_uploader:miseq_form" %}" method="post" enctype="multipart/form-data"
