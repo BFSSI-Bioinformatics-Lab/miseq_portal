@@ -132,9 +132,13 @@ def correct_sample_id_list(sample_id_list: list, sample_sheet: Path) -> dict:
     df = read_samplesheet(sample_sheet)
     sample_id_dict = {}
     for sample_id in sample_id_list:
-        if sample_id in df['Sample_ID'].values:
+        sample_id_values = list(df['Sample_ID'].values)
+        sample_name_values = list(df['Sample_Name'].values)
+
+        # Verify sample_id is in Sample_ID or Sample_Name column
+        if sample_id in sample_id_values:
             sample_id_dict[sample_id] = sample_id
-        elif sample_id in df['Sample_Name'].values:
+        elif sample_id in sample_name_values:
             sample_id_value = df[df['Sample_Name'] == sample_id].reset_index()['Sample_ID'][0]
             sample_id_dict[sample_id] = sample_id_value
         else:
