@@ -46,6 +46,10 @@ def read_samplesheet(sample_sheet: Path) -> pd.DataFrame:
                 counter += 1
     df = pd.read_csv(sample_sheet, sep=",", index_col=False, skiprows=counter)
 
+    # Force Sample_Name and Sample_Project into str types
+    df['Sample_Name'] = df['Sample_Name'].astype(str)
+    df['Sample_Project'] = df['Sample_Project'].astype(str)
+
     # Fill in missing projects
     df['Sample_Project'] = df['Sample_Project'].replace(r"\s+", "MISSING_PROJECT", regex=True)
     df['Sample_Project'] = df['Sample_Project'].fillna(value="MISSING_PROJECT")
