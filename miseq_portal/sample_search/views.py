@@ -47,7 +47,6 @@ sample_search_view_json = SampleSearchViewAsJSON.as_view()
 
 class SampleSearchView(LoginRequiredMixin, ListView):
     """
-    TODO: This desperately needs to be refactored to load data on the fly rather than in one huge chunk
     """
     model = Sample
     # paginate_by = 20
@@ -59,7 +58,8 @@ class SampleSearchView(LoginRequiredMixin, ListView):
         sample_list = self.model.objects.filter(
             Q(sample_id__icontains=search_term) |
             Q(project_id__project_id__icontains=search_term) |
-            Q(sample_name__icontains=search_term)
+            Q(sample_name__icontains=search_term) |
+            Q(run_id__run_id__icontains=search_term)
         )
         return sample_list
 
