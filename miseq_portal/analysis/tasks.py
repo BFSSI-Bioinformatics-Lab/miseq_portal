@@ -129,12 +129,19 @@ def submit_sendsketch_job(sample_instance: AnalysisSample):
         logger.info("Overwriting existing SendSketch results object")
 
     # Get top hit df and populate the database with results
-    df = get_top_sendsketch_hit(sendsketch_result_file=sendsketch_result_file)
-    sendsketch_object.top_ANI = df['ANI'][0]
-    sendsketch_object.top_Contam = df['Contam'][0]
-    sendsketch_object.top_gSize = df['gSize'][0]
-    sendsketch_object.top_taxName = df['taxName'][0]
-    sendsketch_object.top_TaxID = df['TaxID'][0]
+    try:
+        df = get_top_sendsketch_hit(sendsketch_result_file=sendsketch_result_file)
+        sendsketch_object.top_ANI = df['ANI'][0]
+        sendsketch_object.top_Contam = df['Contam'][0]
+        sendsketch_object.top_gSize = df['gSize'][0]
+        sendsketch_object.top_taxName = df['taxName'][0]
+        sendsketch_object.top_TaxID = df['TaxID'][0]
+    except:
+        sendsketch_object.top_ANI = None
+        sendsketch_object.top_Contam = None
+        sendsketch_object.top_gSize = None
+        sendsketch_object.top_taxName = None
+        sendsketch_object.top_TaxID = None
 
     # Correct the path to the result file
     root_sample_instance = Sample.objects.get(sample_id=sample_instance.sample_id)
