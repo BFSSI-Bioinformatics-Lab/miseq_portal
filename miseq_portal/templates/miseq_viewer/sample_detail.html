@@ -93,26 +93,26 @@
           {{ sample.sample_name | default:"N/A" }}
         </td>
         <td>
-          {% if browser_flag == True and sample.fwd_reads != None %}
+          {% if browser_flag == True and sample.fwd_reads.url != None and sample.rev_reads.url != None %}
             <a class="btn btn-outline-primary btn-block" href="{{ sample.fwd_reads.url }}" download role="button"><i
               class="fas fa-download"></i> Download R1
             </a>
           {% else %}
             <a class="btn btn-outline-primary btn-block disabled" href="#" download
                role="button"><i
-              class="fas fa-download"></i> Download R1
+              class="fas fa-download"></i> Unavailable
             </a>
           {% endif %}
         </td>
         <td>
-          {% if browser_flag == True and sample.fwd_reads != None %}
+          {% if browser_flag == True and sample.fwd_reads.url != None and sample.rev_reads.url != None %}
             <a class="btn btn-outline-primary btn-block" href="{{ sample.rev_reads.url }}" download role="button"><i
               class="fas fa-download"></i> Download R2
             </a>
           {% else %}
             <a class="btn btn-outline-primary btn-block disabled" href="#" download
                role="button"><i
-              class="fas fa-download"></i> Download R2
+              class="fas fa-download"></i> Unavailable
             </a>
           {% endif %}
         </td>
