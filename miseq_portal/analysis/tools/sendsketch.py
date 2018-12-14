@@ -23,7 +23,7 @@ def read_sendsketch_results(sendsketch_result_file: Path) -> pd.DataFrame:
     # Drop N/A values
     df = df.dropna(1)
     # Sort by ANI
-    df = df.sort_values('ANI', ascending=False)
+    df = df.sort_values(by=['Matches', 'WKID'], ascending=False)
     # Add ranking column
     df.insert(0, 'Rank', range(1, len(df) + 1))
     # Set Rank to the index
@@ -34,4 +34,4 @@ def read_sendsketch_results(sendsketch_result_file: Path) -> pd.DataFrame:
 def get_top_sendsketch_hit(sendsketch_result_file: Path) -> pd.DataFrame:
     df = read_sendsketch_results(sendsketch_result_file)
     top_hit = df.head(1).reset_index()
-    return top_hit  # TODO: Investigate why the typing is not happy. This is df but PyCharm doesn't think so?
+    return top_hit
