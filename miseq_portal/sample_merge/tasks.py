@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from celery import shared_task
-from miseq_portal.miseq_viewer.models import Sample, SampleLogData, upload_reads
+from miseq_portal.miseq_viewer.models import Sample, Project, upload_reads
 from miseq_portal.analysis.tools.helpers import run_subprocess
 from miseq_portal.analysis.tools.assemble_run import assemble_sample_instance
 from config.settings.base import MEDIA_ROOT
@@ -23,6 +23,30 @@ def merge_reads(sample_object_id_list: [int], merged_sample_id: int):
     merge_reads_sample_objects(sample_object_list=sample_object_list, merged_sample=merged_sample)
 
 
+def determine_merged_sample_name(sample_object_list: [Sample]) -> str:
+    """
+    Takes a list of sample objects to be merged and figures out the most informative sample name.
+    If all sample names share the same sample_name, that will be returned. Otherwise this will return a string joined
+    by '+' containing each sample_name.
+    """
+    sample_names = [sample_object.sample_name for sample_object in sample_object_list]
+    sample_names = list(set(sample_names))
+    return "+".join(sample_names)
+
+
+def determine_merged_sample_project_id(sample_object_list: [Sample]) -> (Project, None):
+    """
+    Takes a list of sample objects to be merged and returns a shared project_id if there is one, otherwise returns None
+    """
+    sample_projects = [sample_object.project_id for sample_object in sample_object_list]
+    sample_names = list(set(sample_projects))
+
+    if len(sample_names) == 1:
+        return sample_names[0]
+    else:
+        return None
+
+
 def merge_reads_sample_objects(sample_object_list: [Sample], merged_sample: Sample):
     fwd_out, rev_out = create_merge_sample_dir(merged_sample)
 
@@ -30,6 +54,14 @@ def merge_reads_sample_objects(sample_object_list: [Sample], merged_sample: Samp
     fwd_reads = [Path(MEDIA_ROOT) / str(sample_object.fwd_reads) for sample_object in sample_object_list]
     rev_reads = [Path(MEDIA_ROOT) / str(sample_object.rev_reads) for sample_object in sample_object_list]
     concatenate_read_files(fwd_read_list=fwd_reads, rev_read_list=rev_reads, fwd_out=fwd_out, rev_out=rev_out)
+
+    # Determine sample name
+    sample_name = determine_merged_sample_name(sample_object_list)
+    merged_sample.sample_name = sample_name
+
+    # Determine project_id
+    project_id = determine_merged_sample_project_id(sample_object_list)
+    merged_sample.project_id = project_id
 
     # Update merged_sample object in database
     merged_sample.fwd_reads = upload_reads(merged_sample, fwd_out.name)
