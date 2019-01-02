@@ -257,7 +257,7 @@ class Sample(TimeStampedModel):
     - component_group is used to track the relationship between a merged sample and its constituent components
     """
     sample_id = models.CharField(max_length=15, unique=True, validators=[validate_sample_id])
-    sample_name = models.CharField(max_length=128, unique=False, blank=True)
+    sample_name = models.TextField(blank=True)
 
     # The sample_type and component_group fields exist to accommodate merged samples
     sample_type_choices = (
