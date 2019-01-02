@@ -39,9 +39,13 @@
             {{ sample.sample_name }}
           </td>
           <td>
+            {% if sample.run_id != None %}
             <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
               {{ sample.run_id }}
             </a>
+            {% else %}
+              N/A
+            {% endif %}
           </td>
           <td>
             {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
