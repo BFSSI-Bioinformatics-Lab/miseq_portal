@@ -5,111 +5,98 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
 {% endblock %}
 
-{# TODO: This desperately needs to be refactored to load data on the fly. ref: sample_search/views.py #}
-
 {% block title %}Sample Search{% endblock %}
 
 {% block content %}
+
   <div class="container-fluid">
-    <div class="page-header">
-      <h1>Sample Search</h1>
-    </div>
-    <div class="list-group">
-
-      <table id="sample_table" class="display compact">
-        <thead>
-        <tr>
-          <th>Sample ID</th>
-          <th>Sample Name</th>
-          <th>Run ID</th>
-          <th>Project ID</th>
-          <th>Date Created</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for sample in sample_list %}
-          {% if user.is_staff %}
-            <tr>
-              <td>
-                <a
-                  href="/miseq_viewer/sample/{{ sample.pk }}">
-                  {{ sample.sample_id }}
+    <table id="sample_table" class="display compact">
+      <thead>
+      <tr>
+        <th>Sample ID</th>
+        <th>Sample Name</th>
+        <th>Run ID</th>
+        <th>Project ID</th>
+        <th>Date Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for sample in sample_list %}
+        {% if user.is_staff %}
+          <tr>
+            <td>
+              <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample.pk %}">
+                {{ sample.sample_id }}
+              </a>
+            </td>
+            <td>
+              {{ sample.sample_name|default:"N/A" }}
+            </td>
+            <td>
+              {% if sample.run_id != None %}
+                <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
+                  {{ sample.run_id }}
                 </a>
-              </td>
-              <td>
-                {{ sample.sample_name|default:"N/A" }}
-              </td>
-              <td>
-                {% if sample.run_id != None %}
-                  <a
-                    href="/miseq_viewer/run/{{ sample.run_id_id }}">
-                    {{ sample.run_id }}
-                  </a>
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-              <td>
-                {% if sample.project_id != None %}
-                  <a
-                    href="/miseq_viewer/project/{{ sample.project_id_id }}">
-                    {{ sample.project_id }}
-                  </a>
-                {% else %}
-                  N/A
-                {% endif %}
-              </td>
-              {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
-              <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
-                {{ sample.created|date:"d N Y" }}
-              </td>
-            </tr>
-          {% else %}
-            {% for approved_user in approved_users %}
-              {% if sample.project_id == approved_user.project_id %}
-                <tr>
-                  <td>
-                    <a
-                      href="/miseq_viewer/sample/{{ sample.pk }}">
-                      {{ sample.sample_id }}
-                    </a>
-                  </td>
-                  <td>
-                    {{ sample.sample_name|default:"N/A" }}
-                  </td>
-                  <td> {# TODO: Make this more robust with {% url '' pk=something %} #}
-                    {% if sample.run_id != None %}
-                      <a
-                        href="/miseq_viewer/run/{{ sample.run_id_id }}">
-                        {{ sample.run_id }}
-                      </a>
-                    {% else %}
-                      N/A
-                    {% endif %}
-                  </td>
-                  <td> {# TODO: Make this more robust with {% url '' pk=something %} #}
-                    {% if sample.project_id != None %}
-                      <a
-                        href="/miseq_viewer/project/{{ sample.project_id_id }}">
-                        {{ sample.project_id }}
-                      </a>
-                    {% else %}
-                      N/A
-                    {% endif %}
-                  </td>
-                  {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
-                  <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
-                    {{ sample.created|date:"d N Y" }}
-                  </td>
-                </tr>
+              {% else %}
+                N/A
               {% endif %}
-            {% endfor %}
-          {% endif %}
-        {% endfor %}
+            </td>
+            <td>
+              {% if sample.project_id != None %}
+                <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=sample.project_id.pk %}">
+                  {{ sample.project_id }}
+                </a>
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
+            <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
+              {{ sample.created|date:"d N Y" }}
+            </td>
+          </tr>
+        {% else %}
+          {% for approved_user in approved_users %}
+            {% if sample.project_id == approved_user.project_id %}
+              <tr>
+                <td>
+                  <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample.pk %}">
+                    {{ sample.sample_id }}
+                  </a>
+                </td>
+                <td>
+                  {{ sample.sample_name|default:"N/A" }}
+                </td>
+                <td>
+                  {% if sample.run_id != None %}
+                    <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
+                      {{ sample.run_id }}
+                    </a>
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
+                <td>
+                  {% if sample.project_id != None %}
+                    <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=sample.project_id.pk %}">
+                      {{ sample.project_id }}
+                    </a>
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
+                {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
+                <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
+                  {{ sample.created|date:"d N Y" }}
+                </td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
 
-        </tbody>
-      </table>
-    </div>
+      </tbody>
+    </table>
   </div>
   <br>
 
@@ -120,9 +107,11 @@
   <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script>
+    window.CSRF_TOKEN = "{{ csrf_token }}";
     $(document).ready(function () {
       $('#sample_table').DataTable({
-        "pageLength": 20,
+        "paging": true,
+        "searching": false
       });
     });
   </script>
