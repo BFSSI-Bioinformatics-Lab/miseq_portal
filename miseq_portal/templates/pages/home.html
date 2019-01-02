@@ -2,16 +2,20 @@
 
 {% block content %}
   {% if user.is_authenticated %}
-    <div class="jumbotron">
+    <div class="jumbotron" id="home_jumbo">
 
-      <h2>Welcome to the <strong>MiSeq Portal</strong></h2>
+      <h2>Welcome to the <strong><i class="fas fa-dna"></i> MiSeq Portal</strong></h2>
       <p class="lead">You are logged in as user <strong class="text-success">{{ request.user }}</strong></p>
       <hr class="my-4">
-      <p class="lead">Use the navigation links on the side panel to search for <strong
-        class="text-primary">samples</strong>,
-        view your <strong class="text-primary">projects</strong>, or conduct a new
-        <strong class="text-primary">analysis</strong>.</p>
-
+      <p class="lead">
+        Use the <strong class="text-primary"><i class="fas fa-search"></i> Search Bar</strong> on the top panel to find
+        samples.
+        <br>
+        Use the navigation links on the side panel to <strong
+        class="text-primary"><i class="fas fa-plus-square"></i> merge</strong> samples,
+        view your <strong class="text-primary"><i class="fas fa-project-diagram"></i> projects</strong>, or conduct a new
+        <strong class="text-primary"><i class="fas fa-flask"></i> analysis</strong>.
+      </p>
     </div>
     <div class="alert alert-danger" role="alert">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -26,7 +30,7 @@
   {% else %}
     <div class="container">
 
-      <div class="jumbotron">
+      <div class="jumbotron" id="home_jumbo">
         <p class="lead">Please sign in to access the <strong>MiSeq Portal</strong></p>
         <hr class="my-4">
         <p> To register, contact <strong>forest.dussault@canada.ca</strong> with subject line
