@@ -29,12 +29,19 @@
           </a>
         </h5>
       </div>
-
     {% elif sample.sample_type == 'EXT' %}
       <div class="col">
         <h5><strong>Run: </strong>
           <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
             {{ sample.run_id }}
+          </a>
+        </h5>
+      </div>
+    {% elif sample.sample_type == 'MER' and sample.project_id != None %}
+      <div class="col">
+        <h5><strong>Project: </strong>
+          <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=sample.project_id.pk %}">
+            {{ sample.project_id }}
           </a>
         </h5>
       </div>
@@ -292,7 +299,6 @@
   </div>
 
 
-
 {% endblock content %}
 
 {% block extra_javascript %}
@@ -346,8 +352,7 @@
 
       if (merge_div.length > 0) {
         merge_present = true;
-      }
-      else {
+      } else {
         return
       }
 
