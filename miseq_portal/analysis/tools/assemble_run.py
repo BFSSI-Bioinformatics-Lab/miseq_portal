@@ -111,7 +111,10 @@ def upload_sampleassembly_data(sample_assembly_instance: SampleAssemblyData, ass
     sample_assembly_instance.total_length = quast_df["Total length"][0]
     sample_assembly_instance.gc_percent = quast_df["GC (%)"][0]
     sample_assembly_instance.n50 = quast_df["N50"][0]
-    sample_assembly_instance.num_predicted_genes = quast_df["# predicted genes (unique)"][0]
+    try:
+        sample_assembly_instance.num_predicted_genes = quast_df["# predicted genes (unique)"][0]
+    except KeyError:
+        sample_assembly_instance.num_predicted_genes = None
     sample_assembly_instance.mean_coverage = mean_coverage
     sample_assembly_instance.std_coverage = std_coverage
     sample_assembly_instance.bbduk_version = get_bbduk_version()
@@ -189,7 +192,11 @@ def call_pilon(bamfile: Path, outdir: Path, assembly: Path, prefix: str):
     os.makedirs(str(outdir), exist_ok=True)
     cmd = f"pilon -Xmx128g --genome {assembly} --bam {bamfile} --outdir {outdir} --output {prefix}"
     run_subprocess(cmd)
-    polished_assembly = list(outdir.glob("*.fasta"))[0]
+    try:
+        polished_assembly = list(outdir.glob("*.fasta"))[0]
+    except IndexError:
+        logger.debug(f"Pilon call failed - using original assembly {assembly}")
+        return assembly
     return polished_assembly
 
 
