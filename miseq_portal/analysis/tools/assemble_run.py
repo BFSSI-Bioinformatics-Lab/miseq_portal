@@ -136,6 +136,7 @@ def run_quast(assembly: Path, outdir: Path):
 
 def get_quast_df(report: Path):
     df = pd.read_csv(report, sep="\t")
+    df = df.fillna(value="")
     return df
 
 
@@ -251,6 +252,6 @@ def call_bbduk(fwd_reads: Path, rev_reads: Path, outdir: Path):
 
     # TODO: Store these parameters for BBDuk + other system tools in a single config file
     cmd = f"bbduk.sh in1={fwd_reads} in2={rev_reads} out1={fwd_out} out2={rev_out} " \
-          f"ref=adapters maq=12 qtrim=rl tpe tbo overwrite=t"
+        f"ref=adapters maq=12 qtrim=rl tpe tbo overwrite=t"
     run_subprocess(cmd)
     return fwd_out, rev_out
