@@ -26,6 +26,7 @@ def test_upload_run_file():
     run = Mock(spec=Run)
     run.id = 1
     run.run_id = "MOCK_RUN_01"
+    run.run_type = 'BMH'
     filename = 'test_file'
     assert upload_run_file(run, filename) == f'uploads/runs/{run.run_id}/{filename}'
 
@@ -34,14 +35,21 @@ def test_upload_interop_file():
     run = Mock(spec=Run)
     run.id = 1
     run.run_id = "MOCK_RUN_01"
+    run.run_type = "BMH"
+
+    runinterop = Mock(spec=RunInterOpData)
+    runinterop.id = 1
+    runinterop.run_id = run
     filename = 'test_file'
-    assert upload_interop_file(run, filename) == f'uploads/runs/{run.run_id}/InterOp/{filename}'
+
+    assert upload_interop_file(runinterop, filename) == f'uploads/runs/{runinterop.run_id}/InterOp/{filename}'
 
 
 def test_upload_interop_dir():
     run = Mock(spec=Run)
     run.id = 1
     run.run_id = "MOCK_RUN_01"
+    run.run_type = "BMH"
     assert upload_interop_dir(run) == f'uploads/runs/{run.run_id}/InterOp/'
 
 
@@ -219,5 +227,3 @@ class SampleAssemblyDataTest(TestCase):
         assembly.flush()
         self.sample_assembly_data.assembly = str(assembly.name)
         assert self.sample_assembly_data.assembly_exists() is True
-
-
