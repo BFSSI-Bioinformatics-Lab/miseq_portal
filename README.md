@@ -84,7 +84,8 @@ This is done via the miseq_uploader app (_http://192.168.1.61:8000/miseq_uploade
 To do this, the user must be logged into the host machine (currently brock@192.168.1.61). 
 From here, locally stored runs can be easily uploaded via the 'Upload MiSeq Run' button on the webpage.
 
-The run to be uploaded **must have been retrieved with BaseMountRetrieve with the --miseqsim parameter enabled**.
+The run to be uploaded **must have the same folder structure as a local MiSeq run. 
+If the run is only available on BaseSpace, it must be retrieved with [BaseMountRetrieve](https://github.com/BFSSI-Bioinformatics-Lab/BaseMountRetrieve)**.
 This structures the run in a format that the portal expects when parsing and uploading run data 
 (i.e. reads, InterOp, stats, logs). The user must supply the full path to the run: 
 _e.g. /mnt/Dr-Girlfriend/MiSeq/BaseSpace_Projects/Listeria2016WGS/20180813_WGS_M01308_
