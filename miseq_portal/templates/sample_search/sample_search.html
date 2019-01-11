@@ -10,6 +10,13 @@
 {% block content %}
 
   <div class="container-fluid">
+
+    {% if sample_list.count == 0 %}
+      <div class="alert alert-warning" role="alert">
+        <h4>No samples found matching search term <strong>"{{ search_term }}"</strong></h4>
+      </div>
+    {% endif %}
+
     <table id="sample_table" class="display compact">
       <thead>
       <tr>
@@ -108,11 +115,20 @@
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script>
     window.CSRF_TOKEN = "{{ csrf_token }}";
-    $(document).ready(function () {
-      $('#sample_table').DataTable({
-        "paging": true,
-        "searching": false
+
+    {# If there is only one sample returned, just redirect to the relevant sample detail page #}
+    {% if sample_list.count == 1 %}
+      sample_count = Number("{{ sample_list.count }}");
+      window.location.replace("{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample_list.0.pk %}");
+    {% else %}
+      $(document).ready(function () {
+        $('#sample_table').DataTable({
+          "paging": true,
+          "searching": false
+        });
       });
-    });
+    {% endif %}
+
+
   </script>
 {% endblock %}

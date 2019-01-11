@@ -1,9 +1,7 @@
-import json
-import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, View
-from django.core import serializers
-from django.shortcuts import HttpResponse
+from django.shortcuts import redirect, HttpResponseRedirect
+from django.urls import reverse
 from django.db.models import Q
 from django.http import JsonResponse
 
@@ -49,11 +47,12 @@ class SampleSearchView(LoginRequiredMixin, ListView):
     """
     """
     model = Sample
-    # paginate_by = 20
     template_name = 'sample_search/sample_search.html'
     context_object_name = 'sample_list'
 
-    def get_queryset(self):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
         search_term = self.request.GET.get('search_term')
         sample_list = self.model.objects.filter(
             Q(sample_id__icontains=search_term) |
@@ -61,10 +60,9 @@ class SampleSearchView(LoginRequiredMixin, ListView):
             Q(sample_name__icontains=search_term) |
             Q(run_id__run_id__icontains=search_term)
         )
-        return sample_list
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context['search_term'] = search_term
+        context['sample_list'] = sample_list
         context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user).order_by('id')
         return context
 
