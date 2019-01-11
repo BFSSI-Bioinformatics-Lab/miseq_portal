@@ -17,8 +17,8 @@ body {
 }
 
 .sidebar-sticky {
-  position: -webkit-sticky;
-  position: sticky;
+  position: fixed;
+  width: 16.6%;
   top: 48px; /* Height of navbar */
   height: calc(100vh - 48px);
   padding-top: .5rem;
@@ -38,6 +38,7 @@ body {
 
 .sidebar .nav-link.active {
   color: #007bff;
+  width: 100%;
 }
 
 .sidebar-heading {
@@ -117,3 +118,4 @@ body {
 .border-bottom {
   border-bottom: 1px solid #e5e5e5;
 }
+
