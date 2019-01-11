@@ -38,11 +38,11 @@ def determine_merged_sample_project_id(sample_object_list: [Sample]) -> (Project
     """
     Takes a list of sample objects to be merged and returns a shared project_id if there is one, otherwise returns None
     """
-    sample_projects = [sample_object.project_id for sample_object in sample_object_list]
-    sample_names = list(set(sample_projects))
+    project_ids = [sample_object.project_id for sample_object in sample_object_list]
+    project_ids = list(set(project_ids))
 
-    if len(sample_names) == 1:
-        return sample_names[0]
+    if len(project_ids) == 1:
+        return project_ids[0]
     else:
         return None
 
