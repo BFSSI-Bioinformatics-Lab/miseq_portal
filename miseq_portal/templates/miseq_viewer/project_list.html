@@ -19,7 +19,7 @@
         <thead>
         <tr>
           <th>Project ID</th>
-{#          <th>Project Owner</th>#}
+          {#          <th>Project Owner</th>#}
           <th># Samples</th>
           <th>Date Created</th>
         </tr>
@@ -33,14 +33,14 @@
                   {{ project.project_id }}
                 </a>
               </td>
-{#              <td>#}
-{#                {{ project.project_owner }}#}
-{#              </td>#}
+              {#              <td>#}
+              {#                {{ project.project_owner }}#}
+              {#              </td>#}
               <td>
                 {{ sample_count_dict|get_item:project.project_id }}
               </td>
-              <td>
-                {{ project.created }}
+              <td data-order="{{ project.created|date:"Y-m-d H:i" }}">
+                {{ project.created|date:"d N Y" }}
               </td>
             </tr>
           {% else %}
@@ -52,14 +52,14 @@
                       {{ project.project_id }}
                     </a>
                   </td>
-{#                  <td>#}
-{#                    {{ project.project_owner }}#}
-{#                  </td>#}
+                  {#                  <td>#}
+                  {#                    {{ project.project_owner }}#}
+                  {#                  </td>#}
                   <td>
                     {{ sample_count_dict|get_item:project.project_id }}
                   </td>
-                  <td>
-                    {{ project.created }}
+                  <td data-order="{{ project.created|date:"Y-m-d H:i" }}">
+                    {{ project.created|date:"d N Y" }}
                   </td>
                 </tr>
               {% endif %}
