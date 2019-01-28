@@ -31,8 +31,28 @@ def determine_run_type(sample_object_list: list) -> str:
     return run_type
 
 
+def check_for_ignore_run_file(miseq_dir: Path) -> bool:
+    """
+    Checks a run directory for a file called "portal.ignore", if it's present then the upload won't proceed.
+    This ensures that junk data is not uploaded to the portal.
+
+    If a run has been deemed unworthy of upload, add the portal.ignore file to the directory instead of deleting it.
+    """
+    ignore_run = False
+    portal_ignore_globber = len(list(miseq_dir.glob("portal.ignore")))
+    if portal_ignore_globber == 1:
+        logger.info(f"Detected portal.ignore file in {miseq_dir}, skipping upload!")
+        ignore_run = True
+    return ignore_run
+
+
 def receive_miseq_run_dir(miseq_dir: Path):
     logger.info(f'CHECKING MISEQ DIRECTORY')
+
+    ignore_run = check_for_ignore_run_file(miseq_dir)
+    if ignore_run:
+        return
+
     miseq_dict = parse_miseq_folder(miseq_dir=miseq_dir)
 
     logger.info(f'CHECKING SAMPLESHEET AND RUN DETAILS')
@@ -187,7 +207,7 @@ def db_create_run(sample_object: SampleDataObject, run_data_object: RunDataObjec
         run_instance.save()
         logger.info(f"Saved {run_instance} to the database")
     else:
-        logger.info(f"Run '{run_instance}' already exists, skipping'")
+        logger.info(f"Run '{run_instance}' already exists, skipping")
 
     return run_instance
 
