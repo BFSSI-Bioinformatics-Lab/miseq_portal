@@ -1,7 +1,10 @@
 <link rel="stylesheet" href="/static/css/project_overview.css">
 
-{#<h3>Portal Overview</h3>#}
-<div id="overview-chart"></div>
+<div class="container border">
+  <h3>Portal Statistics</h3>
+  <div id="overview-chart"></div>
+  <p class="small"><i>* includes external (EXT) and merged (MER) samples</i></p>
+</div>
 
 {# JavaScript #}
 <script src="/static/js/d3.v5.min.js"></script>
@@ -32,7 +35,7 @@
     // Reformat data
     data = [{"group": "Number of Projects", "value": data.number_of_projects},
       {"group": "Number of Runs", "value": data.number_of_runs},
-      {"group": "Number of Samples", "value": data.number_of_samples}];
+      {"group": "Number of Samples*", "value": data.number_of_samples}];
 
     // format the data
     data.forEach(function (d) {
@@ -51,7 +54,7 @@
       .range([0, width]);
 
     var yScale = d3.scaleBand()
-      .domain(["Number of Projects", "Number of Runs", "Number of Samples"])
+      .domain(["Number of Projects", "Number of Runs", "Number of Samples*"])
       .range([height, 0])
       .padding(0.1);
 
