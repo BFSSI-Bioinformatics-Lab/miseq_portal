@@ -101,6 +101,9 @@ def extract_run_name(sample_sheet: Path) -> str:
             if 'Experiment Name' in line:
                 experiment_name = line.split(',')[1].strip()
                 return experiment_name
+            elif 'Description' in line:
+                experiment_name = line.split(',')[1].strip()
+                return experiment_name
         else:
             raise Exception(f"Could not find 'Experiment Name' in {sample_sheet}")
 
