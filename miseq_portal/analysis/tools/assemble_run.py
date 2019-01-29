@@ -9,15 +9,17 @@ Minimal assembly pipeline. Intended for prokaryotic assemblies.
 6. Coverage stats with Qualimap
 
 """
+import logging
 import os
 import shutil
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 from celery import shared_task
+
+from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.tools.helpers import run_subprocess, remove_dir_files
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData, upload_assembly
-from config.settings.base import MEDIA_ROOT
-import logging
 
 logger = logging.getLogger('raven')
 
@@ -200,7 +202,7 @@ def assembly_cleanup(assembly_dir: Path, assembly: Path) -> Path:
     """
 
     # Delete everything except for the polished assembly
-    remove_dir_files(outdir=assembly_dir)
+    remove_dir_files(target_directory=assembly_dir)
     # Move the polished assembly to the root
     shutil.move(str(assembly),
                 str(assembly_dir / assembly.name))
