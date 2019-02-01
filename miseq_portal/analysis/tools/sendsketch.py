@@ -1,7 +1,11 @@
-from subprocess import Popen
-from pathlib import Path
-import pandas as pd
 import logging
+from pathlib import Path
+from subprocess import Popen
+
+import pandas as pd
+
+from miseq_portal.analysis.models import SendsketchResult
+from miseq_portal.miseq_viewer.models import Sample
 
 logger = logging.getLogger('raven')
 
@@ -52,3 +56,33 @@ def get_top_sendsketch_hit(sendsketch_result_file: Path) -> pd.DataFrame:
     df = read_sendsketch_results(sendsketch_result_file)
     top_hit = df.head(1).reset_index()
     return top_hit
+
+
+def sendsketch_tophit_pipeline(fwd_reads: Path, rev_reads: Path, outpath: Path) -> pd.DataFrame:
+    sendsketch_result_file = run_sendsketch(fwd_reads=fwd_reads, rev_reads=rev_reads, outpath=outpath)
+    top_hit = get_top_sendsketch_hit(sendsketch_result_file)
+    return top_hit
+
+
+def create_sendsketch_result_object(sendsketch_tophit_df: pd.DataFrame, sample_object: Sample) -> SendsketchResult:
+    sendsketch_object, sendsketch_object_created = SendsketchResult.objects.get_or_create(sample_id=sample_object)
+
+    if sendsketch_object_created:
+        logger.info("Creating new SendSketch results object")
+    else:
+        logger.info("Overwriting existing SendSketch results object")
+
+    # Get top hit df and populate the database with results
+    try:
+        sendsketch_object.top_ANI = sendsketch_tophit_df['ANI'][0]
+        sendsketch_object.top_Contam = sendsketch_tophit_df['Contam'][0]
+        sendsketch_object.top_gSize = sendsketch_tophit_df['gSize'][0]
+        sendsketch_object.top_taxName = sendsketch_tophit_df['taxName'][0]
+        sendsketch_object.top_TaxID = sendsketch_tophit_df['TaxID'][0]
+    except:
+        sendsketch_object.top_ANI = None
+        sendsketch_object.top_Contam = None
+        sendsketch_object.top_gSize = None
+        sendsketch_object.top_taxName = None
+        sendsketch_object.top_TaxID = None
+    return sendsketch_object

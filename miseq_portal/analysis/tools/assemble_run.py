@@ -19,6 +19,7 @@ from celery import shared_task
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.tools.helpers import run_subprocess, remove_dir_files
+from miseq_portal.analysis.tools.sendsketch import sendsketch_tophit_pipeline, create_sendsketch_result_object
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData, upload_assembly
 
 logger = logging.getLogger('raven')
@@ -45,12 +46,15 @@ def assemble_sample_instance(sample_object_id: str):
     os.makedirs(outdir, exist_ok=True)
 
     # Get/create SampleAssemblyData instance
+    # TODO: Don't even attempt the assembly if the number_reads (if available) is less than 1000.
     sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
     if sa_created or str(sample_assembly_instance.assembly) == '' or sample_assembly_instance.assembly is None:
         logger.info(f"Running assembly pipeline on {sample_instance}...")
+        fwd_reads = MEDIA_ROOT / Path(str(sample_instance.fwd_reads))
+        rev_reads = MEDIA_ROOT / Path(str(sample_instance.rev_reads))
         bamfile, polished_assembly = assembly_pipeline(
-            fwd_reads=MEDIA_ROOT / Path(str(sample_instance.fwd_reads)),
-            rev_reads=MEDIA_ROOT / Path(str(sample_instance.rev_reads)),
+            fwd_reads=fwd_reads,
+            rev_reads=rev_reads,
             outdir=outdir,
             sample_id=str(sample_instance.sample_id)
         )
@@ -65,12 +69,25 @@ def assemble_sample_instance(sample_object_id: str):
         report_file = run_quast(assembly=polished_assembly, outdir=outdir)
         quast_df = get_quast_df(report_file)
 
+        sendsketch_outpath = outdir / 'best_refseq_hit.txt'
+        sendsketch_tophit_df = sendsketch_tophit_pipeline(fwd_reads=fwd_reads,
+                                                          rev_reads=rev_reads,
+                                                          outpath=sendsketch_outpath)
+
+        # Run sendsketch and save the results to a SendsketchResult model instance
+        sendsketch_result_object = create_sendsketch_result_object(sendsketch_tophit_df=sendsketch_tophit_df,
+                                                                   sample_object=sample_instance)
+        sendsketch_result_object.save()
+        logging.info(f"Saved Sendsketch results for {sample_instance}")
+
         # Push the data to the database for SampleAssemblyData
-        upload_sampleassembly_data(sample_assembly_instance=sample_assembly_instance,
-                                   assembly=polished_assembly,
-                                   quast_df=quast_df,
-                                   mean_coverage=mean_coverage,
-                                   std_coverage=std_coverage)
+        sample_assembly_instance = upload_sampleassembly_data(sample_assembly_instance=sample_assembly_instance,
+                                                              assembly=polished_assembly,
+                                                              quast_df=quast_df,
+                                                              mean_coverage=mean_coverage,
+                                                              std_coverage=std_coverage)
+        sample_assembly_instance.save()
+        logging.info(f"Saved assembly data for {sample_instance}")
     else:
         logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
 
@@ -134,7 +151,7 @@ def assembly_pipeline(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id:
 
 
 def upload_sampleassembly_data(sample_assembly_instance: SampleAssemblyData, assembly: Path, quast_df: pd.DataFrame,
-                               mean_coverage: str, std_coverage: str):
+                               mean_coverage: str, std_coverage: str) -> SampleAssemblyData:
     """
     Given an assembly, quast and qualimap results, uploads everything to miseq_viewer.models.SampleAssemblyInstance
     :param sample_assembly_instance: Model instance to update
@@ -163,7 +180,7 @@ def upload_sampleassembly_data(sample_assembly_instance: SampleAssemblyData, ass
     sample_assembly_instance.pilon_version = get_pilon_version()
     sample_assembly_instance.skesa_version = get_skesa_version()
     sample_assembly_instance.quast_version = get_quast_version()
-    sample_assembly_instance.save()
+    return sample_assembly_instance
 
 
 def run_quast(assembly: Path, outdir: Path) -> Path:
