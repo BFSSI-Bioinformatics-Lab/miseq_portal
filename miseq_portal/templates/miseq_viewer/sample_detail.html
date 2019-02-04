@@ -185,6 +185,7 @@
           <th># Predicted genes</th>
           <th>Mean Coverage</th>
           <th>Std Coverage</th>
+          <th>Top RefSeq hit</th>
           <th>Assembly</th>
         </tr>
         </thead>
@@ -213,6 +214,9 @@
           </td>
           <td>
             {{ assembly_data.std_coverage }}
+          </td>
+          <td>
+            {{ sendsketch.top_taxName }}
           </td>
           <td>
             <a class="btn btn-outline-primary btn-block" id="assembly-button"

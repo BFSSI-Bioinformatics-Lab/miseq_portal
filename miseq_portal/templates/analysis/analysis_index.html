@@ -60,6 +60,7 @@
         <th>Sample Name</th>
         <th>Run ID</th>
         <th>Project ID</th>
+        <th>Top RefSeq Hit</th>
       </tr>
       </thead>
       <tbody>
@@ -81,6 +82,9 @@
             <td>
               {{ sample.project_id|default:"N/A" }}
             </td>
+            <td>
+              {{ sample.sendsketchresult.top_taxName }}
+            </td>
           </tr>
         {% else %}
           {% for approved_user in approved_users %}
@@ -100,6 +104,9 @@
                 </td>
                 <td>
                   {{ sample.project_id|default:"N/A" }}
+                </td>
+                <td>
+                  {{ sample.sendsketchresult.top_taxName }}
                 </td>
               </tr>
             {% endif %}

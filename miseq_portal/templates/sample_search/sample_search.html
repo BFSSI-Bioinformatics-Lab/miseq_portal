@@ -24,6 +24,7 @@
         <th>Sample Name</th>
         <th>Run ID</th>
         <th>Project ID</th>
+        <th>Top RefSeq Hit</th>
         <th>Date Created</th>
       </tr>
       </thead>
@@ -56,6 +57,9 @@
               {% else %}
                 N/A
               {% endif %}
+            </td>
+            <td>
+              {{ sample.sendsketchresult.top_taxName }}
             </td>
             {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
             <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
@@ -91,6 +95,9 @@
                   {% else %}
                     N/A
                   {% endif %}
+                </td>
+                <td>
+                  {{ sample.sendsketchresult.top_taxName }}
                 </td>
                 {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
                 <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
