@@ -11,24 +11,47 @@
 {% block content %}
 
   <div class="page-header">
-    <h1>Sample Merge Selection</h1>
+    <h1>Sample Merge Selection
+      <button type="button" class="btn btn-sm btn-light" data-toggle="modal"
+              data-target="#selectionModal">
+        <i class="fas fa-question-circle fa-lg"></i>
+      </button>
+    </h1>
+
+
+    <!-- Merge Selection Modal -->
+    <div class="modal fade" id="selectionModal" tabindex="-1" role="dialog" aria-labelledby="selectionModalLabel"
+         aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="selectionModalLabel">Instructions</h5>
+            <div class="modal-body">
+              <ul>
+                <li><strong>Click</strong> to select samples to add to your sample merge group</li>
+                <li>Use the <strong>Search</strong> bar to
+                  filter the Sample table
+                </li>
+                <li>Once you have created a selection, click <kbd>Submit</kbd> to merge your selection
+                </li>
+                <li>
+                  Once a merged sample has been submitted, it will be automatically queued in the assembly pipeline
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="alert alert-info" role="alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
-    <ul>
-      <li><strong>Click</strong> to select samples to add to your sample merge group</li>
-      <li>Use the <strong>Search</strong> bar to
-        filter the Sample table
-      </li>
-      <li>Once you have created a selection, click <kbd>Submit</kbd> to merge your selection
-      </li>
-      <li>
-       Once a merged sample has been submitted, it will be automatically queued in the assembly pipeline
-      </li>
-    </ul>
+  <div class="row">
+    <div class="col">
+      <div class="alert alert-info" role="alert">
+        <p><strong>Currently selected samples:</strong></p>
+        <div id="selected-samples" style="overflow-y: scroll; height: 70px"></div>
+      </div>
+    </div>
   </div>
 
   <div class="list-group">
@@ -113,21 +136,29 @@
             text: 'Select All',
             action: function (e, dt, node, config) {
               $('#sample_table tbody tr').removeClass("selected").toggleClass('selected');
+              let selected_samples = table.rows('.selected').data();
+              let sample_id_list = generate_id_list(selected_samples);
+              $("#selected-samples").text(sample_id_list)
             }
           },
           {
             text: 'Deselect All',
             action: function (e, dt, node, config) {
               $('#sample_table tbody tr').removeClass("selected");
+              let selected_samples = table.rows('.selected').data();
+              let sample_id_list = generate_id_list(selected_samples);
+              $("#selected-samples").text(sample_id_list)
             }
           }
         ],
         pageLength: 20,
       });
 
-
       $('#sample_table tbody').on('click', 'tr', function () {
         $(this).toggleClass('selected');
+        let selected_samples = table.rows('.selected').data();
+        let sample_id_list = generate_id_list(selected_samples);
+        $("#selected-samples").text(sample_id_list)
       });
 
       $('#submit-button').click(function () {
@@ -138,13 +169,7 @@
           return
         }
 
-        let sample_id_list = [];
-        for (i = 0; i < selected_samples.length; i++) {
-          // Remove HTML tags and whitespace
-          let sample_id = selected_samples[i][0].replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
-          sample_id_list.push(sample_id);
-        }
-
+        let sample_id_list = generate_id_list(selected_samples);
 
         $.ajax({
           url: "",
@@ -157,5 +182,15 @@
         })
       });
     });
+
+    function generate_id_list(selected_samples) {
+      let sample_id_list = [];
+      for (let i = 0; i < selected_samples.length; i++) {
+        // Remove HTML tags and whitespace
+        let sample_id = selected_samples[i][0].replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
+        sample_id_list.push(sample_id);
+      }
+      return sample_id_list
+    }
   </script>
 {% endblock %}
