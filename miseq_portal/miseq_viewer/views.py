@@ -1,18 +1,17 @@
 import json
+import logging
 from pathlib import Path
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 
 from config.settings.base import MEDIA_ROOT
-
-from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
-    MergedSampleComponent
+from miseq_portal.analysis.models import AnalysisSample
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
-from miseq_portal.analysis.models import AnalysisSample
-
-import logging
+from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
+    MergedSampleComponent
 
 logger = logging.getLogger('raven')
 
@@ -112,6 +111,13 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
             context['assembly_data'] = SampleAssemblyData.objects.get(sample_id=context['sample'])
         except SampleAssemblyData.DoesNotExist:
             context['assembly_data'] = None
+
+        # Get top Sendsketch hit if it exists
+        try:
+            context['sendsketch'] = SampleAssemblyData.objects.get(
+                sample_id=context['sample']).sample_id.sendsketchresult
+        except:
+            context['sendsketch'] = None
 
         # Set to None if the FileField for the assembly is empty
         try:
