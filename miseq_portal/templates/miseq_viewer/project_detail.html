@@ -17,46 +17,50 @@
     </div>
   </div>
 
-    <table id="run_table" class="display" style="width:100%">
-      <thead>
+  <table id="run_table" class="display" style="width:100%">
+    <thead>
+    <tr>
+      <th>Sample ID</th>
+      <th>Sample Name</th>
+      <th>Run ID</th>
+      <th>Yield (Mbp)</th>
+      <th>Top RefSeq Hit</th>
+      <th>Date Created</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for sample in sample_list %}
       <tr>
-        <th>Sample ID</th>
-        <th>Sample Name</th>
-        <th>Run ID</th>
-        <th>Yield (Mbp)</th>
-        <th>Date Created</th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for sample in sample_list %}
-        <tr>
-          <td>
-            <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample.pk %}">
-              {{ sample.sample_id }}
-            </a>
-          </td>
-          <td>
-            {{ sample.sample_name }}
-          </td>
-          <td>
-            {% if sample.run_id != None %}
+        <td>
+          <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample.pk %}">
+            {{ sample.sample_id }}
+          </a>
+        </td>
+        <td>
+          {{ sample.sample_name }}
+        </td>
+        <td>
+          {% if sample.run_id != None %}
             <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
               {{ sample.run_id }}
             </a>
-            {% else %}
-              N/A
-            {% endif %}
-          </td>
-          <td>
-            {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
-          </td>
-          <td>
-            {{ sample.created }}
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td>
+          {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
+        </td>
+        <td>
+          {{ sample.sendsketchresult.top_taxName }}
+        </td>
+        <td>
+          {{ sample.created }}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
   </div>
 {% endblock content %}
 
