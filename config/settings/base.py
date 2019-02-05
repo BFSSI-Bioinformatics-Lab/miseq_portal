@@ -2,8 +2,9 @@
 Base settings to build other settings files upon.
 """
 import os
-import environ
 from pathlib import Path
+
+import environ
 
 ROOT_DIR = environ.Path(__file__) - 3  # (miseq_portal/config/settings/base.py - 3 = miseq_portal/)
 APPS_DIR = ROOT_DIR.path('miseq_portal')
@@ -310,6 +311,21 @@ CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
 
 CELERY_IMPORTS = ('miseq_portal.analysis.tasks',
                   'miseq_portal.sample_merge.tasks')
+
+"""
+TODO: Figure out a better solution to running multiple tasks concurrently, mainly assemblies and analyses.
+
+Idea:
+1) Create new routes (e.g. a 'fast' route and a 'long' route)
+CELERY_ROUTES = {
+    'miseq_portal.analysis.tasks.submit_analysis_job': {'queue': 'analysis_queue'},
+    'miseq_portal.analysis.tools.assemble_run.assemble_sample_instance': {'queue': 'assembly_queue'},
+}
+
+2) Create separate celery calls (sudo nano ~/.config/fish/functions/start_celery.fish)
+celery -A miseq_portal.taskapp worker -l INFO -E --concurrency 1 -Q analysis_queue
+celery -A miseq_portal.taskapp worker -l INFO -E --concurrency 1 -Q assembly_queue
+"""
 
 # ASSEMBLY PIPELINE SETTINGS
 MOB_SUITE_PATH = Path("/home/brock/miniconda3/envs/mob_suite/bin/")
