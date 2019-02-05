@@ -1,9 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, View
-from django.shortcuts import redirect, HttpResponseRedirect
-from django.urls import reverse
 from django.db.models import Q
 from django.http import JsonResponse
+from django.views.generic import ListView, View
 
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
@@ -52,13 +50,16 @@ class SampleSearchView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         search_term = self.request.GET.get('search_term')
-        sample_list = self.model.objects.filter(
+
+        # Queries various fields from Sample as well as the top_TaxID from SendsketchResult
+        # prefetch_related joins Sample and SendsketchResult on the OneToOne field sample_id
+        sample_list = self.model.objects.prefetch_related('sendsketchresult').filter(
             Q(sample_id__icontains=search_term) |
             Q(project_id__project_id__icontains=search_term) |
             Q(sample_name__icontains=search_term) |
-            Q(run_id__run_id__icontains=search_term)
+            Q(run_id__run_id__icontains=search_term) |
+            Q(sendsketchresult__top_taxName__icontains=search_term)
         )
 
         context['search_term'] = search_term
