@@ -39,12 +39,16 @@
           {{ sendsketch_result.sample_id }}
         </a>
       </td>
-      <td>
-        <a class="btn btn-primary btn-block" href="{{ sendsketch_result.sendsketch_result_file.url }}" download
-           role="button"><i
-          class="fas fa-download"></i> Download
-        </a>
-      </td>
+      {% if sendsketch_result.sendsketch_result_file.url == None %}
+        <td>N/A</td>
+      {% else %}
+        <td>
+          <a class="btn btn-primary btn-block" href="{{ sendsketch_result.sendsketch_result_file.url }}" download
+             role="button"><i
+            class="fas fa-download"></i> Download
+          </a>
+        </td>
+      {% endif %}
       <td>{{ sendsketch_result.top_taxName }}</td>
       <td>{{ sendsketch_result.top_ANI }}</td>
       <td>{{ sendsketch_result.top_TaxID }}</td>
