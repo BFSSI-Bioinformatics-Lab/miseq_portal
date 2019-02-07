@@ -1,10 +1,12 @@
+from pathlib import Path
+
 import pandas as pd
 from django.db import models
-from pathlib import Path
+
+from config.settings.base import MEDIA_ROOT
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
-from config.settings.base import MEDIA_ROOT
 
 
 def upload_analysis_file(instance: Sample, filename: str):
@@ -61,11 +63,11 @@ class SendsketchResult(TimeStampedModel):
 
     # TODO: Refactor much of the tools/sendsketch.py parsing logic to this model's methods
 
-    top_taxName = models.CharField(max_length=128, blank=True)
-    top_TaxID = models.CharField(max_length=32, blank=True)
-    top_ANI = models.CharField(max_length=32, blank=True)
-    top_Contam = models.CharField(max_length=32, blank=True)
-    top_gSize = models.CharField(max_length=32, blank=True)
+    top_taxName = models.CharField(max_length=128, blank=True, null=True)
+    top_TaxID = models.CharField(max_length=32, blank=True, null=True)
+    top_ANI = models.CharField(max_length=32, blank=True, null=True)
+    top_Contam = models.CharField(max_length=32, blank=True, null=True)
+    top_gSize = models.CharField(max_length=32, blank=True, null=True)
 
     def __str__(self):
         return str(self.sample_id)
