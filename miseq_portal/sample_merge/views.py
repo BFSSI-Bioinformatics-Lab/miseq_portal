@@ -1,17 +1,17 @@
+import logging
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, TemplateView, DeleteView
-from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
+from django.views.generic import ListView, TemplateView, DeleteView
 
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship, MergedSampleComponentGroup, \
     MergedSampleComponent
 from miseq_portal.sample_merge.tasks import merge_reads
 
-import logging
-
-logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 @method_decorator(staff_member_required, name='dispatch')
@@ -53,7 +53,10 @@ class SampleMergeIndexView(LoginRequiredMixin, ListView):
 
         # Queue up job for concatenation with sample_object_list
         sample_object_id_list = [sample_object.id for sample_object in sample_object_list]
-        merge_reads.delay(sample_object_id_list=sample_object_id_list, merged_sample_id=merged_sample.id)
+        merge_reads.apply_async(args=[],
+                                kwargs={'sample_object_id_list': sample_object_id_list,
+                                        'merged_sample_id': merged_sample.id},
+                                queue='assembly_queue')
 
         self.success_url += f"?group_id={component_group.id}&merged_sample_id={merged_sample.id}"
 
