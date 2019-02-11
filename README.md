@@ -144,3 +144,21 @@ This is the **MEDIA_ROOT** as specified in **config.settings.base**:
 ##### Redundant backups
 The uploaded runs are also backed up to the **Wolf_Station NAS** (192.168.1.40) into the _BMH-WGS-Backup-MiSeqPortal_ 
 shared folder. This is done via the DSM Hyper Backup application and occurs once every week (Sunday evening).
+
+##### Supervisor
+The supervisor keeps four processes alive:
+1) manage.py runserver
+2) celery (assembly queue)
+3) celery (analysis queue)
+4) flower
+ 
+See the contents of the following config file for details: `/etc/supervisor/conf.d/miseq_portal.conf`. 
+Upon making changes to this config file, be sure to run the following command: `sudo supervisorctl reread; and sudo supervisorctl update`
+
+A local web interface for supervisor is available at `0.0.0.0:9001`. 
+The configuration for this interface can be found at `/etc/supervisor/supervisord.conf`, 
+specifically under the `[inet_http_server]` heading. 
+The status of each process, as well as live updating logs can be viewed here.
+
+
+
