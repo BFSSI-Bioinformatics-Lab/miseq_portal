@@ -1,18 +1,24 @@
 from __future__ import absolute_import, unicode_literals
+
+import logging
 import os
 import shutil
-from celery import shared_task
 from pathlib import Path
+
+from celery import shared_task
+
 from config.settings.base import MEDIA_ROOT
-from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, \
     upload_analysis_file, upload_mobsuite_file
-from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
+from miseq_portal.analysis.tools.assemble_run import logger, MEDIA_ROOT, assembly_pipeline, call_qualimap, \
+    extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data
 from miseq_portal.analysis.tools.plasmid_report import call_mob_recon
-import logging
+from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
+from miseq_portal.analysis.tools.sendsketch import sendsketch_tophit_pipeline, create_sendsketch_result_object
+from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
 
-logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 @shared_task()
@@ -151,3 +157,67 @@ def submit_sendsketch_job(sample_instance: AnalysisSample):
     sendsketch_object.sendsketch_result_file = sendsketch_result_file
     sendsketch_object.save()
     logger.info(f"Saved {sendsketch_object} successfully")
+
+
+@shared_task()
+def assemble_sample_instance(sample_object_id: str):
+    """
+    Assembles a sample. Locates the sample in the database via sample_id.
+    Must be called via assemble_sample_instance.delay(sample_object_id=sample_id) to queue in Celery
+    :param sample_object_id: sample_id value, e.g. BMH-2017-000001
+    """
+    try:
+        sample_instance = Sample.objects.get(sample_id=sample_object_id)
+    except Sample.DoesNotExist:
+        logger.error(f"Could not retrieve {sample_object_id} - does not exist. Skipping assembly.")
+        return
+
+    # Setup assembly directory on NAS
+    outdir = MEDIA_ROOT / Path(str(sample_instance.fwd_reads)).parent / "assembly"
+    os.makedirs(outdir, exist_ok=True)
+
+    # Get/create SampleAssemblyData instance
+    # TODO: Don't even attempt the assembly if the number_reads (if available) is less than 1000.
+    sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
+    if sa_created or str(sample_assembly_instance.assembly) == '' or sample_assembly_instance.assembly is None:
+        logger.info(f"Running assembly pipeline on {sample_instance}...")
+        fwd_reads = MEDIA_ROOT / Path(str(sample_instance.fwd_reads))
+        rev_reads = MEDIA_ROOT / Path(str(sample_instance.rev_reads))
+        bamfile, polished_assembly = assembly_pipeline(
+            fwd_reads=fwd_reads,
+            rev_reads=rev_reads,
+            outdir=outdir,
+            sample_id=str(sample_instance.sample_id)
+        )
+        # Run and parse Qualimap
+        qualimap_result_file = call_qualimap(bamfile=bamfile, outdir=outdir)
+        mean_coverage, std_coverage = extract_coverage_from_qualimap_results(qualimap_result_file=qualimap_result_file)
+
+        # Clean up extraneous files and move the assembly to the root of the sample folder
+        polished_assembly = assembly_cleanup(assembly_dir=outdir, assembly=polished_assembly)
+
+        # Run and parse Quast
+        report_file = run_quast(assembly=polished_assembly, outdir=outdir)
+        quast_df = get_quast_df(report_file)
+
+        sendsketch_outpath = outdir / 'best_refseq_hit.txt'
+        sendsketch_tophit_df = sendsketch_tophit_pipeline(fwd_reads=fwd_reads,
+                                                          rev_reads=rev_reads,
+                                                          outpath=sendsketch_outpath)
+
+        # Run sendsketch and save the results to a SendsketchResult model instance
+        sendsketch_result_object = create_sendsketch_result_object(sendsketch_tophit_df=sendsketch_tophit_df,
+                                                                   sample_object=sample_instance)
+        sendsketch_result_object.save()
+        logging.info(f"Saved Sendsketch results for {sample_instance}")
+
+        # Push the data to the database for SampleAssemblyData
+        sample_assembly_instance = upload_sampleassembly_data(sample_assembly_instance=sample_assembly_instance,
+                                                              assembly=polished_assembly,
+                                                              quast_df=quast_df,
+                                                              mean_coverage=mean_coverage,
+                                                              std_coverage=std_coverage)
+        sample_assembly_instance.save()
+        logging.info(f"Saved assembly data for {sample_instance}")
+    else:
+        logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
