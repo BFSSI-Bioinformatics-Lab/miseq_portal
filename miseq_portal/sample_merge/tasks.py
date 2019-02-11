@@ -1,14 +1,15 @@
+import logging
 import os
 from pathlib import Path
+
 from celery import shared_task
-from miseq_portal.miseq_viewer.models import Sample, Project, upload_reads
-from miseq_portal.analysis.tools.helpers import run_subprocess
-from miseq_portal.analysis.tools.assemble_run import assemble_sample_instance
+
 from config.settings.base import MEDIA_ROOT
+from miseq_portal.analysis.tasks import assemble_sample_instance
+from miseq_portal.analysis.tools.helpers import run_subprocess
+from miseq_portal.miseq_viewer.models import Sample, Project, upload_reads
 
-import logging
-
-logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 @shared_task()
@@ -70,7 +71,9 @@ def merge_reads_sample_objects(sample_object_list: [Sample], merged_sample: Samp
     merged_sample.save()
 
     # Queue up assembly for the newly merged sample
-    assemble_sample_instance.delay(sample_object_id=merged_sample.sample_id)
+    assemble_sample_instance.apply_async(args=[],
+                                         kwargs={'sample_object_id': merged_sample.sample_id},
+                                         queue='assembly_queue')
 
 
 def create_merge_sample_dir(merged_sample: Sample):
