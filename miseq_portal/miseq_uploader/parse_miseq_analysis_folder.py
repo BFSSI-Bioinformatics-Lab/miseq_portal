@@ -4,7 +4,8 @@ from pathlib import Path
 from miseq_portal.miseq_uploader.parse_samplesheet import extract_run_name, read_samplesheet
 from miseq_portal.miseq_viewer.models import RunDataObject
 
-logger = logging.getLogger('raven')
+# logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 def verify_miseq_folder_contents(miseq_folder: Path) -> bool:
