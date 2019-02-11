@@ -146,7 +146,9 @@ The uploaded runs are also backed up to the **Wolf_Station NAS** (192.168.1.40) 
 shared folder. This is done via the DSM Hyper Backup application and occurs once every week (Sunday evening).
 
 ### Supervisor
-The supervisor keeps four processes alive:
+The supervisor can be easily installed with the following command: `sudo apt install supervisor`
+
+The supervisor is used to keep the following four processes alive:
 1) manage.py runserver
 2) celery (assembly queue)
 3) celery (analysis queue)
