@@ -1,18 +1,21 @@
+import logging
 import os
 import sys
+
 import raven
-import logging
+
 from .base import *  # noqa
 from .base import env
 
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = True
+DEBUG = True  # TODO: Disable this without breaking everything
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='nzLmaOFkXcklXlRqXokowxivfd52TY4YmIJQCuLUea55r2roP73n8Ts4cJ3Ykgc6')
-# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 
+# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = [
     "localhost",
     "0.0.0.0",
@@ -49,8 +52,10 @@ EMAIL_PORT = 1025
 # ------------------------------------------------------------------------------
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#prerequisites
 INSTALLED_APPS += ['debug_toolbar']  # noqa F405
+
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#middleware
 MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']  # noqa F405
+
 # https://django-debug-toolbar.readthedocs.io/en/latest/configuration.html#debug-toolbar-config
 DEBUG_TOOLBAR_CONFIG = {
     'DISABLE_PANELS': [
@@ -58,6 +63,7 @@ DEBUG_TOOLBAR_CONFIG = {
     ],
     'SHOW_TEMPLATE_CONTEXT': True,
 }
+
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#internal-ips
 INTERNAL_IPS = ['127.0.0.1', '10.0.2.2']
 
@@ -76,11 +82,13 @@ MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorI
 
 # Sentry
 # ------------------------------------------------------------------------------
-SENTRY_DSN = 'https://17c3f4a0263e4b50b48f706cafb9afd0:fc8010ba656740d185a48cbafbc27437@sentry.io/1276151'  # env('SENTRY_DSN')
+# TODO: Read this in from env e.g. env('SENTRY_DSN')
+SENTRY_DSN = 'https://17c3f4a0263e4b50b48f706cafb9afd0:fc8010ba656740d185a48cbafbc27437@sentry.io/1276151'
+
 SENTRY_CLIENT = env('DJANGO_SENTRY_CLIENT', default='raven.contrib.django.raven_compat.DjangoClient')
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'root': {
         'level': 'WARNING',
         'handlers': ['sentry'],
@@ -92,14 +100,15 @@ LOGGING = {
     },
     'handlers': {
         'sentry': {
-            'level': 'INFO',  # To capture more than ERROR, change to WARNING, INFO, etc.
+            'level': 'WARNING',  # To capture more than ERROR, change to WARNING, INFO, etc.
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
             'tags': {'custom-tag': 'x'},
         },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
+            'formatter': 'verbose',
+            'stream': sys.stdout
         }
     },
     'loggers': {
@@ -118,6 +127,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        'django': {
+            # log to console and file handlers
+            'handlers': ['console'],
+            'level': 'INFO'
+        }
     },
 }
 
