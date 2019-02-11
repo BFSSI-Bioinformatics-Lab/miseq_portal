@@ -1,23 +1,20 @@
+import logging
 import os
 import shutil
-
 from pathlib import Path
 from typing import Union
+
 from config.settings.base import MEDIA_ROOT
-
-from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects, validate_sample_id
+from miseq_portal.analysis.tasks import assemble_sample_instance
 from miseq_portal.miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
+from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects, validate_sample_id
 from miseq_portal.miseq_uploader.parse_stats_json import stats_json_to_df
-from miseq_portal.analysis.tools.assemble_run import assemble_sample_instance
-
 from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, \
     SampleLogData, upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, \
     RunDataObject
 from miseq_portal.users.models import User
 
-import logging
-
-logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 def determine_run_type(sample_object_list: list) -> str:
@@ -82,7 +79,10 @@ def receive_miseq_run_dir(miseq_dir: Path):
     sample_object_id_list = [sample_object.sample_id for sample_object in sample_object_list]
     for sample_object_id in sample_object_id_list:
         logging.info(sample_object_id)
-        assemble_sample_instance.delay(sample_object_id=sample_object_id)
+        # assemble_sample_instance.delay(sample_object_id=sample_object_id)
+        assemble_sample_instance.apply_async(args=[],
+                                             kwargs={'sample_object_id': sample_object_id},
+                                             queue='assembly_queue')
         logger.info(f"Submitted {sample_object_id} to assembly queue")
 
 
