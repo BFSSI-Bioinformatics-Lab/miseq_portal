@@ -2,14 +2,16 @@
 Standalone script to append Sample IDs to all *.fastq.gz files in a directory given a SampleSheet
 """
 
+import logging
 import os
 from pathlib import Path
+
+from miseq_uploader.parse_miseq_analysis_folder import retrieve_fastqgz, filter_undetermined_reads
 from miseq_uploader.parse_samplesheet import get_sample_name_dictionary, read_samplesheet, extract_run_name, \
     group_by_project, get_sample_id_list, validate_sample_id, validate_samplesheet_header
-from miseq_uploader.parse_miseq_analysis_folder import retrieve_fastqgz, filter_undetermined_reads
 
-import logging
-logger = logging.getLogger('raven')
+# logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 def samplesheet_to_samplename_dict(samplesheet: Path) -> dict:
