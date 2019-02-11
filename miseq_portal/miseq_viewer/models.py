@@ -1,14 +1,15 @@
+import logging
 from pathlib import Path
-from django.db import models
-from django.core.exceptions import ValidationError
 
+from dataclasses import dataclass
+from django.core.exceptions import ValidationError
+from django.db import models
+
+from config.settings.base import MEDIA_ROOT
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.users.models import User
-from config.settings.base import MEDIA_ROOT
-from dataclasses import dataclass
-import logging
 
-logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 def validate_sample_id(value: str, length: int = 15):
