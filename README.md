@@ -145,7 +145,7 @@ This is the **MEDIA_ROOT** as specified in **config.settings.base**:
 The uploaded runs are also backed up to the **Wolf_Station NAS** (192.168.1.40) into the _BMH-WGS-Backup-MiSeqPortal_ 
 shared folder. This is done via the DSM Hyper Backup application and occurs once every week (Sunday evening).
 
-##### Supervisor
+### Supervisor
 The supervisor keeps four processes alive:
 1) manage.py runserver
 2) celery (assembly queue)
