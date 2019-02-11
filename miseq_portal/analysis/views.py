@@ -1,19 +1,18 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from django.urls import reverse_lazy
-
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, View, TemplateView, DetailView, DeleteView
-
-from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
-from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
-    MobSuiteAnalysisGroup
-from miseq_portal.analysis.forms import AnalysisToolForm
-from miseq_portal.analysis.tasks import submit_analysis_job
-
 import logging
 
-logger = logging.getLogger('raven')
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.views.generic import ListView, View, TemplateView, DetailView, DeleteView
+
+from miseq_portal.analysis.forms import AnalysisToolForm
+from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
+    MobSuiteAnalysisGroup
+from miseq_portal.analysis.tasks import submit_analysis_job
+from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
+
+logger = logging.getLogger(__name__)
 
 
 class AnalysisIndexView(LoginRequiredMixin, ListView):
@@ -85,7 +84,10 @@ class ToolSelectionView(LoginRequiredMixin, View):
             logger.info(f"Queued job for {analysis_group}")
 
             # Submit analysis to queue. Note that the ID must be submitted because a straight object is not serializable
-            submit_analysis_job.delay(analysis_group_id=analysis_group.id)
+            # submit_analysis_job.delay(analysis_group_id=analysis_group.id)
+            submit_analysis_job.apply_async(args=[],
+                                            kwargs={'analysis_group_id': analysis_group.id},
+                                            queue='analysis_queue')
 
             return redirect(self.success_url)
         else:
