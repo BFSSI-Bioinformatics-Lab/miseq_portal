@@ -1,7 +1,6 @@
 """
 Base settings to build other settings files upon.
 """
-import os
 from pathlib import Path
 
 import environ
@@ -15,19 +14,6 @@ READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(ROOT_DIR.path('.env')))
-
-# TRAVIS
-if 'TRAVIS' in os.environ:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'miseq_portal',
-            'USER': 'postgres',
-            'PASSWORD': '',
-            'HOST': 'localhost',
-            'PORT': '',
-        }
-    }
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -52,12 +38,17 @@ USE_TZ = True
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
-
 DATABASES = {
     'default': env.db('DATABASE_URL', default='postgres:///miseq_portal'),
 }
 # https://stackoverflow.com/questions/15790380/django-celery-task-newly-created-model-doesnotexist
 DATABASES['default']['ATOMIC_REQUESTS'] = False
+DATABASES['default']['NAME'] = 'miseq_portal'
+DATABASES['default']['USER'] = 'postgres'
+DATABASES['default']['PASSWORD'] = ''
+DATABASES['default']['HOST'] = 'localhost'
+DATABASES['default']['PORT'] = ''
+DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -295,10 +286,8 @@ CELERY_TASK_SERIALIZER = 'json'
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_serializer
 CELERY_RESULT_SERIALIZER = 'json'
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-time-limit
-# TODO: set to whatever value is adequate in your circumstances
 CELERYD_TASK_TIME_LIMIT = 5 * 60
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-soft-time-limit
-# TODO: set to whatever value is adequate in your circumstances
 CELERYD_TASK_SOFT_TIME_LIMIT = 60
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-always-eager
 CELERY_TASK_ALWAYS_EAGER = False
@@ -312,20 +301,12 @@ CELERY_BROKER_CONNECTION_MAX_RETRIES = 10
 CELERY_IMPORTS = ('miseq_portal.analysis.tasks',
                   'miseq_portal.sample_merge.tasks')
 
-"""
-TODO: Figure out a better solution to running multiple tasks concurrently, mainly assemblies and analyses.
-
-Idea:
-1) Create new routes (e.g. a 'fast' route and a 'long' route)
+# Assemblies and regular analysis tasks are split across two separate routes.
+# These routes must be specified in the .apply_async() method calls to @shared_task functions.
 CELERY_ROUTES = {
     'miseq_portal.analysis.tasks.submit_analysis_job': {'queue': 'analysis_queue'},
     'miseq_portal.analysis.tools.assemble_run.assemble_sample_instance': {'queue': 'assembly_queue'},
 }
-
-2) Create separate celery calls (sudo nano ~/.config/fish/functions/start_celery.fish)
-celery -A miseq_portal.taskapp worker -l INFO -E --concurrency 1 -Q analysis_queue
-celery -A miseq_portal.taskapp worker -l INFO -E --concurrency 1 -Q assembly_queue
-"""
 
 # ASSEMBLY PIPELINE SETTINGS
 MOB_SUITE_PATH = Path("/home/brock/miniconda3/envs/mob_suite/bin/")
