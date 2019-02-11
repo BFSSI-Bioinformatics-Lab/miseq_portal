@@ -1,10 +1,11 @@
-import pandas as pd
+import logging
 from pathlib import Path
+
+import pandas as pd
+
 from miseq_portal.miseq_viewer.models import SampleDataObject
 
-import logging
-
-logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 def validate_samplesheet_header(header: list) -> bool:
