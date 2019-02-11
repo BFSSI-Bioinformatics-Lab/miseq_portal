@@ -13,7 +13,7 @@ from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
     MergedSampleComponent
 
-logger = logging.getLogger('raven')
+logger = logging.getLogger(__name__)
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
