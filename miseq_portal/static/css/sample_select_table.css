@@ -1,0 +1,26 @@
+table {
+    border: solid 1px #DDEEEE;
+    border-collapse: collapse;
+    border-spacing: 0;
+    font: normal 11px Arial, sans-serif;
+}
+table thead th {
+    background-color: #d1ecf1;
+    border: solid 1px #DDEEEE;
+    color: #1f1e4d;
+    padding: 5px;
+    text-align: left;
+}
+table tbody td {
+    border: solid 1px #DDEEEE;
+    color: #333;
+    padding: 5px;
+}
+
+td:hover {
+  color: black;
+}
+
+tr:hover {
+  background: #afafaf;
+}
