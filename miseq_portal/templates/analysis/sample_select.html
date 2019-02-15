@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
+  <link rel="stylesheet" href="/static/css/sample_select_table.css">
+
+
+{% endblock %}
+
+{% block title %}Analysis{% endblock %}
+
+{% block content %}
+
+  <div class="page-header">
+    <h1>Analysis Sample Selection
+      <button type="button" class="btn btn-sm btn-light" data-toggle="modal"
+              data-target="#selectionModal">
+        <i class="fas fa-question-circle fa-lg"></i>
+      </button>
+    </h1>
+
+    <!-- Analysis Sample Selection Modal -->
+    <div class="modal fade" id="selectionModal" tabindex="-1" role="dialog" aria-labelledby="selectionModalLabel"
+         aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="selectionModalLabel">Instructions</h5>
+            <div class="modal-body">
+              <ul>
+                <li><strong>Click</strong> to select samples to add to your analysis group</li>
+                <li>Use the <strong>Search</strong> bar to
+                  filter the Sample table
+                </li>
+                <li>Once you have created a selection, click <kbd>Submit</kbd> to move on to the analysis page
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="alert alert-info" role="alert">
+        <p><strong>Currently selected samples:</strong></p>
+        <div id="selected-samples" style="overflow-y: scroll; height: 70px"></div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="list-group">
+    <table id="sample_table" class="display compact">
+      <thead>
+      <tr>
+        <th>Sample ID</th>
+        <th>Sample Name</th>
+        <th>Project ID</th>
+        <th>Run ID</th>
+      </tr>
+      </thead>
+      <tbody>
+      {#   <tr> and <td> elements populated with jQuery#}
+      </tbody>
+    </table>
+  </div>
+  <div align="center">
+    <a class="btn btn-sm" id="prev-btn">Previous</a>
+    <a class="btn btn-sm" id="next-btn">Next</a>
+  </div>
+  <br>
+
+  <div class="row">
+    <div class="col-sm"></div>
+    <div class="col-sm">
+      <button id="submit-button" class="btn btn-block btn-success">Submit Analysis Group</button>
+    </div>
+    <div class="col-sm"></div>
+  </div>
+
+  {#  <table id="sample_table_v2" class="display compact">#}
+  {#    <thead>#}
+  {#    <tr>#}
+  {#      <th>Sample ID</th>#}
+  {#      <th>Sample Name</th>#}
+  {#      <th>Project ID</th>#}
+  {#      <th>Run ID</th>#}
+  {#    </tr>#}
+  {#    </thead>#}
+  {#    <tbody>#}
+  {#        <tr>#}
+  {#          <td></td>#}
+  {#          <td></td>#}
+  {#          <td></td>#}
+  {#          <td></td>#}
+  {#        </tr>#}
+  {#    </tbody>#}
+  {#  </table>#}
+
+  <br>
+{% endblock content %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script src="https://cdn.datatables.net/scroller/1.5.1/js/dataTables.scroller.min.js"></script>
+  {#  <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>#}
+
+  <script>
+    $.ajaxSetup({
+      headers: {"X-CSRFToken": '{{csrf_token}}'}
+    });
+
+    $(document).ready(function () {
+
+      // $("#sample_table_v2").DataTable({
+      //   serverSide: true,
+      //   processing: true,
+      //   {#paging: true,#}
+      //   pageLength: 5,
+      //   {#ordering: true,#}
+      //   {#searching: true,#}
+      //   ajax: function (data, callback, settings) {
+      //     $.ajax({
+      //       dom: "Bfrtip",
+      //       url: "",
+      //       // dataFilter: function (data) {
+      //       //   let json = $.parseJSON(data);
+      //       //   json.recordsTotal = json.count;
+      //       //   json.recordsFiltered = json.count;
+      //       //   return JSON.stringify(json);
+      //       // },
+      //       data: {
+      //         RecordsStart: data[0],
+      //         PageSize: data.length
+      //       },
+      //       success: function (data, textStatus, jQxhr) {
+      //         callback({
+      //           data: data.results,
+      //           draw: none,
+      //           recordsTotal: data.count,
+      //           recordsFiltered: data.count
+      //         })
+      //       },
+      //       error: function (jqXhr, textStatus, errorThrown) {
+      //       },
+      //       type: "GET",
+      //       // dataSrc: "results"
+      //     })
+      //   },
+      //   columns: [
+      //     {data: 'sample_id'},
+      //     {data: 'sample_name'},
+      //     {data: 'project_id'},
+      //     {data: 'run_id'},
+      //   ],
+      //   {#stateSave: true#}
+      // });
+
+      let next = null;
+      let previous = null;
+      let results = null;
+
+      $.getJSON('{% url 'miseq_viewer:miseq_viewer_samples_api' %}', function (data) {
+        console.log(data);
+        const table_body = $("#sample_table").children("tbody");
+
+        next = data.next;
+        previous = data.previous;
+        results = data.results;
+
+        // Populate table
+        drawTable(table_body, results);
+
+        $("#next-btn").click(function () {
+          if (next !== null) {
+            getSampleJSON(next, table_body);
+          }
+        });
+
+        $("#prev-btn").click(function () {
+          if (previous !== null) {
+            getSampleJSON(previous, table_body);
+          }
+        });
+
+        function getSampleJSON(url, table_body) {
+          $.getJSON(url, function (data) {
+            next = data.next;
+            previous = data.previous;
+            results = data.results;
+            drawTable(table_body, results);
+          });
+        }
+
+        function drawTable(table_body, results) {
+          table_body.empty();
+          for (let i = 0; i < results.length; i++) {
+            let sample_id = results[i]["sample_id"];
+            let sample_name = results[i]["sample_name"];
+            let project_id = results[i]["project_id"];
+            let run_id = results[i]["run_id"];
+            let row = "<tr><td>" + sample_id +
+              "</td><td>" + sample_name +
+              "</td><td>" + project_id +
+              "</td><td>" + run_id +
+              "</td></tr>";
+            table_body.append(row)
+          }
+        }
+      })
+    });
+
+
+  </script>
+{% endblock %}
