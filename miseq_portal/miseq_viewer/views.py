@@ -5,6 +5,7 @@ from pathlib import Path
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
+from rest_framework import viewsets, mixins
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisSample
@@ -12,6 +13,7 @@ from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
     MergedSampleComponent
+from miseq_portal.miseq_viewer.serializers import SampleSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -164,3 +166,11 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
 
 
 sample_detail_view = SampleDetailView.as_view()
+
+
+class SampleViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Sample.objects.all()
+    serializer_class = SampleSerializer
+
+
+samples_api_view = SampleViewSet.as_view({'get': 'list'})
