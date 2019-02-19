@@ -14,13 +14,13 @@ def upload_analysis_file(instance: Sample, filename: str):
 
 
 def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str):
-    return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
+    if instance.sample_type == "BMH":
+        return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
+    elif instance.sample_type == "MER":
+        return f'merged_samples/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
 
 
 class AnalysisGroup(models.Model):
-    """
-
-    """
     # This determines what options appear on the Analysis tool selection form
     job_choices = (
         ('SendSketch', 'SendSketch'),
@@ -85,7 +85,7 @@ class MobSuiteAnalysisGroup(TimeStampedModel):
         return self.analysis_sample.group_id
 
     def get_plasmid_attribute(self, plasmid_basename: str, attribute: str, aggregate_report_path: Path = None) -> (
-    str, None):
+        str, None):
         valid_attributes = [
             'file_id', 'num_contigs', 'total_length',
             'gc', 'rep_type(s)', 'rep_type_accession(s)',
