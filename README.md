@@ -162,5 +162,17 @@ The configuration for this interface can be found at `/etc/supervisor/supervisor
 specifically under the `[inet_http_server]` heading. 
 The status of each process, as well as live updating logs can be viewed here.
 
+**Additional logs:**
 
+/var/log/celery_assembly.err.log
+
+/var/log/celery_assembly.out.log
+
+/var/log/celery_analysis.err.log
+
+/var/log/celery_analysis.out.log
+
+/var/log/flower.err.log
+
+/var/log/flower.out.log
 
