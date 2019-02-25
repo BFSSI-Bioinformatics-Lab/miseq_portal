@@ -7,7 +7,6 @@ from pathlib import Path
 
 from celery import shared_task
 
-from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, \
     upload_analysis_file, upload_mobsuite_file
@@ -175,6 +174,7 @@ def assemble_sample_instance(sample_object_id: str):
     # Setup assembly directory on NAS
     outdir = MEDIA_ROOT / Path(str(sample_instance.fwd_reads)).parent / "assembly"
     os.makedirs(outdir, exist_ok=True)
+    os.chmod(outdir, 0o777)
 
     # Get/create SampleAssemblyData instance
     # TODO: Don't even attempt the assembly if the number_reads (if available) is less than 1000.
