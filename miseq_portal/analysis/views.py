@@ -15,6 +15,17 @@ from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 logger = logging.getLogger(__name__)
 
 
+class SampleSelectView(TemplateView):
+    template_name = "analysis/sample_select.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+sample_select_view = SampleSelectView.as_view()
+
+
 class AnalysisIndexView(LoginRequiredMixin, ListView):
     template_name = 'analysis/analysis_index.html'
     success_url = 'tool_selection/'
