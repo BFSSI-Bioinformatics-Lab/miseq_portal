@@ -148,7 +148,9 @@ def upload_run_data(run_instance: Union[Run, RunInterOpData], run_data_object: R
         run_file_path = upload_run_file(run_instance, model_attr.name)
 
     # Create InterOp directory for file if it doesn't already exist
-    os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + run_file_path), exist_ok=True)
+    run_dir_path = os.path.dirname(MEDIA_ROOT + '/' + run_file_path)
+    os.makedirs(run_dir_path, exist_ok=True)
+    os.chmod(run_dir_path, 0o777)
 
     # Transfer the file to the disk
     shutil.copy(src=str(model_attr), dst=(MEDIA_ROOT + '/' + run_file_path))
@@ -276,7 +278,9 @@ def db_create_sample(sample_object: SampleDataObject, run_instance: Run, project
         # Sample data + read handling
         fwd_read_path = upload_reads(sample_instance, sample_object.fwd_read_path.name)
         rev_read_path = upload_reads(sample_instance, sample_object.rev_read_path.name)
-        os.makedirs(os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path), exist_ok=True)
+        read_dir_path = os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path)
+        os.makedirs(read_dir_path, exist_ok=True)
+        os.chmod(read_dir_path, 0o777)
         shutil.copy(str(sample_object.fwd_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
         shutil.copy(str(sample_object.rev_read_path), os.path.dirname(MEDIA_ROOT + '/' + fwd_read_path))
         sample_instance.fwd_reads = fwd_read_path
