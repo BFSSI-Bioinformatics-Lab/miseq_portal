@@ -2,7 +2,8 @@ from django.urls import path
 
 from miseq_portal.miseq_uploader.views import (
     miseq_form_view,
-    miseq_uploader_view
+    miseq_uploader_view,
+    run_submitted_view
 )
 
 app_name = "miseq_uploader"
@@ -12,4 +13,6 @@ urlpatterns = [
 
     # MiSeq Directory Upload
     path("miseq_directory_uploader", view=miseq_form_view, name="miseq_form"),
+    path("run_submitted/", view=run_submitted_view, name="run_submitted"),
+
 ]

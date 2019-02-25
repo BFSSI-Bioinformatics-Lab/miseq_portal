@@ -65,3 +65,11 @@ class MiSeqFormView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 miseq_form_view = MiSeqFormView.as_view()
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class RunSubmittedView(LoginRequiredMixin, TemplateView):
+    template_name = 'miseq_uploader/run_submitted.html'
+
+
+run_submitted_view = RunSubmittedView.as_view()
