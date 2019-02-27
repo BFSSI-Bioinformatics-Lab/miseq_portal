@@ -78,7 +78,7 @@
       </tbody>
     </table>
   </div>
-
+  <br>
   <div class="row">
     <div class="col-sm"></div>
     <div class="col-sm">
@@ -86,7 +86,6 @@
     </div>
     <div class="col-sm"></div>
   </div>
-
   <br>
 {% endblock content %}
 
@@ -106,9 +105,10 @@
       let currently_selected_samples = [];
 
       let table = $('#sample-table').DataTable({
-        dom: 'Bfrtip',
+        dom: 'Blfrtips',
         processing: true,
         pageLength: 15,
+        lengthMenu: [[15, 30, 45, 100], [15, 30, 45, 100]],
         columnDefs: [
           {
             "targets": '_all',
