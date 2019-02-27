@@ -87,6 +87,7 @@ LOCAL_APPS = [
     'miseq_portal.analysis.apps.AnalysisConfig',
     'miseq_portal.sample_merge.apps.SampleMergeConfig',
     'miseq_portal.miseq_uploader.apps.MiseqUploaderConfig',
+    'miseq_portal.sample_workbooks.apps.SampleWorkbooksConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
