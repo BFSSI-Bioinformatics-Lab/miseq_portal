@@ -4,7 +4,7 @@
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
-  <link rel="stylesheet" href="/static/css/sample_select_table.css">
+  {#  <link rel="stylesheet" href="/static/css/sample_select_table.css">#}
 
 
 {% endblock %}
@@ -55,52 +55,28 @@
   </div>
   <hr>
   <div class="list-group">
-    <table id="sample_table" class="display compact">
+
+    {# Sample Table #}
+    <table id="sample-table" class="display compact" style="width:100%" data-server-side="true"
+           data-ajax="/miseq_viewer/api/samples/?format=datatables">
       <thead>
       <tr>
-        <th>Sample ID</th>
-        <th>Sample Name</th>
-        <th>Project ID</th>
-        <th>Run ID</th>
+        <th data-data="sample_id">Sample ID</th>
+        <th data-data="sample_name">Sample Name</th>
+        <th data-data="project_id.project_id">Project ID</th>
+        <th data-data="run_id.run_id">Run ID</th>
       </tr>
       </thead>
       <tbody>
-      {#   <tr> and <td> elements populated with jQuery#}
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
       </tbody>
     </table>
   </div>
-  <div align="center">
-    <a class="btn btn-sm" id="prev-btn">Previous</a>
-    <a class="btn btn-sm" id="next-btn">Next</a>
-  </div>
-  <br>
-
-  <div class="row">
-    <div class="col-sm"></div>
-    <div class="col-sm">
-      <button id="submit-button" class="btn btn-block btn-success">Submit Analysis Group</button>
-    </div>
-    <div class="col-sm"></div>
-  </div>
-
-  {#  <table id="sample_table_v2" class="display compact">#}
-  {#    <thead>#}
-  {#    <tr>#}
-  {#      <th>Sample ID</th>#}
-  {#      <th>Sample Name</th>#}
-  {#      <th>Project ID</th>#}
-  {#      <th>Run ID</th>#}
-  {#    </tr>#}
-  {#    </thead>#}
-  {#    <tbody>#}
-  {#        <tr>#}
-  {#          <td></td>#}
-  {#          <td></td>#}
-  {#          <td></td>#}
-  {#          <td></td>#}
-  {#        </tr>#}
-  {#    </tbody>#}
-  {#  </table>#}
 
   <br>
 {% endblock content %}
@@ -110,7 +86,8 @@
   <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script src="https://cdn.datatables.net/scroller/1.5.1/js/dataTables.scroller.min.js"></script>
-  {#  <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>#}
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+
 
   <script>
     $.ajaxSetup({
@@ -118,103 +95,123 @@
     });
 
     $(document).ready(function () {
+      let currently_selected_samples = [];
 
-      // $("#sample_table_v2").DataTable({
-      //   serverSide: true,
-      //   processing: true,
-      //   {#paging: true,#}
-      //   pageLength: 5,
-      //   {#ordering: true,#}
-      //   {#searching: true,#}
-      //   ajax: function (data, callback, settings) {
-      //     $.ajax({
-      //       dom: "Bfrtip",
-      //       url: "",
-      //       // dataFilter: function (data) {
-      //       //   let json = $.parseJSON(data);
-      //       //   json.recordsTotal = json.count;
-      //       //   json.recordsFiltered = json.count;
-      //       //   return JSON.stringify(json);
-      //       // },
-      //       data: {
-      //         RecordsStart: data[0],
-      //         PageSize: data.length
-      //       },
-      //       success: function (data, textStatus, jQxhr) {
-      //         callback({
-      //           data: data.results,
-      //           draw: none,
-      //           recordsTotal: data.count,
-      //           recordsFiltered: data.count
-      //         })
-      //       },
-      //       error: function (jqXhr, textStatus, errorThrown) {
-      //       },
-      //       type: "GET",
-      //       // dataSrc: "results"
-      //     })
-      //   },
-      //   columns: [
-      //     {data: 'sample_id'},
-      //     {data: 'sample_name'},
-      //     {data: 'project_id'},
-      //     {data: 'run_id'},
-      //   ],
-      //   {#stateSave: true#}
-      // });
+      let table = $('#sample-table').DataTable({
+        dom: 'Bfrtip',
+        processing: true,
+        pageLength: 20,
+        columnDefs: [
+          {
+            "targets": '_all',
+            "defaultContent": ""
+          }
+        ],
+        buttons: [
+          {
+            text: 'Select All',
+            action: function (e, dt, node, config) {
+              // Apply the the selected status to all rows
+              $('#sample-table tbody tr').removeClass("selected").toggleClass('selected');
+              let selected_samples = table.rows('.selected').data();
 
-      let next = null;
-      let previous = null;
-      let results = null;
+              // Extract sample IDs and remove whitespace
+              selected_samples = filter_sample_ids(selected_samples);
 
-      $.getJSON('{% url 'miseq_viewer:miseq_viewer_samples_api' %}', function (data) {
-        console.log(data);
-        const table_body = $("#sample_table").children("tbody");
+              // Update variable storing all currently selected samples with the new selection
+              selected_samples.map(x => currently_selected_samples.push(x));
 
-        next = data.next;
-        previous = data.previous;
-        results = data.results;
+              // Update text on page
+              $("#selected-samples").text(currently_selected_samples)
+            }
+          },
+          {
+            text: 'Deselect All',
+            action: function (e, dt, node, config) {
+              // Remove selected status from all rows
+              $('#sample-table tbody tr').removeClass("selected");
 
-        // Populate table
-        drawTable(table_body, results);
+              // Grab currently displayed sample IDs
+              let table_data = table.context[0].aoData;
+              let currently_displayed_samples = [];
+              for (var x = 0; x < table_data.length; x++) {
+                currently_displayed_samples.push(table_data[x]._aData.sample_id)
+              }
 
-        $("#next-btn").click(function () {
-          if (next !== null) {
-            getSampleJSON(next, table_body);
+              // Remove all rows currently displayed on the sample from currently_selected_samples
+              remove_from_id_list(currently_displayed_samples);
+
+              // Update text on page
+              $("#selected-samples").text(currently_selected_samples)
+            }
+          }
+        ],
+      });
+
+      // Clicking a row will toggle the selected class and update the currently_selected_samples list accordingly
+      $('#sample-table tbody').on('click', 'tr', function () {
+        // Toggle class
+        let row = $(this).toggleClass('selected');
+
+        // Determine if the row is selected or not and store bool in selected_status
+        let classes = Array.from(row[0].classList);
+        let selected_status = classes.includes('selected');
+
+        // Extract sample_id
+        let sample_id = row[0].cells[0].textContent;
+
+        // If selected, add it to the currently_selected_samples array, otherwise remove it
+        if (selected_status === true) {
+          currently_selected_samples.push(sample_id)
+        } else if (selected_status === false) {
+          currently_selected_samples = currently_selected_samples.filter(x => x !== sample_id)
+        }
+
+        // Update text on page
+        $("#selected-samples").text(currently_selected_samples)
+      });
+
+      // Whenever the table is redrawn, update selected status to reflect previously selected samples
+      $(document).on('draw.dt', function (e) {
+
+        // Grab array of sample IDs that are currently displayed on the table
+        let table_data = table.context[0].aoData;
+        let currently_displayed_samples = [];
+        for (var x = 0; x < table_data.length; x++) {
+          currently_displayed_samples.push(table_data[x]._aData.sample_id)
+        }
+
+        // Get intersection between currently_selected_samples and currently_displayed_samples
+        let samples_to_highlight = currently_selected_samples.filter(x => currently_displayed_samples.includes(x));
+
+        // Iterate over table rows apply selected status if they are present in the currently_selected_samples array
+        $('#sample-table tbody tr').each(function () {
+          let current_row = $(this);
+          let sample_id = current_row[0].cells[0].textContent;
+          if (samples_to_highlight.includes(sample_id)) {
+            current_row.removeClass("selected").toggleClass("selected");
           }
         });
 
-        $("#prev-btn").click(function () {
-          if (previous !== null) {
-            getSampleJSON(previous, table_body);
-          }
-        });
+        // Update text on page
+        $("#selected-samples").text(currently_selected_samples)
 
-        function getSampleJSON(url, table_body) {
-          $.getJSON(url, function (data) {
-            next = data.next;
-            previous = data.previous;
-            results = data.results;
-            drawTable(table_body, results);
-          });
-        }
+      });
 
-        function drawTable(table_body, results) {
-          table_body.empty();
-          for (let i = 0; i < results.length; i++) {
-            let sample_id = results[i]["sample_id"];
-            let sample_name = results[i]["sample_name"];
-            let project_id = results[i]["project_id"];
-            let run_id = results[i]["run_id"];
-            let row = "<tr><td>" + sample_id +
-              "</td><td>" + sample_name +
-              "</td><td>" + project_id +
-              "</td><td>" + run_id +
-              "</td></tr>";
-            table_body.append(row)
-          }
-        }
-      })
+      function filter_sample_ids(sample_list) {
+        // Extracts the sample_id value and removes any junk whitespace
+        return sample_list.map(x => remove_whitespace(x['sample_id']));
+      }
+
+      function remove_whitespace(_string) {
+        // Removes whitespace from a string
+        return _string.replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '')
+      }
+
+      function remove_from_id_list(deselected_samples) {
+        currently_selected_samples = currently_selected_samples.filter(item => !deselected_samples.includes(item))
+      }
+
     });
 
 
