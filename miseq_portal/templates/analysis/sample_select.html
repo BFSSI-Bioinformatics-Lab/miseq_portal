@@ -64,6 +64,7 @@
         <th data-data="sample_name">Sample Name</th>
         <th data-data="project_id.project_id">Project ID</th>
         <th data-data="run_id.run_id">Run ID</th>
+        <th data-data="sendsketchresult.top_taxName">Top RefSeq Hit</th>
       </tr>
       </thead>
       <tbody>
@@ -72,9 +73,18 @@
         <td></td>
         <td></td>
         <td></td>
+        <td></td>
       </tr>
       </tbody>
     </table>
+  </div>
+
+  <div class="row">
+    <div class="col-sm"></div>
+    <div class="col-sm">
+      <button id="submit-button" class="btn btn-block btn-success">Submit Analysis Group</button>
+    </div>
+    <div class="col-sm"></div>
   </div>
 
   <br>
@@ -87,7 +97,6 @@
   <script src="https://cdn.datatables.net/scroller/1.5.1/js/dataTables.scroller.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
 
-
   <script>
     $.ajaxSetup({
       headers: {"X-CSRFToken": '{{csrf_token}}'}
@@ -99,7 +108,7 @@
       let table = $('#sample-table').DataTable({
         dom: 'Bfrtip',
         processing: true,
-        pageLength: 20,
+        pageLength: 15,
         columnDefs: [
           {
             "targets": '_all',
@@ -194,6 +203,24 @@
 
         // Update text on page
         update_selected_samples_div();
+      });
+
+      // Submit button
+      $('#submit-button').click(function () {
+        if (currently_selected_samples.length === 0) {
+          alert("Please select at least one sample to proceed.");
+          return
+        }
+
+        $.ajax({
+          url: "",
+          type: 'POST',
+          data: {'sample_id_list': currently_selected_samples},
+        }).done(function (data) {
+          if (data.success) {
+            window.location.href = data.url;
+          }
+        })
       });
 
       function filter_sample_ids(sample_list) {
