@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
+{% endblock %}
+
+{% block title %}Sample Workbooks{% endblock %}
+
+{% block content %}
+
+
+  <div class="page-header">
+    <h2>My Workbooks</h2>
+  </div>
+
+  <div class="list-group">
+    <a href="#"
+       class="list-group-item list-group-item-action flex-column align-items-start list-group-item-success">
+      <h4 class="mb-1"><i class="far fa-plus-square"></i> Create New Sample Workbook</h4>
+    </a>
+  </div>
+
+  <br>
+
+  <div id="workbooks">
+    <div class="list-group">
+
+      <a href="#" class="list-group-item list-group-item-action">
+        <div class="row">
+          <div class="col-sm text-left"><h5>Workbook 1</h5></div>
+          <div class="col-sm text-left">Description</div>
+          <div class="col-sm text-right">
+            <button class="btn btn-danger btn-sm">Delete</button>
+            <button class="btn btn-info btn-sm">Edit</button>
+          </div>
+        </div>
+      </a>
+
+      <a href="#" class="list-group-item list-group-item-action">
+        <div class="row">
+          <div class="col-sm text-left"><h5>Workbook 2</h5></div>
+          <div class="col-sm text-left">Description</div>
+          <div class="col-sm text-right">
+            <button class="btn btn-danger btn-sm">Delete</button>
+            <button class="btn btn-info btn-sm">Edit</button>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+
+{% endblock %}
