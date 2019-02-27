@@ -42,13 +42,12 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <div class="row">
     <div class="col">
-      <div class="alert alert-info" role="alert">
-        <p><strong>Currently selected samples:</strong></p>
+      <div class="alert alert-primary" role="alert">
+        <p><strong>Currently selected samples: </strong> <span id="number_of_selected_samples"></span></p>
         <div id="selected-samples" style="overflow-y: scroll; height: 70px"></div>
       </div>
     </div>
@@ -122,7 +121,7 @@
               selected_samples.map(x => currently_selected_samples.push(x));
 
               // Update text on page
-              $("#selected-samples").text(currently_selected_samples)
+              update_selected_samples_div();
             }
           },
           {
@@ -142,7 +141,7 @@
               remove_from_id_list(currently_displayed_samples);
 
               // Update text on page
-              $("#selected-samples").text(currently_selected_samples)
+              update_selected_samples_div();
             }
           }
         ],
@@ -168,7 +167,7 @@
         }
 
         // Update text on page
-        $("#selected-samples").text(currently_selected_samples)
+        update_selected_samples_div();
       });
 
       // Whenever the table is redrawn, update selected status to reflect previously selected samples
@@ -194,8 +193,7 @@
         });
 
         // Update text on page
-        $("#selected-samples").text(currently_selected_samples)
-
+        update_selected_samples_div();
       });
 
       function filter_sample_ids(sample_list) {
@@ -210,6 +208,15 @@
 
       function remove_from_id_list(deselected_samples) {
         currently_selected_samples = currently_selected_samples.filter(item => !deselected_samples.includes(item))
+      }
+
+      function update_selected_samples_div() {
+        // Update text on page
+        $("#number_of_selected_samples")[0].innerText = currently_selected_samples.length;
+        $("#selected-samples").empty();
+        currently_selected_samples.map(x => $("#selected-samples").append(
+          (" <button class='btn btn-outline-dark btn-sm'>" + x + "</button> ")
+        ));
       }
 
     });
