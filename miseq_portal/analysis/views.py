@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, View, TemplateView, DetailView, DeleteView
+from django.views.generic import View, TemplateView, DetailView, DeleteView
 
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
@@ -15,22 +15,9 @@ from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 logger = logging.getLogger(__name__)
 
 
-class SampleSelectView(TemplateView):
+class SampleSelectView(LoginRequiredMixin, TemplateView):
     template_name = "analysis/sample_select.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
-
-
-sample_select_view = SampleSelectView.as_view()
-
-
-class AnalysisIndexView(LoginRequiredMixin, ListView):
-    template_name = 'analysis/analysis_index.html'
-    success_url = 'tool_selection/'
-    model = Sample
-    context_object_name = 'sample_list'
+    success_url = 'tools/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -62,7 +49,7 @@ class AnalysisIndexView(LoginRequiredMixin, ListView):
         return JsonResponse(context)
 
 
-analysis_index_view = AnalysisIndexView.as_view()
+sample_select_view = SampleSelectView.as_view()
 
 
 class ToolSelectionView(LoginRequiredMixin, View):
