@@ -1,7 +1,6 @@
 from django.urls import path, re_path
 
 from miseq_portal.analysis.views import (
-    analysis_index_view,
     tool_selection_view,
     my_jobs_view,
     job_submitted_view,
@@ -13,17 +12,14 @@ from miseq_portal.analysis.views import (
 
 app_name = "analysis"
 urlpatterns = [
-    # Index
-    path("", view=analysis_index_view, name="analysis_index"),
-
-    # Page for selecting analysis tools
-    path("tool_selection/", view=tool_selection_view, name="tool_selection"),
-
     # Sample selector
     path("sample_select/", view=sample_select_view, name="sample_select"),
 
+    # Page for selecting analysis tools
+    path("sample_select/tools/", view=tool_selection_view, name="tool_selection"),
+
     # Successful job submission page
-    path("tool_selection/job_submitted/", view=job_submitted_view, name="job_submitted"),
+    path("sample_select/tools/job_submitted/", view=job_submitted_view, name="job_submitted"),
 
     # Analysis jobs pages
     path("my_jobs/", view=my_jobs_view, name="my_jobs"),
