@@ -18,7 +18,6 @@
       </button>
     </h1>
 
-
     <!-- Merge Selection Modal -->
     <div class="modal fade" id="selectionModal" tabindex="-1" role="dialog" aria-labelledby="selectionModalLabel"
          aria-hidden="true">
@@ -47,75 +46,34 @@
 
   <div class="row">
     <div class="col">
-      <div class="alert alert-info" role="alert">
-        <p><strong>Currently selected samples:</strong></p>
+      <div class="alert alert-primary" role="alert">
+        <p><strong>Currently selected samples: </strong> <span id="number_of_selected_samples"></span></p>
         <div id="selected-samples" style="overflow-y: scroll; height: 70px"></div>
       </div>
     </div>
   </div>
 
   <div class="list-group">
-    <table id="sample_table" class="display compact">
+    {# Sample Table #}
+    <table id="sample-table" class="display compact" style="width:100%" data-server-side="true"
+           data-ajax="/miseq_viewer/api/samples/?format=datatables">
       <thead>
       <tr>
-        <th>Sample ID</th>
-        <th>Sample Name</th>
-        <th>Run ID</th>
-        <th>Project ID</th>
-        <th>Top RefSeq Hit</th>
+        <th data-data="sample_id">Sample ID</th>
+        <th data-data="sample_name">Sample Name</th>
+        <th data-data="project_id.project_id">Project ID</th>
+        <th data-data="run_id.run_id">Run ID</th>
+        <th data-data="sendsketchresult.top_taxName">Top RefSeq Hit</th>
       </tr>
       </thead>
       <tbody>
-      {% for sample in sample_list %}
-        {% if user.is_staff %}
-          <tr>
-            <td>
-              <a
-                href="/miseq_viewer/sample/{{ sample.pk }}">
-                {{ sample.sample_id }}
-              </a>
-            </td>
-            <td>
-              {{ sample.sample_name }}
-            </td>
-            <td>
-              {{ sample.run_id }}
-            </td>
-            <td>
-              {{ sample.project_id }}
-            </td>
-            <td>
-              {{ sample.sendsketchresult.top_taxName }}
-            </td>
-          </tr>
-        {% else %}
-          {% for approved_user in approved_users %}
-            {% if sample.project_id == approved_user.project_id %}
-              <tr>
-                <td>
-                  <a
-                    href="/miseq_viewer/sample/{{ sample.pk }}">
-                    {{ sample.sample_id }}
-                  </a>
-                </td>
-                <td>
-                  {{ sample.sample_name }}
-                </td>
-                <td>
-                  {{ sample.run_id }}
-                </td>
-                <td>
-                  {{ sample.project_id }}
-                </td>
-                <td>
-                  {{ sample.sendsketchresult.top_taxName }}
-                </td>
-              </tr>
-            {% endif %}
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
       </tbody>
     </table>
   </div>
@@ -136,68 +94,155 @@
     });
 
     $(document).ready(function () {
-      let table = $('#sample_table').DataTable({
+      let currently_selected_samples = [];
+
+      let table = $('#sample-table').DataTable({
         dom: 'Bfrtip',
+        processing: true,
+        pageLength: 15,
+        columnDefs: [
+          {
+            "targets": '_all',
+            "defaultContent": ""
+          }
+        ],
         buttons: [
           {
             text: 'Select All',
             action: function (e, dt, node, config) {
-              $('#sample_table tbody tr').removeClass("selected").toggleClass('selected');
+              // Apply the the selected status to all rows
+              $('#sample-table tbody tr').removeClass("selected").toggleClass('selected');
               let selected_samples = table.rows('.selected').data();
-              let sample_id_list = generate_id_list(selected_samples);
-              $("#selected-samples").text(sample_id_list)
+
+              // Extract sample IDs and remove whitespace
+              selected_samples = filter_sample_ids(selected_samples);
+
+              // Update variable storing all currently selected samples with the new selection
+              selected_samples.map(x => currently_selected_samples.push(x));
+
+              // Update text on page
+              update_selected_samples_div();
             }
           },
           {
             text: 'Deselect All',
             action: function (e, dt, node, config) {
-              $('#sample_table tbody tr').removeClass("selected");
-              let selected_samples = table.rows('.selected').data();
-              let sample_id_list = generate_id_list(selected_samples);
-              $("#selected-samples").text(sample_id_list)
+              // Remove selected status from all rows
+              $('#sample-table tbody tr').removeClass("selected");
+
+              // Grab currently displayed sample IDs
+              let table_data = table.context[0].aoData;
+              let currently_displayed_samples = [];
+              for (var x = 0; x < table_data.length; x++) {
+                currently_displayed_samples.push(table_data[x]._aData.sample_id)
+              }
+
+              // Remove all rows currently displayed on the sample from currently_selected_samples
+              remove_from_id_list(currently_displayed_samples);
+
+              // Update text on page
+              update_selected_samples_div();
             }
           }
         ],
-        pageLength: 20,
       });
 
-      $('#sample_table tbody').on('click', 'tr', function () {
-        $(this).toggleClass('selected');
-        let selected_samples = table.rows('.selected').data();
-        let sample_id_list = generate_id_list(selected_samples);
-        $("#selected-samples").text(sample_id_list)
+      // Clicking a row will toggle the selected class and update the currently_selected_samples list accordingly
+      $('#sample-table tbody').on('click', 'tr', function () {
+        // Toggle class
+        let row = $(this).toggleClass('selected');
+
+        // Determine if the row is selected or not and store bool in selected_status
+        let classes = Array.from(row[0].classList);
+        let selected_status = classes.includes('selected');
+
+        // Extract sample_id
+        let sample_id = row[0].cells[0].textContent;
+
+        // If selected, add it to the currently_selected_samples array, otherwise remove it
+        if (selected_status === true) {
+          currently_selected_samples.push(sample_id)
+        } else if (selected_status === false) {
+          currently_selected_samples = currently_selected_samples.filter(x => x !== sample_id)
+        }
+
+        // Update text on page
+        update_selected_samples_div();
       });
 
+      // Whenever the table is redrawn, update selected status to reflect previously selected samples
+      $(document).on('draw.dt', function (e) {
+
+        // Grab array of sample IDs that are currently displayed on the table
+        let table_data = table.context[0].aoData;
+        let currently_displayed_samples = [];
+        for (var x = 0; x < table_data.length; x++) {
+          currently_displayed_samples.push(table_data[x]._aData.sample_id)
+        }
+
+        // Get intersection between currently_selected_samples and currently_displayed_samples
+        let samples_to_highlight = currently_selected_samples.filter(x => currently_displayed_samples.includes(x));
+
+        // Iterate over table rows apply selected status if they are present in the currently_selected_samples array
+        $('#sample-table tbody tr').each(function () {
+          let current_row = $(this);
+          let sample_id = current_row[0].cells[0].textContent;
+          if (samples_to_highlight.includes(sample_id)) {
+            current_row.removeClass("selected").toggleClass("selected");
+          }
+        });
+
+        // Update text on page
+        update_selected_samples_div();
+      });
+
+      // Submit button
       $('#submit-button').click(function () {
-        let selected_samples = table.rows('.selected').data();
-
-        if (selected_samples.length < 2) {
-          alert("Please select at least two samples to proceed.");
+        if (currently_selected_samples.length === 0) {
+          alert("Please select at least one sample to proceed.");
           return
         }
 
-        let sample_id_list = generate_id_list(selected_samples);
+        if (currently_selected_samples.length > 8) {
+          alert("You have selected too many samples. Please reduce the number of samples you are trying to merge.");
+          return
+        }
 
         $.ajax({
           url: "",
           type: 'POST',
-          data: {'sample_id_list': sample_id_list},
+          data: {'sample_id_list': currently_selected_samples},
         }).done(function (data) {
           if (data.success) {
             window.location.href = data.url;
           }
         })
       });
+
+      function filter_sample_ids(sample_list) {
+        // Extracts the sample_id value and removes any junk whitespace
+        return sample_list.map(x => remove_whitespace(x['sample_id']));
+      }
+
+      function remove_whitespace(_string) {
+        // Removes whitespace from a string
+        return _string.replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '')
+      }
+
+      function remove_from_id_list(deselected_samples) {
+        currently_selected_samples = currently_selected_samples.filter(item => !deselected_samples.includes(item))
+      }
+
+      function update_selected_samples_div() {
+        // Update text on page
+        $("#number_of_selected_samples")[0].innerText = currently_selected_samples.length;
+        $("#selected-samples").empty();
+        currently_selected_samples.map(x => $("#selected-samples").append(
+          (" <button class='btn btn-outline-dark btn-sm'>" + x + "</button> ")
+        ));
+      }
+
     });
 
-    function generate_id_list(selected_samples) {
-      let sample_id_list = [];
-      for (let i = 0; i < selected_samples.length; i++) {
-        // Remove HTML tags and whitespace
-        let sample_id = selected_samples[i][0].replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
-        sample_id_list.push(sample_id);
-      }
-      return sample_id_list
-    }
   </script>
 {% endblock %}
