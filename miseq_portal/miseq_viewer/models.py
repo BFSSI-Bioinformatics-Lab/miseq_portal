@@ -147,7 +147,7 @@ class Project(TimeStampedModel):
     project_id = models.CharField(max_length=256, unique=True)
     project_owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    # TODO: Consider adding viral, prokaryotic, eukaryotic flags, etc
+    # TODO: Consider adding flags for viral, prokaryotic, eukaryotic, metagenomic, mixed sample types
 
     def __str__(self):
         return self.project_id
