@@ -1,9 +1,9 @@
 from django.conf import settings
-from django.urls import include, path
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.views.generic import TemplateView
+from django.urls import include, path
 from django.views import defaults as default_views
+from django.views.generic import TemplateView
 
 urlpatterns = [
                   path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -28,6 +28,7 @@ urlpatterns = [
                   path("sample_search/", include("miseq_portal.sample_search.urls")),
                   path("analysis/", include("miseq_portal.analysis.urls")),
                   path("sample_merge/", include("miseq_portal.sample_merge.urls")),
+                  path("sample_workbooks/", include("miseq_portal.sample_workbooks.urls")),
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
