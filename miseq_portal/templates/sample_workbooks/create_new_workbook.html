@@ -13,7 +13,8 @@
 
   <h1>Create New Workbook</h1>
 
-  {#  https://simpleisbetterthancomplex.com/article/2017/08/19/how-to-render-django-form-manually.html #}
+  {# This form is rendered manually to accommodate passing the samples that the user selected to views.py #}
+  {# https://simpleisbetterthancomplex.com/article/2017/08/19/how-to-render-django-form-manually.html #}
   <form method="post" class="uniForm">
     {% csrf_token %}
 
@@ -53,7 +54,9 @@
         {% endif %}
       </div>
     {% endfor %}
-    {# Sample Table #}
+
+    {# Sample Table - populated by django-rest-framework-datatables #}
+    {# https://django-rest-framework-datatables.readthedocs.io/en/latest/ #}
     <label for="sample-table" class="col-form-label">Select Samples:</label>
     <table id="sample-table" class="display compact" style="width:100%" data-server-side="true"
            data-ajax="/miseq_viewer/api/samples/?format=datatables">
@@ -76,8 +79,10 @@
       </tr>
       </tbody>
     </table>
-    {#  This hidden input is updated on the fly according to samples selected in the above table #}
+
+    {#  This hidden input is updated on the fly according to samples selected in the above table. Passed to views.py #}
     <input type="hidden" id="sample_id_list" name="sample_id_list" value="">
+
     <button type="submit" class="btn btn-primary">Submit Workbook</button>
   </form>
   <br>
@@ -198,26 +203,17 @@
 
       function filter_sample_ids(sample_list) {
         // Extracts the sample_id value and removes any junk whitespace
-        return sample_list.map(x => remove_whitespace(x['sample_id']));
+        return sample_list.map(x => remove_whitespace(x['sample_id']))
       }
 
       function remove_whitespace(_string) {
         // Removes whitespace from a string
-        return _string.replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '')
+        return _string.replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '');
       }
 
       function remove_from_id_list(deselected_samples) {
-        currently_selected_samples = currently_selected_samples.filter(item => !deselected_samples.includes(item))
-        $("#sample_id_list").val(currently_selected_samples);
-      }
-
-      function update_selected_samples_div() {
-        // Update text on page
-        $("#number_of_selected_samples")[0].innerText = currently_selected_samples.length;
-        $("#selected-samples").empty();
-        currently_selected_samples.map(x => $("#selected-samples").append(
-          (" <button class='btn btn-outline-dark btn-sm'>" + x + "</button> ")
-        ));
+        // Provided with a list of samples, removes them from currently_selected_samples variable
+        currently_selected_samples = currently_selected_samples.filter(item => !deselected_samples.includes(item));
         $("#sample_id_list").val(currently_selected_samples);
       }
 
