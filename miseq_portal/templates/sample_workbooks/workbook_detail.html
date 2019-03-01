@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+{% endblock %}
+
+{% block title %}Detail{% endblock %}
+
+{% block content %}
+  <h3>{{ workbook.workbook_title }}</h3>
+
+  <form method="post">
+    <div class="form-group">
+      <label for="workbook-description">Description</label>
+      <input type="text" class="form-control" id="workbook-description">
+    </div>
+    <div class="form-group">
+      <label for="workbook-notes">Notes</label>
+      <textarea class="form-control" id="workbook-notes" rows="3"></textarea>
+    </div>
+  </form>
+
+  <table id="sample-table" class="display compact table table-bordered" style="width:100%">
+    <thead>
+    <tr>
+      <th>Sample ID</th>
+      <th>Sample Name</th>
+      <th>Project</th>
+      <th>Run</th>
+      <th>Top RefSeq Hit</th>
+      <th>Sample Notes</th>
+    </tr>
+    </thead>
+    {% for workbook_sample in workbook.workbook_samples %}
+      <tr>
+        <td>{{ workbook_sample.sample.sample_id }}</td>
+        <td>{{ workbook_sample.sample.sample_name }}</td>
+        <td>{{ workbook_sample.sample.project_id }}</td>
+        <td>{{ workbook_sample.sample.run_id }}</td>
+        <td>{{ workbook_sample.sample.sendsketchresult.top_taxName }}</td>
+        <td>
+          <div class="form-group">
+            <textarea class="form-control" id="workbook-notes" rows="3">{{ workbook_sample.sample_notes }}</textarea>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endblock %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+
+        // Set description field
+        $("#workbook-description").val("{{ workbook.workbook_description }}");
+
+        // Update placeholder for text area if the db entry is not empty
+        if ("{{ workbook.workbook_notes }}" !== "") {
+          $("#workbook-notes").val("{{ workbook.workbook_notes }}");
+        } else {
+          $("#workbook-notes").attr("placeholder", "Enter Workbook specific notes here").focus().blur();
+        }
+
+        $("#sample-table").DataTable();
+      }
+    )
+  </script>
+{% endblock %}
