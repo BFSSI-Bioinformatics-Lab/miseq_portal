@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import Project, Run, RunInterOpData, Sample, UserProjectRelationship, SampleLogData, SampleAssemblyData, \
-    MergedSampleComponentGroup, MergedSampleComponent
+from miseq_portal.miseq_viewer.models import Project, Run, RunInterOpData, Sample, UserProjectRelationship, \
+    SampleLogData, SampleAssemblyData, MergedSampleComponentGroup, MergedSampleComponent
 
 
 class SampleAdmin(admin.ModelAdmin):
