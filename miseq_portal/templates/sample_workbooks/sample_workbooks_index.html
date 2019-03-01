@@ -16,8 +16,8 @@
   </div>
 
   <div class="list-group">
-    <a href="#"
-       class="list-group-item list-group-item-action flex-column align-items-start list-group-item-success">
+    <a href="{% url 'sample_workbooks:create_new_workbook' %}"
+       class="list-group-item list-group-item-action flex-column align-items-start list-group-item-primary">
       <h4 class="mb-1"><i class="far fa-plus-square"></i> Create New Sample Workbook</h4>
     </a>
   </div>
@@ -27,27 +27,18 @@
   <div id="workbooks">
     <div class="list-group">
 
-      <a href="#" class="list-group-item list-group-item-action">
+      {% for workbook in workbooks %}
+      <a href="{% url 'sample_workbooks:workbook_detail' pk=workbook.pk %}" class="list-group-item list-group-item-action">
         <div class="row">
-          <div class="col-sm text-left"><h5>Workbook 1</h5></div>
-          <div class="col-sm text-left">Description</div>
+          <div class="col-sm text-left"><h5>{{ workbook.workbook_title }}</h5></div>
+          <div class="col-sm text-left">{{ workbook.workbook_description }}</div>
           <div class="col-sm text-right">
             <button class="btn btn-danger btn-sm">Delete</button>
             <button class="btn btn-info btn-sm">Edit</button>
           </div>
         </div>
       </a>
-
-      <a href="#" class="list-group-item list-group-item-action">
-        <div class="row">
-          <div class="col-sm text-left"><h5>Workbook 2</h5></div>
-          <div class="col-sm text-left">Description</div>
-          <div class="col-sm text-right">
-            <button class="btn btn-danger btn-sm">Delete</button>
-            <button class="btn btn-info btn-sm">Edit</button>
-          </div>
-        </div>
-      </a>
+      {% endfor %}
 
     </div>
 
