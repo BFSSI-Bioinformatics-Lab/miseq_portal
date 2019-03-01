@@ -77,6 +77,7 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'django_celery_results',
     'rest_framework_datatables',
+    'widget_tweaks',
 ]
 LOCAL_APPS = [
     # Your stuff: custom apps go here
