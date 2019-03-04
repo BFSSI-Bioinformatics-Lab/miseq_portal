@@ -38,9 +38,9 @@ def extract_coverage_from_qualimap_results(qualimap_result_file: Path) -> tuple:
         lines = f.readlines()
         for line in lines:
             if 'mean coverageData' in line:
-                mean_coverage = line.split(" = ")[1]
+                mean_coverage = line.split(" = ")[1].strip()
             elif 'std coverageData' in line:
-                std_coverage = line.split(" = ")[1]
+                std_coverage = line.split(" = ")[1].strip()
             else:
                 continue
     return mean_coverage, std_coverage
