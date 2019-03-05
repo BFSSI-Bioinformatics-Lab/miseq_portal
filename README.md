@@ -67,6 +67,18 @@ sudo -u brock psql -d miseq_portal  # Login to db
 select * from miseq_viewer_project;  #  Basic query
 ```
 
+**Backups**
+
+A cron job has been set to backup the PostgreSQL database periodically.
+Use the following command to edit cron jobs:
+```crontab -e```
+
+crontab entry to backup the database every day at 1:00AM:
+```
+0 1 * * * pg_dump miseq_portal > /mnt/Dean-Venture/miseq_portal_postgres_backup/"$(date +"miseq_portal_db_%Y%m%d").bak"
+```
+
+
 **Additional setup to enable JDBC connection with DBeaver:**
 
 1. Change `listen_addresses` from `'local'` to `'*'` in postgresql.conf i.e. `#listen_addresses = '*'  `
