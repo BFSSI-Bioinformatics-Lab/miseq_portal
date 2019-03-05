@@ -71,7 +71,7 @@ select * from miseq_viewer_project;  #  Basic query
 
 A cron job has been set to backup the PostgreSQL database periodically.
 Use the following command to edit cron jobs:
-```crontab -e```
+```crontab -e``` or ```sudo crontab -e``` for root commands
 
 crontab entry to backup the database every day at 1:00AM:
 ```
