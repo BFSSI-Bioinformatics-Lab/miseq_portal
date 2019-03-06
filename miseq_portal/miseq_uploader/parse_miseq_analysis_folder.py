@@ -94,7 +94,7 @@ def get_readpair(sample_id: str, fastq_file_list: [Path], forward_id: str = "_R1
 
     r1, r2 = None, None
     for f in fastq_file_list:
-        if sample_id in f.name.split("_")[0]:  # NOTE: Splitting on '_' is a bit brittle
+        if sample_id == f.name.split("_")[0]:  # NOTE: Splitting on '_' is a bit brittle
             if forward_id in f.name:
                 r1 = f
             elif reverse_id in f.name:
