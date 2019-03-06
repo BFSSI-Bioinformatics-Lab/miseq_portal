@@ -22,7 +22,9 @@ def run_sendsketch(fwd_reads: Path, rev_reads: Path, outpath: Path) -> Path:
     logger.info(f"R1: {fwd_reads}")
     logger.info(f"R2: {rev_reads}")
     logger.info(f"Outpath: {outpath}")
-    cmd = f"sendsketch.sh in={fwd_reads} in2={rev_reads} out={outpath} reads=200k overwrite=true"
+    # TODO: Refactor this to use the assembly if available. Bushnell says this is generally more accurate.
+    cmd = f"sendsketch.sh in={fwd_reads} in2={rev_reads} out={outpath} " \
+        f"reads=1m samplerate=0.5 minkeycount=2 overwrite=true"
     p = Popen(cmd, shell=True)
     p.wait()
     return outpath
