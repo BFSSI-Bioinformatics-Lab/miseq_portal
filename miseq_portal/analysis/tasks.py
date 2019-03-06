@@ -171,16 +171,20 @@ def assemble_sample_instance(sample_object_id: str):
         logger.error(f"Could not retrieve {sample_object_id} - does not exist. Skipping assembly.")
         return
 
-    # Setup assembly directory on NAS
-    outdir = MEDIA_ROOT / Path(str(sample_instance.fwd_reads)).parent / "assembly"
-    os.makedirs(outdir, exist_ok=True)
-    os.chmod(outdir, 0o777)
-
     # Get/create SampleAssemblyData instance
     # TODO: Don't even attempt the assembly if the number_reads (if available) is less than 1000.
     sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
     if sa_created or str(sample_assembly_instance.assembly) == '' or sample_assembly_instance.assembly is None:
         logger.info(f"Running assembly pipeline on {sample_instance}...")
+
+        # Setup assembly directory on NAS
+        outdir = MEDIA_ROOT / Path(str(sample_instance.fwd_reads)).parent / "assembly"
+        # Delete any old assembly lying around without an attached database record
+        if outdir.exists():
+            shutil.rmtree(outdir)
+        outdir.mkdir(exist_ok=True)
+        os.chmod(outdir, 0o777)
+
         fwd_reads = MEDIA_ROOT / Path(str(sample_instance.fwd_reads))
         rev_reads = MEDIA_ROOT / Path(str(sample_instance.rev_reads))
         bamfile, polished_assembly = assembly_pipeline(
