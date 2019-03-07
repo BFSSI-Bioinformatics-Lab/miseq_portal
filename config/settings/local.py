@@ -130,9 +130,15 @@ LOGGING = {
         'django': {
             # log to console and file handlers
             'handlers': ['console'],
-            'level': 'INFO'
-        }
-    },
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    }
 }
 
 SENTRY_CELERY_LOGLEVEL = env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO)
