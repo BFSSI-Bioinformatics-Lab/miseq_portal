@@ -8,7 +8,7 @@ from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
 class SampleSearchViewAsJSON(LoginRequiredMixin, View):
     def get(self, request):
-        queryset = Sample.objects.all()
+        queryset = Sample.objects.filter(hide_flag=False)
         updated_object_list = []
         for obj in queryset:
             # Try to get project ID
@@ -42,8 +42,6 @@ sample_search_view_json = SampleSearchViewAsJSON.as_view()
 
 
 class SampleSearchView(LoginRequiredMixin, ListView):
-    """
-    """
     model = Sample
     template_name = 'sample_search/sample_search.html'
     context_object_name = 'sample_list'
@@ -61,6 +59,9 @@ class SampleSearchView(LoginRequiredMixin, ListView):
             Q(run_id__run_id__icontains=search_term) |
             Q(sendsketchresult__top_taxName__icontains=search_term)
         )
+
+        # Filter out hidden samples
+        sample_list = sample_list.filter(hide_flag=False)
 
         context['search_term'] = search_term
         context['sample_list'] = sample_list
