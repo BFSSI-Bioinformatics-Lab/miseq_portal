@@ -5,7 +5,7 @@ from miseq_portal.miseq_uploader.parse_samplesheet import extract_run_name, read
 from miseq_portal.miseq_viewer.models import RunDataObject
 
 # logger = logging.getLogger('raven')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 def verify_miseq_folder_contents(miseq_folder: Path) -> bool:

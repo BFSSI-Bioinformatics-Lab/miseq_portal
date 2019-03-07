@@ -12,7 +12,7 @@ from miseq_portal.miseq_uploader.forms import UploadMiSeqDirectoryForm
 from miseq_portal.miseq_uploader.upload_to_db import receive_miseq_run_dir
 
 # logger = logging.getLogger('raven')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 @method_decorator(staff_member_required, name='dispatch')
