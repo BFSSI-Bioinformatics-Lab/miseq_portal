@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.utils import timezone
 from django.views.generic import DetailView, ListView
 from rest_framework import viewsets
@@ -12,10 +13,10 @@ from miseq_portal.analysis.models import AnalysisSample
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
-    MergedSampleComponent
+    MergedSampleComponent, SampleLogData
 from miseq_portal.miseq_viewer.serializers import SampleSerializer, RunSerializer, ProjectSerializer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
@@ -54,6 +55,9 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['run_list'] = Run.objects.all()
         context['sample_list'] = Sample.objects.filter(project_id=context['project'], hide_flag=False)
+        # Filter out samples that are missing data for the project_detail.html template
+        context['has_sample_log_data'] = context['sample_list'].filter(samplelogdata__isnull=False)
+        context['has_sendsketch_result'] = context['sample_list'].filter(sendsketchresult__isnull=False)
         return context
 
 
@@ -67,6 +71,8 @@ class RunDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['interop_data_avaiable'] = True
+
         # Get run folder to feed to the interop parser
         interop_folder = context['run'].interop_directory_path
 
@@ -82,15 +88,15 @@ class RunDetailView(LoginRequiredMixin, DetailView):
         # Try to receive InterOp data, if it's not available then display an alert on miseq_viewer/run_detail.html
         try:
             context['qscore_json'] = get_qscore_json(Path(MEDIA_ROOT) / interop_folder.parent)
-            context['interop_data_avaiable'] = True
         except Exception as e:
-            logging.debug(f'TRACEBACK: {e}')
+            # logging.debug(f'TRACEBACK: {e}')
             context['interop_data_avaiable'] = False
 
-        logger.debug(f"interop_data_available: {context['interop_data_avaiable']}")
+        # logger.debug(f"interop_data_available: {context['interop_data_avaiable']}")
         context['project_list'] = Project.objects.all()
         context['sample_list'] = Sample.objects.filter(hide_flag=False)
         context['samplesheet_df'] = parse_samplesheet.read_samplesheet_to_html(sample_sheet=samplesheet)
+
         return context
 
 
@@ -149,17 +155,24 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
             context['sample_components'] = sample_components
 
         # Check if sample is part of a MER sample
+        merged_sample_references = []
         if context['sample'].sample_type == 'BMH':
             component_query = MergedSampleComponent.objects.filter(component_id=context['sample'])
             if len(component_query) > 0:
-                merged_sample_references = []
                 for component in component_query:
                     try:
                         merged_sample_reference = Sample.objects.get(component_group=component.group_id)
                         merged_sample_references.append(merged_sample_reference)
                     except Sample.DoesNotExist:
                         pass
-                context['merged_sample_references'] = merged_sample_references
+        context['merged_sample_references'] = merged_sample_references
+
+        # Check if sample has a related samplelogdata object
+        try:
+            SampleLogData.objects.get(sample_id=context['sample'])
+            context['has_sample_log_data'] = True
+        except SampleLogData.DoesNotExist:
+            context['has_sample_log_data'] = False
 
         # Get user's browser details to determine whether or not to show the disclaimer RE: downloading .fastq.gz
         if "firefox" in self.request.META['HTTP_USER_AGENT'].lower():
@@ -175,8 +188,15 @@ sample_detail_view = SampleDetailView.as_view()
 
 # django-rest-framework
 class SampleViewSet(viewsets.ModelViewSet):
-    queryset = Sample.objects.filter(hide_flag=False).order_by('sample_id')  # Filter out hidden samples
     serializer_class = SampleSerializer
+
+    def get_queryset(self):
+        valid_projects = UserProjectRelationship.objects.filter(user_id=self.request.user)
+        valid_projects = [p.project_id for p in valid_projects]
+        queryset = Sample.objects.filter(Q(hide_flag=False) &
+                                         Q(project_id__in=valid_projects)
+                                         ).order_by('sample_id')
+        return queryset
 
 
 class RunViewSet(viewsets.ModelViewSet):
