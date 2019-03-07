@@ -11,7 +11,7 @@ from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship, Me
     MergedSampleComponent
 from miseq_portal.sample_merge.tasks import merge_reads
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 @method_decorator(staff_member_required, name='dispatch')

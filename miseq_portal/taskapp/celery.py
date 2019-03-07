@@ -16,7 +16,7 @@ Other Celery config is in config.settings.base
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 if not settings.configured:
     # set the default Django settings module for the 'celery' program.

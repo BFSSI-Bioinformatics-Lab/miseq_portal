@@ -17,7 +17,7 @@ from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sends
 from miseq_portal.analysis.tools.sendsketch import sendsketch_tophit_pipeline, create_sendsketch_result_object
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 @shared_task()

@@ -12,7 +12,7 @@ from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, Sendsket
 from miseq_portal.analysis.tasks import submit_analysis_job
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 class SampleSelectView(LoginRequiredMixin, TemplateView):
