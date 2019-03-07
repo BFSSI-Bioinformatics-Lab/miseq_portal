@@ -124,10 +124,14 @@
           {% endif %}
         </td>
         <td>
-          {{ sample.samplelogdata.number_reads | default:"N/A" }}
+          {% if sample in has_sample_log_data %}
+            {{ sample.samplelogdata.number_reads | default:"N/A" }}
+          {% endif %}
         </td>
         <td>
-          {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 | default:"N/A" }}
+          {% if sample in has_sample_log_data %}
+            {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 | default:"N/A" }}
+          {% endif %}
         </td>
         <td>{{ sample.created }}</td>
       </tr>
@@ -281,14 +285,17 @@
   <br>
   <div class="container-fluid">
     {# ALERTS #}
-    {% if sample.samplelogdata.number_reads < 1000 %}
-      <div class="alert alert-danger" role="alert">
-        <strong>Danger:</strong> This sample has an unusually small number of reads.
-        This will likely cause severe issues with assembly or any other analysis.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>  {% endif %}
+    {% if sample in has_sample_log_data %}
+      {% if sample.samplelogdata.number_reads < 1000 %}
+        <div class="alert alert-danger" role="alert">
+          <strong>Danger:</strong> This sample has an unusually small number of reads.
+          This will likely cause severe issues with assembly or any other analysis.
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      {% endif %}
+    {% endif %}
 
     {% if browser_flag == False %}
       <div class="alert alert-warning" role="alert">
