@@ -132,6 +132,8 @@ sudo rabbitmq-plugins enable rabbitmq_management
 ```
 
 #### Configuring Celery
+`Note: The following tasks are handled automatically - see the Supervisor section below.`
+
 A Celery worker must be launched in order to watch for incoming tasks.
 Bugs will occur if the concurrency parameter != 1.
 ```bash
