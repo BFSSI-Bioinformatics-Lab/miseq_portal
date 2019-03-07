@@ -13,14 +13,13 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
 
-  <link rel="icon" href="{% static 'favicon.png' %}">
+  <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
 
   {% block css %}
 
     <!-- Latest compiled and minified Bootstrap 4.1.1 CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
           integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-
 
     <!-- Your stuff: Third-party CSS libraries go here -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
@@ -39,7 +38,6 @@
 </head>
 
 <body>
-
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0" id="portal-navbar">
   <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="{% url 'home' %}" id="portal-brand">
     <i class="fas fa-dna"></i>
@@ -98,11 +96,12 @@
           {% if request.user.is_authenticated %}
             <li class="nav-item">
               <a class="nav-link "
-                 href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i> Projects</a>
+                 href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i>
+                Projects</a>
             </li>
             <li class="nav-item">
               <a class="nav-link "
-                 href="{% url 'analysis:analysis_index' %}"><i class="fas fa-flask"></i> Analysis</a>
+                 href="{% url 'analysis:sample_select' %}"><i class="fas fa-flask"></i> Analysis</a>
             </li>
             {% if request.user.is_staff %}
               <li class="nav-item">
@@ -113,6 +112,10 @@
             <li class="nav-item">
               <a class="nav-link "
                  href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'sample_workbooks:sample_workbook_index' %}"><i class="fas fa-book"></i> Workbooks</a>
             </li>
           {% endif %}
           {% if request.user.is_superuser %}
@@ -141,12 +144,9 @@
       {% endblock content %}
       <br>
     </main>
-
   </div>
 </div>
-
 <br>
-
 
 {% block modal %}{% endblock modal %}
 
@@ -171,7 +171,6 @@
   <!-- place project specific Javascript in this file -->
 
   <script src="{% static 'js/project.js' %}"></script>
-
 
 {% endblock javascript %}
 {% block extra_javascript %}
