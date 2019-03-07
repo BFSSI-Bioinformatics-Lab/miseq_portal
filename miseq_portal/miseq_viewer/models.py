@@ -9,7 +9,7 @@ from config.settings.base import MEDIA_ROOT
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.users.models import User
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 def validate_sample_id(value: str, length: int = 15):
@@ -172,7 +172,7 @@ class UserProjectRelationship(TimeStampedModel):
     access_level = models.CharField(max_length=32, choices=ACCESS_LEVELS, default='NONE')
 
     def __str__(self):
-        return str(self.project_id) + ':' + str(self.user_id)
+        return str(self.project_id) + ' : ' + str(self.user_id) + ' : ' + str(self.access_level)
 
     class Meta:
         verbose_name = 'UserProjectRelationship'
