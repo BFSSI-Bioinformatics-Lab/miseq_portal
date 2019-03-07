@@ -11,7 +11,7 @@ from miseq_uploader.parse_samplesheet import get_sample_name_dictionary, read_sa
     group_by_project, get_sample_id_list, validate_sample_id, validate_samplesheet_header
 
 # logger = logging.getLogger('raven')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 def samplesheet_to_samplename_dict(samplesheet: Path) -> dict:

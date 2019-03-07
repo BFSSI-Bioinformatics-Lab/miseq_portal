@@ -5,7 +5,7 @@ import pandas as pd
 
 from miseq_portal.miseq_viewer.models import SampleDataObject
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 def validate_samplesheet_header(header: list) -> bool:
