@@ -53,7 +53,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['run_list'] = Run.objects.all()
-        context['sample_list'] = Sample.objects.filter(project_id=context['project'])
+        context['sample_list'] = Sample.objects.filter(project_id=context['project'], hide_flag=False)
         return context
 
 
@@ -89,7 +89,7 @@ class RunDetailView(LoginRequiredMixin, DetailView):
 
         logger.debug(f"interop_data_available: {context['interop_data_avaiable']}")
         context['project_list'] = Project.objects.all()
-        context['sample_list'] = Sample.objects.all()
+        context['sample_list'] = Sample.objects.filter(hide_flag=False)
         context['samplesheet_df'] = parse_samplesheet.read_samplesheet_to_html(sample_sheet=samplesheet)
         return context
 
@@ -101,6 +101,11 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
     model = Sample
     context_object_name = 'sample'
     template_name = "miseq_viewer/sample_detail.html"
+
+    def get_queryset(self):
+        """ This ensures hidden samples do not appear """
+        qs = super(SampleDetailView, self).get_queryset()
+        return qs.filter(hide_flag=False)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -170,7 +175,7 @@ sample_detail_view = SampleDetailView.as_view()
 
 # django-rest-framework
 class SampleViewSet(viewsets.ModelViewSet):
-    queryset = Sample.objects.all().order_by('sample_id')
+    queryset = Sample.objects.filter(hide_flag=False).order_by('sample_id')  # Filter out hidden samples
     serializer_class = SampleSerializer
 
 

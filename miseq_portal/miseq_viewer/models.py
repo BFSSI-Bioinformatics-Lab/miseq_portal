@@ -277,6 +277,9 @@ class Sample(TimeStampedModel):
     fwd_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=1000)
     rev_reads = models.FileField(upload_to=upload_reads, blank=True, max_length=1000)
 
+    hide_flag = models.BooleanField(default=False)  # Activate this to hide the sample from view for regular users
+    additional_notes = models.TextField(blank=True)
+
     def generate_sample_id(self):
         """
         This method must be used for EXT or MER samples. First, instantiate the object, then call this method and assign
