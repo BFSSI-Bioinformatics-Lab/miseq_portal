@@ -49,10 +49,14 @@
           {% endif %}
         </td>
         <td>
-          {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
+          {% if sample in has_sample_log_data %}
+            {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
+          {% endif %}
         </td>
         <td>
-          {{ sample.sendsketchresult.top_taxName }}
+          {% if sample in has_sendsketch_result %}
+            {{ sample.sendsketchresult.top_taxName }}
+          {% endif %}
         </td>
         <td>
           {{ sample.created }}
