@@ -59,7 +59,9 @@
               {% endif %}
             </td>
             <td>
-              {{ sample.sendsketchresult.top_taxName }}
+              {% if sample.sendsketchresult != None %}
+                {{ sample.sendsketchresult.top_taxName }}
+              {% endif %}
             </td>
             {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
             <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
@@ -97,7 +99,9 @@
                   {% endif %}
                 </td>
                 <td>
-                  {{ sample.sendsketchresult.top_taxName }}
+                  {% if sample.sendsketchresult != None %}
+                    {{ sample.sendsketchresult.top_taxName }}
+                  {% endif %}
                 </td>
                 {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
                 <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
