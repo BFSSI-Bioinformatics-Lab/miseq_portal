@@ -8,26 +8,25 @@
 <script src="/static/js/d3.v5.min.js"></script>
 <script src="/static/js/jquery-3.3.1.min.js"></script>
 <script>
-  if (check_interop()) {
-    console.log("InterOp data detected");
-    qscore_json_data = {{ qscore_json|safe }};
+  {#if (check_interop()) #}
+  $(document).ready(function () {
+      console.log("InterOp data detected");
+      let qscore_json_data = {{ qscore_json|safe }};
 
-    // Initial drawing of the chart
-    draw_qscore_chart(qscore_json_data);
+      // Initial drawing of the chart
+      draw_qscore_chart(qscore_json_data);
 
-    // Upon resize, draw the chart again so the width responds reactively
-    window.onresize = function () {
-      draw_qscore_chart(qscore_json_data)
-    };
-  }
-  else {
-    console.log("InterOp data not available")
-  }
+      // Upon resize, draw the chart again so the width responds reactively
+      window.onresize = function () {
+        draw_qscore_chart(qscore_json_data)
+      };
+    }
+  );
 
-  function check_interop() {
-    var interop_bool = ("{{ interop_data_available|yesno:'false,true' }}" === "true");
-    return interop_bool;
-  }
+
+  {#function check_interop() {#}
+  {#  var interop_bool = ("{{ interop_data_available|yesno:'false,true' }}" === "true");#}
+  {#  return interop_bool;#}
 
   function draw_qscore_chart(qscore_json_data) {
     // Clean up old chart
