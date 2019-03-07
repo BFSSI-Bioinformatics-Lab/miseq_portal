@@ -10,7 +10,7 @@ from miseq_portal.sample_workbooks.forms import WorkbookForm
 from miseq_portal.sample_workbooks.models import Workbook, WorkbookSample
 from miseq_portal.users.models import User
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 class SampleWorkbookIndexView(LoginRequiredMixin, TemplateView):

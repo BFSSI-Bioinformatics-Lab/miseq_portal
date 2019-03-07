@@ -9,7 +9,7 @@ from miseq_portal.analysis.tasks import assemble_sample_instance
 from miseq_portal.analysis.tools.helpers import run_subprocess
 from miseq_portal.miseq_viewer.models import Sample, Project, upload_reads
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 @shared_task()

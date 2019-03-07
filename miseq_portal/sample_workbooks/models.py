@@ -6,7 +6,7 @@ from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 class Workbook(TimeStampedModel):

@@ -21,7 +21,7 @@ from miseq_portal.analysis.tools.helpers import run_subprocess, remove_dir_files
 from miseq_portal.miseq_viewer.models import SampleAssemblyData, upload_assembly
 
 # logger = logging.getLogger('raven')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 MEDIA_ROOT = Path(MEDIA_ROOT)
 
