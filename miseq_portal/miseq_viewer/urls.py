@@ -14,7 +14,7 @@ app_name = "miseq_viewer"
 
 # Django-rest-framework (https://django-rest-framework-datatables.readthedocs.io/en/latest/tutorial.html)
 router = routers.DefaultRouter()
-router.register(r'samples', SampleViewSet)
+router.register(r'samples', SampleViewSet, base_name='samples-detail')
 router.register(r'runs', RunViewSet)
 router.register(r'projects', ProjectViewSet)
 
