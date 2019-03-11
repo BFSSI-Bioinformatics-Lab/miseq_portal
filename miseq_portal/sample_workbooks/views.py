@@ -4,10 +4,12 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, CreateView, DetailView
+from rest_framework import viewsets, mixins
 
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.sample_workbooks.forms import WorkbookForm
 from miseq_portal.sample_workbooks.models import Workbook, WorkbookSample
+from miseq_portal.sample_workbooks.serializers import WorkbookSerializer, WorkbookSampleSerializer
 from miseq_portal.users.models import User
 
 logger = logging.getLogger('django')
@@ -76,5 +78,26 @@ class WorkbookDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         return context
 
+    # def post(self):
+    #     """ Method for updating sample_notes field of WorkbookSample """
+    #     workbook_samples = WorkbookSample.objects.filter(workbook=self.request.context['workbook'])
+    #     logger.info(workbook_samples)
+
 
 workbook_detail_view = WorkbookDetailView.as_view()
+
+
+#
+# class WorkbookSampleUpdateView(UpdateView):
+#     def post(self):
+#         pass
+
+# django-rest-framework
+class WorkbookViewSet(viewsets.ModelViewSet):
+    serializer_class = WorkbookSerializer
+    queryset = Workbook.objects.all()
+
+
+class WorkbookSampleViewset(viewsets.ModelViewSet, mixins.UpdateModelMixin):
+    serializer_class = WorkbookSampleSerializer
+    queryset = WorkbookSample.objects.all()
