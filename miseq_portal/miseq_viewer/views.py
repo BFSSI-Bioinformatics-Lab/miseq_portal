@@ -191,11 +191,15 @@ class SampleViewSet(viewsets.ModelViewSet):
     serializer_class = SampleSerializer
 
     def get_queryset(self):
-        valid_projects = UserProjectRelationship.objects.filter(user_id=self.request.user)
-        valid_projects = [p.project_id for p in valid_projects]
-        queryset = Sample.objects.filter(Q(hide_flag=False) &
-                                         Q(project_id__in=valid_projects)
-                                         ).order_by('sample_id')
+        # Staff get the full queryset, otherwise only show samples that are in projects user has rights to
+        if self.request.user.is_staff:
+            queryset = Sample.objects.all().order_by('sample_id')
+        else:
+            valid_projects = UserProjectRelationship.objects.filter(user_id=self.request.user)
+            valid_projects = [p.project_id for p in valid_projects]
+            queryset = Sample.objects.filter(Q(hide_flag=False) &
+                                             Q(project_id__in=valid_projects)
+                                             ).order_by('sample_id')
         return queryset
 
 
