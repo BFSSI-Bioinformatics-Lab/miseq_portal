@@ -43,7 +43,11 @@
           <div class="form-group samplenotes-field" id="{{ workbook_sample.id }}">
             <textarea class="form-control" rows="3">{{ workbook_sample.sample_notes }}</textarea>
             <br>
-            <input type="submit" class="btn btn-default btn-sm samplenotes-submit" value="Save Changes"/>
+            {#            <input type="submit" class="btn btn-default btn-sm samplenotes-submit" value="Save Changes"/>#}
+            <button type="submit" class="btn btn-default btn-sm samplenotes-submit">
+              Save Changes
+              <div id="spinner-parent-{{ workbook_sample.id }}"></div>
+            </button>
           </div>
         </td>
       </tr>
@@ -85,10 +89,14 @@
           console.log(sample_id);
 
           // Grab text from text field
-          let samplenotes_text = $(this).parent().find("textarea")[0].value;
+          let textarea_element = $(this).parent().find("textarea");
+          let samplenotes_text = textarea_element[0].value;
 
           // The API URL is built using the sample_id variable
           let sample_url = "http://" + window.location.host + "/sample_workbooks/api/workbooksamples/" + sample_id + "/";
+
+          // Append loading spinner
+          $(("#spinner-parent-" + sample_id)).append('<i class="fas fa-spinner fa-spin"' + 'id="spinner-' + sample_id + '"></i>');
 
           // Send AJAX PATCH to update the DB via Workbook API
           $.ajax({
@@ -102,12 +110,20 @@
             data: JSON.stringify({'sample_notes': samplenotes_text}),
             success: function (response, textStatus, jqXhr) {
               console.log("Successfully updated Sample Notes field!");
+
+              // Remove the spinner upon success
+              $("#spinner-" + sample_id).remove()
+
             },
-            error: function (jqXHR, textStatus, errorThrown) {
-              // log the error to the console
-              console.log("The following error occured: " + textStatus, errorThrown);
-              console.log(jqXHR);
-            },
+            error:
+
+              function (jqXHR, textStatus, errorThrown) {
+                // log the error to the console
+                console.log("The following error occured: " + textStatus, errorThrown);
+                console.log(jqXHR);
+              }
+
+            ,
           })
 
         })
