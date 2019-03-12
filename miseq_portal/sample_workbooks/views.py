@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, CreateView, DetailView
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, filters
 
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.sample_workbooks.forms import WorkbookForm
@@ -87,12 +87,6 @@ class WorkbookDetailView(LoginRequiredMixin, DetailView):
 workbook_detail_view = WorkbookDetailView.as_view()
 
 
-#
-# class WorkbookSampleUpdateView(UpdateView):
-#     def post(self):
-#         pass
-
-# django-rest-framework
 class WorkbookViewSet(viewsets.ModelViewSet):
     serializer_class = WorkbookSerializer
     queryset = Workbook.objects.all()
@@ -101,3 +95,5 @@ class WorkbookViewSet(viewsets.ModelViewSet):
 class WorkbookSampleViewset(viewsets.ModelViewSet, mixins.UpdateModelMixin):
     serializer_class = WorkbookSampleSerializer
     queryset = WorkbookSample.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('sample__sample_id', 'workbook__workbook_title',)
