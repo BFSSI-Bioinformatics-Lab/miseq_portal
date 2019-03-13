@@ -10,17 +10,34 @@
 {% block content %}
   <h3>{{ workbook.workbook_title }}</h3>
 
-  <form method="post">
-    <div class="form-group">
+  <div class="container-fluid border">
+    <div class="form-group" id="{{ workbook.id }}">
       <label for="workbook-description">Description</label>
       <input type="text" class="form-control" id="workbook-description">
+      <br>
+      <button type="submit" class="btn btn-default btn-sm workbookdescription-submit">
+        Save Changes
+        <div id="workbookdescription-spinner-parent-{{ workbook.id }}"></div>
+      </button>
     </div>
-    <div class="form-group">
-      <label for="workbook-notes">Notes</label>
-      <textarea class="form-control" id="workbook-notes" rows="3"></textarea>
-    </div>
-  </form>
+  </div>
 
+  <br>
+
+  <div class="container-fluid border">
+    <div class="form-group" id="{{ workbook.id }}">
+      <label for="workbook-notes">Workbook Notes</label>
+      <textarea class="form-control" id="workbook-notes" rows="3"></textarea>
+      <br>
+      <button type="submit" class="btn btn-default btn-sm workbooknotes-submit">
+        Save Changes
+        <div id="workbooknotes-spinner-parent-{{ workbook.id }}"></div>
+      </button>
+    </div>
+  </div>
+
+  <br>
+  <h5>Workbook Samples</h5>
   <table id="sample-table" class="display compact table table-bordered" style="width:100%">
     <thead>
     <tr>
@@ -43,7 +60,6 @@
           <div class="form-group samplenotes-field" id="{{ workbook_sample.id }}">
             <textarea class="form-control" rows="3">{{ workbook_sample.sample_notes }}</textarea>
             <br>
-            {#            <input type="submit" class="btn btn-default btn-sm samplenotes-submit" value="Save Changes"/>#}
             <button type="submit" class="btn btn-default btn-sm samplenotes-submit">
               Save Changes
               <div id="spinner-parent-{{ workbook_sample.id }}"></div>
@@ -55,6 +71,7 @@
   </table>
 {% endblock %}
 
+
 {% block extra_javascript %}
   <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
@@ -63,15 +80,16 @@
   <script>
     $(document).ready(function () {
         $.ajaxSetup({
-          headers: {"X-CSRFToken": '{{csrf_token}}'}
+          headers: {"X-CSRFToken": `{{csrf_token}}`}
         });
 
         // Set description field
-        $("#workbook-description").val("{{ workbook.workbook_description }}");
+        $("#workbook-description").val(`{{ workbook.workbook_description}}`);
 
         // Update placeholder for text area if the db entry is not empty
-        if ("{{ workbook.workbook_notes }}" !== "") {
-          $("#workbook-notes").val("{{ workbook.workbook_notes }}");
+        let workbook_notes = `{{ workbook.workbook_notes }}`;
+        if (workbook_notes !== '') {
+          $("#workbook-notes").val(workbook_notes);
         } else {
           $("#workbook-notes").attr("placeholder", "Enter Workbook specific notes here").focus().blur();
         }
@@ -103,7 +121,7 @@
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + '{{ request.user.auth_token }}',
+              'Authorization': 'Bearer ' + `{{ request.user.auth_token }}`,
             },
             url: sample_url,
             type: 'PATCH',
@@ -116,17 +134,106 @@
 
             },
             error:
-
               function (jqXHR, textStatus, errorThrown) {
                 // log the error to the console
                 console.log("The following error occured: " + textStatus, errorThrown);
                 console.log(jqXHR);
               }
-
-            ,
           })
+        });
 
+        // Updating the work description field
+        $(".workbookdescription-submit").click(function (e) {
+          e.preventDefault();
+
+          // Workbook ID is encoded in the id tag
+          let workbook_id = $(this).parent().attr('id');
+          console.log(workbook_id);
+
+          // Grab text from text field
+          let textarea_element = $(this).parent().find("input");
+          let workbookdescription_text = textarea_element[0].value;
+          if (workbookdescription_text === "") {
+            alert("ERROR: Description field cannot be empty.");
+            return
+          }
+
+          // The API URL is built using the sample_id variable
+          let workbook_url = "http://" + window.location.host + "/sample_workbooks/api/workbooks/" + workbook_id + "/";
+
+          // Append loading spinner
+          $(("#workbookdescription-spinner-parent-" + workbook_id)).append('<i class="fas fa-spinner fa-spin"' + 'id="spinner-' + workbook_id + '"></i>');
+
+          // Send AJAX PATCH to update the DB via Workbook API
+          $.ajax({
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + `{{ request.user.auth_token }}`,
+            },
+            url: workbook_url,
+            type: 'PATCH',
+            data: JSON.stringify({'workbook_description': workbookdescription_text}),
+            success: function (response, textStatus, jqXhr) {
+              console.log("Successfully updated Workbook Description field!");
+
+              // Remove the spinner upon success
+              $("#spinner-" + workbook_id).remove()
+
+            },
+            error:
+              function (jqXHR, textStatus, errorThrown) {
+                // log the error to the console
+                console.log("The following error occured: " + textStatus, errorThrown);
+                console.log(jqXHR);
+              }
+          })
         })
+
+        // Updating the work description field
+        $(".workbooknotes-submit").click(function (e) {
+          e.preventDefault();
+
+          // Workbook ID is encoded in the id tag
+          let workbook_id = $(this).parent().attr('id');
+          console.log(workbook_id);
+
+          // Grab text from text field
+          let textarea_element = $(this).parent().find("textarea");
+          let workbooknotes_text = textarea_element[0].value;
+
+          // The API URL is built using the sample_id variable
+          let workbook_url = "http://" + window.location.host + "/sample_workbooks/api/workbooks/" + workbook_id + "/";
+
+          // Append loading spinner
+          $(("#workbooknotes-spinner-parent-" + workbook_id)).append('<i class="fas fa-spinner fa-spin"' + 'id="spinner-' + workbook_id + '"></i>');
+
+          // Send AJAX PATCH to update the DB via Workbook API
+          $.ajax({
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + `{{ request.user.auth_token }}`,
+            },
+            url: workbook_url,
+            type: 'PATCH',
+            data: JSON.stringify({'workbook_notes': workbooknotes_text}),
+            success: function (response, textStatus, jqXhr) {
+              console.log("Successfully updated Workbook Notes field!");
+
+              // Remove the spinner upon success
+              $("#spinner-" + workbook_id).remove()
+
+            },
+            error:
+              function (jqXHR, textStatus, errorThrown) {
+                // log the error to the console
+                console.log("The following error occured: " + textStatus, errorThrown);
+                console.log(jqXHR);
+              }
+          })
+        });
+
       }
     )
   </script>
