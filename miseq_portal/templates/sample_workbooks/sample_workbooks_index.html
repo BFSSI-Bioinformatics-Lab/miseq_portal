@@ -10,15 +10,42 @@
 
 {% block content %}
 
-
   <div class="page-header">
-    <h2>My Workbooks</h2>
+    <h1>My Workbooks
+      <button type="button" class="btn btn-sm btn-light" data-toggle="modal"
+              data-target="#selectionModal">
+        <i class="fas fa-question-circle fa-lg"></i>
+      </button>
+    </h1>
+
+    <!-- Analysis Sample Selection Modal -->
+    <div class="modal fade" id="selectionModal" tabindex="-1" role="dialog" aria-labelledby="selectionModalLabel"
+         aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="selectionModalLabel">Workbook Instructions</h5>
+            <div class="modal-body">
+              <ul>
+                <li><strong>Workbooks</strong> provide an easy method for organizing and annotating groups of samples
+                </li>
+                <li>Click the <strong>Create</strong> button to start a new workbook</li>
+                <li>Inside a workbook you can easily <strong>annotate</strong> individual samples with notes</li>
+                <li>All of your workbooks are listed and easily accessible through this page</li>
+                <li>Coming soon: apply analytical tools to contents of entire workbook</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
 
   <div class="list-group">
     <a href="{% url 'sample_workbooks:create_new_workbook' %}"
        class="list-group-item list-group-item-action flex-column align-items-start list-group-item-primary">
-      <h4 class="mb-1"><i class="far fa-plus-square"></i> Create New Sample Workbook</h4>
+      <h4 class="mb-1"><i class="far fa-plus-square"></i> <strong>Create</strong> a new Workbook</h4>
     </a>
   </div>
 
@@ -27,21 +54,30 @@
   <div id="workbooks">
     <div class="list-group">
 
-      {% for workbook in workbooks %}
-      <a href="{% url 'sample_workbooks:workbook_detail' pk=workbook.pk %}" class="list-group-item list-group-item-action">
-        <div class="row">
-          <div class="col-sm text-left"><h5>{{ workbook.workbook_title }}</h5></div>
-          <div class="col-sm text-left">{{ workbook.workbook_description }}</div>
-          <div class="col-sm text-right">
-            <button class="btn btn-danger btn-sm">Delete</button>
-            <button class="btn btn-info btn-sm">Edit</button>
-          </div>
-        </div>
-      </a>
-      {% endfor %}
-
+      <table class="display compact table" style="width:100%">
+        <thead>
+        <tr>
+          <th>Workbook Title</th>
+          <th>Workbook Description</th>
+          <th></th>
+        </tr>
+        </thead>
+        {% for workbook in workbooks %}
+          <tr>
+            <td>
+              <a href="{% url 'sample_workbooks:workbook_detail' pk=workbook.pk %}">
+                <h5>{{ workbook.workbook_title }}</h5>
+              </a>
+            </td>
+            <td>{{ workbook.workbook_description }}</td>
+            <td>
+              <a class="btn btn-danger btn-sm"
+                 href={% url 'sample_workbooks:workbook_delete_view' pk=workbook.pk %}>Delete</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
     </div>
-
   </div>
 
 {% endblock %}
