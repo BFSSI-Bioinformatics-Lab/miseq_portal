@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+{% endblock %}
+{% block title %}Delete Workbook{% endblock %}
+
+{% block content %}
+  <form action="" method="post">{% csrf_token %}
+    <p>Are you sure you want to delete "{{ object }}"?</p>
+    <input type="submit" value="Confirm"/>
+  </form>
+{% endblock %}
