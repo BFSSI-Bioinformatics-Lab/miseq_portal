@@ -84,10 +84,10 @@
         });
 
         // Set description field
-        $("#workbook-description").val(`{{ workbook.workbook_description}}`);
+        $("#workbook-description").val(`{{ workbook.workbook_description|safe }}`);
 
         // Update placeholder for text area if the db entry is not empty
-        let workbook_notes = `{{ workbook.workbook_notes }}`;
+        let workbook_notes = `{{ workbook.workbook_notes|safe }}`;
         if (workbook_notes !== '') {
           $("#workbook-notes").val(workbook_notes);
         } else {
