@@ -78,16 +78,11 @@ class WorkbookDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         return context
 
-    # def post(self):
-    #     """ Method for updating sample_notes field of WorkbookSample """
-    #     workbook_samples = WorkbookSample.objects.filter(workbook=self.request.context['workbook'])
-    #     logger.info(workbook_samples)
-
 
 workbook_detail_view = WorkbookDetailView.as_view()
 
 
-class WorkbookViewSet(viewsets.ModelViewSet):
+class WorkbookViewSet(viewsets.ModelViewSet, mixins.UpdateModelMixin):
     serializer_class = WorkbookSerializer
     queryset = Workbook.objects.all()
 
