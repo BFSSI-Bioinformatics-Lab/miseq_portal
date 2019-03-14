@@ -75,9 +75,11 @@ THIRD_PARTY_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_celery_results',
     'rest_framework_datatables',
     'widget_tweaks',
+    'django_filters',
 ]
 LOCAL_APPS = [
     # Your stuff: custom apps go here
@@ -320,6 +322,13 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework_datatables.filters.DatatablesFilterBackend',
+        # 'django_filters.rest_framework.DjangoFilterBackend',  # Not sure if this is doing anything
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        # https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
+        'rest_framework.authentication.TokenAuthentication',
+
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
     'PAGE_SIZE': 100,
