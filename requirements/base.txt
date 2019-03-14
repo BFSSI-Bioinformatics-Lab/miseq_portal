@@ -28,3 +28,4 @@ mob_suite==1.4.8  # NOTE: Must upgrade numpy after this installs due to some con
 model_mommy==1.6.0
 dataclasses==0.6
 interop==1.1.3
+django-filter==2.1.0
