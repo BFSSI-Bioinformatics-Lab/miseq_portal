@@ -3,92 +3,6 @@
 ### Overview
 The MiSeq Portal was built with `Django 2.0.7` and `PostgreSQL 9.5`. 
 
-### Installation/Getting Started Instructions
-```bash
-# Clone project
-git clone https://github.com/bfssi-forest-dussault/miseq_portal.git
-
-# Create new conda environment
-conda create -n miseq_portal python=3.6
-
-# Activate the conda environment
-source activate miseq_portal
-
-# Install dependencies via pip
-pip install -r miseq_portal/local.txt
-
-# Set up PostgreSQL
-sudo apt-get update
-sudo apt-get install postgresql postgresql-contrib
-
-# Check version of PostgresQL. The portal was built on 9.5.14 but it should also work with newer versions
-psql -c 'SELECT version();'
-
-# Create user. This user must be the owner of the miseq_portal DB that we'll create in the next command
-sudo -u postgres createuser --interactive
-
-# Create fresh DB - it must be named miseq_portal
-sudo -u postgres createdb [your username goes here]
-
-# Now that the DB is created, we can populate it with the requisite tables
-# This is done with the makemigrations command - note that each app name must be provided 
-python miseq_portal/manage.py makemigrations analysis miseq_viewer users core
-
-# Commit the changes to the DB
-python miseq_portal/manage.py migrate
-
-# At this point, you should be able to succesfully start the webserver
-python miseq_portal/manage.py runserver 0.0.0.0:8000
-
-# You can now access the portal through your web browser via the IP address of the host machine
-```
-
-### PostgreSQL
-**Basics:**
-
-https://www.digitalocean.com/community/tutorials/how-to-install-and-use-postgresql-on-ubuntu-16-04
-
-**DB name:** miseq_portal
-
-**DB user:** brock
-
-**Using psql:**
-```bash
-sudo -i -u brock  # Login with user brock
-psql  # Launch psql
-\l  # Show all databases
-\du  # Show all users
-```
-
-**Exploring the miseq_portal database:**
-```bash
-sudo -u brock psql -d miseq_portal  # Login to db
-\dt  # Show all tables
-select * from miseq_viewer_project;  #  Basic query
-```
-
-**Backups**
-
-A cron job has been set to backup the PostgreSQL database periodically.
-Use the following command to edit cron jobs:
-```crontab -e```
-
-crontab entry to backup the database every day at 1:00AM:
-```
-0 1 * * * pg_dump miseq_portal > /mnt/Dean-Venture/miseq_portal_postgres_backup/"$(date +"miseq_portal_db_\%Y\%m\%d").bak"
-```
-
-
-**Additional setup to enable JDBC connection with DBeaver:**
-
-1. Change `listen_addresses` from `'local'` to `'*'` in postgresql.conf i.e. `#listen_addresses = '*'  `
-2. Under `# IPv4 local connections` in pg_hba.conf change `md5` to `trust` for your host entry (https://stackoverflow.com/questions/15597516/postgres-hba-conf-for-jdbc)
-```bash
-sudo nano /etc/postgresql/10/main/postgresql.conf  # Make first change here
-sudo nano /etc/postgresql/10/main/pg_hba.conf  # Make second change here
-sudo service postgresql restart  # Restart service
-```
-
 ### Administrator Usage
 Admins and staff have the ability to upload entire runs to the MiSeq portal database. 
 This is done via the miseq_uploader app (_http://192.168.1.61:8000/miseq_uploader/_).
@@ -101,7 +15,6 @@ If the run is only available on BaseSpace, it must be retrieved with [BaseMountR
 This structures the run in a format that the portal expects when parsing and uploading run data 
 (i.e. reads, InterOp, stats, logs). The user must supply the full path to the run: 
 _e.g. /mnt/Dr-Girlfriend/MiSeq/BaseSpace_Projects/Listeria2016WGS/20180813_WGS_M01308_
-
 
 ### Celery + RabbitMQ
 Computationally heavy tasks are offloaded to the server via `Celery` and `RabbitMQ`.
@@ -145,7 +58,6 @@ The following command will launch a web interface that will be accessible via 0.
 ```bash
 celery -A miseq_portal.taskapp flower
 ```
-
 
 ### Data Backup/Storage
 All user supplied Runs are stored on the **BMH-WGS-Backup NAS** (192.168.1.41), 
