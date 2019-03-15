@@ -14,14 +14,25 @@
     <div class="page-header">
       <h1>Projects</h1>
     </div>
+
+    <div class="alert alert-info" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h4><i class="fas fa-sticky-note"></i> Note</h4>
+      This page displays all <strong>Projects</strong> your user account has been associated with.
+      If you believe you are missing any projects from the following list, please send an email to <strong>forest.dussault@canada.ca</strong>
+      to request access.
+    </div>
+
     <div class="list-group">
       <table id="project_table" class="display">
         <thead>
         <tr>
           <th>Project ID</th>
-          {#          <th>Project Owner</th>#}
           <th># Samples</th>
           <th>Date Created</th>
+          <th>Last Updated</th>
         </tr>
         </thead>
         <tbody>
@@ -33,14 +44,14 @@
                   {{ project.project_id }}
                 </a>
               </td>
-              {#              <td>#}
-              {#                {{ project.project_owner }}#}
-              {#              </td>#}
               <td>
                 {{ sample_count_dict|get_item:project.project_id }}
               </td>
               <td data-order="{{ project.created|date:"Y-m-d H:i" }}">
                 {{ project.created|date:"d N Y" }}
+              </td>
+              <td data-order="{{ project.last_updated|date:"Y-m-d H:i" }}">
+                {{ project.last_updated|date:"d N Y" }}
               </td>
             </tr>
           {% else %}
@@ -52,14 +63,14 @@
                       {{ project.project_id }}
                     </a>
                   </td>
-                  {#                  <td>#}
-                  {#                    {{ project.project_owner }}#}
-                  {#                  </td>#}
                   <td>
                     {{ sample_count_dict|get_item:project.project_id }}
                   </td>
                   <td data-order="{{ project.created|date:"Y-m-d H:i" }}">
                     {{ project.created|date:"d N Y" }}
+                  </td>
+                  <td data-order="{{ project.last_updated|date:"Y-m-d H:i" }}">
+                    {{ project.last_updated|date:"d N Y" }}
                   </td>
                 </tr>
               {% endif %}
