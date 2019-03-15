@@ -11,7 +11,7 @@
       <strong>Tool URL:</strong> <a href="https://github.com/arpcard/rgi">RGI</a>
     </li>
     <li>
-      <strong>Version:</strong> RGI Version 0 {# TODO: Automatically pull version and pass context here #}
+      <strong>Version:</strong> RGI Version 4.2.2 {# TODO: Automatically pull version and pass context here #}
     </li>
     <li>
       <strong>Script:</strong> rgi main
@@ -22,13 +22,19 @@
 
 {% for rgi_result in rgi_results %}
   <h4>{{ rgi_result.sample_id }}</h4>
-  <a class="btn btn-primary btn-block" href="{{ rgi_result.rgi_main_text_results.url }}" download
-     role="button"><i
-    class="fas fa-download"></i> Download RGI Results (.txt)
-  </a>
-
-  <a class="btn btn-primary btn-block" href="{{ rgi_result.rgi_main_json_results.url }}" download
-     role="button"><i
-    class="fas fa-download"></i> Download RGI Results (.json)
-  </a>
+  <div class="row">
+    <div class="col-sm">
+      <a class="btn btn-primary btn-block" href="{{ rgi_result.rgi_main_text_results.url }}" download
+         role="button"><i
+        class="fas fa-download"></i> Download RGI Results (.txt)
+      </a>
+    </div>
+    <div class="col-sm">
+      <a class="btn btn-primary btn-block" href="{{ rgi_result.rgi_main_json_results.url }}" download
+         role="button"><i
+        class="fas fa-download"></i> Download RGI Results (.json)
+      </a>
+    </div>
+  </div>
+  <hr>
 {% endfor %}
