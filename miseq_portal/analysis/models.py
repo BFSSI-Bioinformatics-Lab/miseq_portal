@@ -9,8 +9,13 @@ from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
 
 
-def upload_analysis_file(instance: Sample, filename: str):
-    return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{filename}'
+def upload_analysis_file(instance: Sample, filename: str, analysis_folder: str = 'analysis'):
+    if instance.sample_type == "BMH":
+        return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{analysis_folder}/{filename}'
+    elif instance.sample_type == "MER":
+        return f'merged_samples/{instance.sample_id}/{analysis_folder}/{filename}'
+    elif instance.sample_type == "EXT":
+        return f'external_samples/{instance.sample_id}/{analysis_folder}/{filename}'
 
 
 def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str):
@@ -18,6 +23,8 @@ def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str
         return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
     elif instance.sample_type == "MER":
         return f'merged_samples/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
+    elif instance.sample_type == "EXT":
+        return f'external_samples/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
 
 
 class AnalysisGroup(models.Model):
@@ -25,7 +32,7 @@ class AnalysisGroup(models.Model):
     job_choices = (
         ('SendSketch', 'SendSketch'),
         ('MobRecon', 'MobRecon'),
-        # ('PlasmidAMR', 'PlasmidAMR'),
+        ('RGI', 'RGI'),
         # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
@@ -45,6 +52,10 @@ class AnalysisGroup(models.Model):
     def __str__(self):
         return f"{str(self.id)} ({str(self.job_type)})"
 
+    class Meta:
+        verbose_name = 'Analysis Group'
+        verbose_name_plural = 'Analysis Groups'
+
 
 class AnalysisSample(models.Model):
     sample_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
@@ -55,6 +66,10 @@ class AnalysisSample(models.Model):
 
     def __str__(self):
         return f"{str(self.sample_id)} - {self.group_id}"
+
+    class Meta:
+        verbose_name = 'Analysis Sample'
+        verbose_name_plural = 'Analysis Samples'
 
 
 class SendsketchResult(TimeStampedModel):
@@ -71,6 +86,10 @@ class SendsketchResult(TimeStampedModel):
 
     def __str__(self):
         return str(self.sample_id)
+
+    class Meta:
+        verbose_name = 'Sendsketch Result'
+        verbose_name_plural = 'Sendsketch Results'
 
 
 class MobSuiteAnalysisGroup(TimeStampedModel):
@@ -128,6 +147,10 @@ class MobSuiteAnalysisGroup(TimeStampedModel):
     def __str__(self):
         return str(f"MobSuiteAnalysisGroup ({self.analysis_sample})")
 
+    class Meta:
+        verbose_name = 'MobSuite Analysis Group'
+        verbose_name_plural = 'MobSuite Analysis Groups'
+
 
 class MobSuiteAnalysisPlasmid(TimeStampedModel):
     sample_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
@@ -152,3 +175,24 @@ class MobSuiteAnalysisPlasmid(TimeStampedModel):
 
     def __str__(self):
         return str(f"{self.pk} - {self.sample_id}")
+
+    class Meta:
+        verbose_name = 'MobSuite Plasmid'
+        verbose_name_plural = 'MobSuite Plasmids'
+
+
+class RGIResult(TimeStampedModel):
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    rgi_main_text_results = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
+    rgi_main_json_results = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
+    rgi_heatmap_result = models.ImageField(upload_to=upload_analysis_file, blank=True)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'RGI Result'
+        verbose_name_plural = 'RGI Results'
