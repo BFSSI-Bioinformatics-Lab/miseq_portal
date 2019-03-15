@@ -8,11 +8,12 @@ from pathlib import Path
 from celery import shared_task
 
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
-    SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, \
+    SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, \
     upload_analysis_file, upload_mobsuite_file
 from miseq_portal.analysis.tools.assemble_run import logger, MEDIA_ROOT, assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data
 from miseq_portal.analysis.tools.plasmid_report import call_mob_recon
+from miseq_portal.analysis.tools.rgi import call_rgi_main
 from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
 from miseq_portal.analysis.tools.sendsketch import sendsketch_tophit_pipeline, create_sendsketch_result_object
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
@@ -33,18 +34,56 @@ def submit_analysis_job(analysis_group_id: AnalysisGroup):
     analysis_group.save()
 
     logger.info(f"Starting {job_type} job for user '{user}' for samples in group ID {group_id}")
-    if job_type == 'SendSketch':
-        for sample_instance in analysis_samples:
-            logger.info(f"Processing {sample_instance}")
+
+    # TODO: Impement handling for failed jobs so they actually switch over to 'FAILED' instead of 'Working' forever
+
+    # Iterate over each sample instance and pass them to according method depending on job type
+    for sample_instance in analysis_samples:
+        logger.info(f"Processing {sample_instance}")
+        if job_type == 'SendSketch':
             submit_sendsketch_job(sample_instance=sample_instance)
-    elif job_type == 'MobRecon':
-        for sample_instance in analysis_samples:
-            logger.info(f"Processing {sample_instance}")
+        elif job_type == 'MobRecon':
             submit_mob_recon_job(sample_instance=sample_instance)
+        elif job_type == 'RGI':
+            submit_rgi_job(sample_instance=sample_instance)
 
     logger.info(f"Analysis for {analysis_group} completed")
     analysis_group.job_status = 'Complete'
     analysis_group.save()
+
+
+def submit_rgi_job(sample_instance: AnalysisSample):
+    logger.info(f"Received RGI job request for {sample_instance}")
+    assembly_instance = SampleAssemblyData.objects.get(sample_id=sample_instance.sample_id)
+    rgi_dir_name = f'RGI_{sample_instance.user}_{sample_instance.pk}'
+    root_sample_instance = Sample.objects.get(sample_id=sample_instance.sample_id)
+    outdir = Path(MEDIA_ROOT) / Path(str(sample_instance.sample_id.fwd_reads)).parent / rgi_dir_name
+
+    if not assembly_instance.assembly_exists():
+        logger.error(f"Could not find assembly for {assembly_instance} - cannot proceed with job")
+        return
+    else:
+        assembly_path = assembly_instance.get_assembly_path()
+
+    # Remove previous analysis if it exists
+    if outdir.exists():
+        shutil.rmtree(outdir, ignore_errors=True)
+    outdir.mkdir(parents=True)
+
+    # Call RGI
+    rgi_text_results, rgi_json_results = call_rgi_main(fasta=assembly_path, outdir=outdir,
+                                                       sample_id=root_sample_instance.sample_id)
+
+    # Populate database with results
+    rgi_result_object = RGIResult.objects.create(analysis_sample=sample_instance)
+    rgi_result_object.rgi_main_text_results = upload_analysis_file(instance=root_sample_instance,
+                                                                   filename=rgi_text_results.name,
+                                                                   analysis_folder=rgi_dir_name)
+    rgi_result_object.rgi_main_json_results = upload_analysis_file(instance=root_sample_instance,
+                                                                   filename=rgi_json_results.name,
+                                                                   analysis_folder=rgi_dir_name)
+    rgi_result_object.save()
+    logger.info(f"Completed running RGI on {sample_instance}")
 
 
 def submit_mob_recon_job(sample_instance: AnalysisSample):
@@ -62,8 +101,8 @@ def submit_mob_recon_job(sample_instance: AnalysisSample):
     # Remove previous analysis if it exists
     if outdir.exists():
         shutil.rmtree(outdir, ignore_errors=True)
+    outdir.mkdir(exist_ok=True)
 
-    os.makedirs(outdir, exist_ok=True)
     mob_recon_data_object = call_mob_recon(assembly=assembly_path, outdir=outdir)
 
     # We now create a new MobSuiteAnalysisGroup entry in the db for the AnalysisSample instance
@@ -119,7 +158,8 @@ def submit_sendsketch_job(sample_instance: AnalysisSample):
     fwd_reads = Path(MEDIA_ROOT) / str(sample_instance.sample_id.fwd_reads)
     rev_reads = Path(MEDIA_ROOT) / str(sample_instance.sample_id.rev_reads)
     sendsketch_filename = f'{sample_instance.user}_{sample_instance.pk}_SendSketch_results.txt'
-    outpath = Path(MEDIA_ROOT) / Path(str(sample_instance.sample_id.fwd_reads)).parent / sendsketch_filename
+    sample_folder = Path(MEDIA_ROOT) / Path(str(sample_instance.sample_id.fwd_reads)).parent
+    outpath = sample_folder / sendsketch_filename
     parent_sample = Sample.objects.get(sample_id=sample_instance.sample_id)
 
     sendsketch_result_file = run_sendsketch(fwd_reads=fwd_reads,
@@ -150,10 +190,11 @@ def submit_sendsketch_job(sample_instance: AnalysisSample):
 
     # Correct the path to the result file
     root_sample_instance = Sample.objects.get(sample_id=sample_instance.sample_id)
-    sendsketch_result_file = upload_analysis_file(root_sample_instance, sendsketch_result_file.name)
 
     # Update path to result file in database
-    sendsketch_object.sendsketch_result_file = sendsketch_result_file
+    sendsketch_object.sendsketch_result_file = upload_analysis_file(instance=root_sample_instance,
+                                                                    filename=sendsketch_result_file.name,
+                                                                    analysis_folder=sample_folder)
     sendsketch_object.save()
     logger.info(f"Saved {sendsketch_object} successfully")
 
