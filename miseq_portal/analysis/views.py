@@ -8,7 +8,7 @@ from django.views.generic import View, TemplateView, DetailView, DeleteView
 
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
-    MobSuiteAnalysisGroup
+    MobSuiteAnalysisGroup, RGIResult
 from miseq_portal.analysis.tasks import submit_analysis_job
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
@@ -120,18 +120,23 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['analysis_samples'] = AnalysisSample.objects.filter(group_id=context['analysis_group'])
 
+        # Sendketch
         if context['analysis_group'].job_type == 'SendSketch':
             context['sendsketch_results'] = SendsketchResult.objects.filter(
                 sample_id__analysissample__group_id=context['analysis_group'])
-            return context
+        # Mob Suite
         elif context['analysis_group'].job_type == 'MobRecon':
             context['mob_suite_analysis_samples'] = MobSuiteAnalysisGroup.objects.filter(
                 analysis_sample__group_id=context['analysis_group'])
             context['mob_suite_analysis_plasmids'] = MobSuiteAnalysisPlasmid.objects.filter(
                 sample_id__analysissample__group_id=context['analysis_group'])
-            return context
+        # RGI
+        elif context['analysis_group'].job_type == 'RGI':
+            context['rgi_results'] = RGIResult.objects.filter(
+                analysis_sample__group_id=context['analysis_group'])
         else:
             return context
+        return context
 
 
 analysis_group_detail_view = AnalysisGroupDetailView.as_view()
