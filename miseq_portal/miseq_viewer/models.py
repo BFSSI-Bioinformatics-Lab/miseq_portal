@@ -149,6 +149,11 @@ class Project(TimeStampedModel):
 
     # TODO: Consider adding flags for viral, prokaryotic, eukaryotic, metagenomic, mixed sample types
 
+    def last_updated(self) -> str:
+        """ Finds the most recently created Sample object belonging to this project """
+        samples = Sample.objects.filter(project_id=self.id).order_by('-created')
+        return samples[0].modified
+
     def __str__(self):
         return self.project_id
 
