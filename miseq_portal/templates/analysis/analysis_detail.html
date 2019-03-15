@@ -32,6 +32,10 @@
     <div id="mob_recon-results">
       {% include "analysis/results/mob_recon_results.html" %}
     </div>
+  {% elif analysis_group.job_type == "RGI" %}
+    <div id="mob_recon-results">
+      {% include "analysis/results/rgi_results.html" %}
+    </div>
   {% endif %}
 
   <hr>
