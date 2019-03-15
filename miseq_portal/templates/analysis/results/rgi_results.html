@@ -1,0 +1,34 @@
+<div class="alert alert-info" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  <h4>Tool Description</h4>
+  This application is used to predict resistome(s) from protein or nucleotide data based on homology and SNP models. The
+  application uses reference data from the Comprehensive Antibiotic Resistance Database (CARD).
+  <hr>
+  <ul>
+    <li>
+      <strong>Tool URL:</strong> <a href="https://github.com/arpcard/rgi">RGI</a>
+    </li>
+    <li>
+      <strong>Version:</strong> RGI Version 0 {# TODO: Automatically pull version and pass context here #}
+    </li>
+    <li>
+      <strong>Script:</strong> rgi main
+    </li>
+
+  </ul>
+</div>
+
+{% for rgi_result in rgi_results %}
+  <h4>{{ rgi_result.sample_id }}</h4>
+  <a class="btn btn-primary btn-block" href="{{ rgi_result.rgi_main_text_results.url }}" download
+     role="button"><i
+    class="fas fa-download"></i> Download RGI Results (.txt)
+  </a>
+
+  <a class="btn btn-primary btn-block" href="{{ rgi_result.rgi_main_json_results.url }}" download
+     role="button"><i
+    class="fas fa-download"></i> Download RGI Results (.json)
+  </a>
+{% endfor %}
