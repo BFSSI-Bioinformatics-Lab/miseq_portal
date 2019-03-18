@@ -20,21 +20,56 @@
   </ul>
 </div>
 
-{% for rgi_result in rgi_results %}
-  <h4>{{ rgi_result.sample_id }}</h4>
-  <div class="row">
-    <div class="col-sm">
-      <a class="btn btn-primary btn-block" href="{{ rgi_result.rgi_main_text_results.url }}" download
-         role="button"><i
-        class="fas fa-download"></i> Download RGI Results (.txt)
-      </a>
-    </div>
-    <div class="col-sm">
-      <a class="btn btn-primary btn-block" href="{{ rgi_result.rgi_main_json_results.url }}" download
-         role="button"><i
-        class="fas fa-download"></i> Download RGI Results (.json)
-      </a>
-    </div>
+{# Display the heatmap if RGI was run on > 1 sample #}
+{% if rgi_results|length > 1 %}
+  <h3>Heatmap <a class="btn btn-success" data-toggle="collapse" href="#heatmapCollapse" role="button"
+                 aria-expanded="false"
+                 aria-controls="heatmapCollapse">+</a>
+    <a class="btn btn-primary" href="{{ rgi_group_result.rgi_heatmap_result.url }}" download
+       role="button"><i
+      class="fas fa-download"></i> Download Heatmap (.png)
+    </a>
+  </h3>
+
+  <div class="collapse" id="heatmapCollapse">
+    <div class="card card-body">
+      <img class="img-responsive border" src="{{ rgi_group_result.rgi_heatmap_result.url }}"
+           style="display: block; max-width: 100%; height: auto"></div>
   </div>
-  <hr>
-{% endfor %}
+{% endif %}
+
+<hr>
+<br>
+
+<h3>Individual Results</h3>
+<table class="table">
+  <thead>
+  <tr>
+    <td><strong>Sample ID</strong></td>
+    <td><strong>.txt</strong></td>
+    <td><strong>.json</strong></td>
+  </tr>
+  </thead>
+  <tbody>
+  {% for rgi_result in rgi_results %}
+    <tr>
+      <td>{{ rgi_result.sample_id }}</td>
+      <td><a class="btn btn-primary" href="{{ rgi_result.rgi_main_text_results.url }}" download
+             role="button"><i
+        class="fas fa-download"></i>
+      </a></td>
+      <td><a class="btn btn-primary" href="{{ rgi_result.rgi_main_json_results.url }}" download
+             role="button"><i
+        class="fas fa-download"></i>
+      </a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<hr>
+{% if rgi_results|length > 1 %}
+  <a class="btn btn-primary" href="{{ rgi_group_result.rgi_heatmap_result.url }}" download
+     role="button"><i
+    class="fas fa-download"></i> Download All Results (.zip)
+  </a>
+{% endif %}
