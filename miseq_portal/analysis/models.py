@@ -8,8 +8,17 @@ from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
 
+MEDIA_ROOT = Path(MEDIA_ROOT)
 
-def upload_analysis_file(instance: Sample, filename: str, analysis_folder: str = 'analysis'):
+
+def upload_analysis_file(instance: Sample, filename: str, analysis_folder: str = 'analysis') -> str:
+    """
+    Method for generating an analysis upload path for a particular sample. Final path is dependent on sample_type.
+    :param instance: Sample object
+    :param filename: Name of the output analysis file
+    :param analysis_folder: Directory to store analysis file
+    :return: Upload path
+    """
     if instance.sample_type == "BMH":
         return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{analysis_folder}/{filename}'
     elif instance.sample_type == "MER":
@@ -18,7 +27,15 @@ def upload_analysis_file(instance: Sample, filename: str, analysis_folder: str =
         return f'external_samples/{instance.sample_id}/{analysis_folder}/{filename}'
 
 
-def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str):
+def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str) -> str:
+    """
+    TODO: This method is redundant and could be replaced by upload_analyis_file(). Remove and refactor.
+    Method for generating an MOB suite analysis upload path for a particular sample.
+    :param instance: Sample object
+    :param filename: Name of the output analysis file
+    :param mobsuite_dir_name: Directory to store analysis file
+    :return: Upload path
+    """
     if instance.sample_type == "BMH":
         return f'uploads/runs/{instance.run_id}/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
     elif instance.sample_type == "MER":
@@ -28,6 +45,9 @@ def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str
 
 
 class AnalysisGroup(models.Model):
+    """
+    Generic model for associating an analysis job
+    """
     # This determines what options appear on the Analysis tool selection form
     job_choices = (
         ('SendSketch', 'SendSketch'),
@@ -57,7 +77,16 @@ class AnalysisGroup(models.Model):
         verbose_name_plural = 'Analysis Groups'
 
 
+def upload_group_analysis_file(analysis_group: AnalysisGroup, filename: str) -> str:
+    """ Method for generating upload path for group analysis results (e.g. results from RGI heatmap)"""
+    timestamped_dir = str(analysis_group.id) + '_' + analysis_group.created.strftime('%Y%m%d')
+    return f'analysis_groups/{analysis_group.job_type}/{timestamped_dir}/{filename}'
+
+
 class AnalysisSample(models.Model):
+    """
+    Generic model for associating a User, Sample ID and Group
+    """
     sample_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
     group_id = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -73,6 +102,9 @@ class AnalysisSample(models.Model):
 
 
 class SendsketchResult(TimeStampedModel):
+    """
+    Model for storing Sendsketch results on an individual sample
+    """
     sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
     sendsketch_result_file = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
 
@@ -93,6 +125,10 @@ class SendsketchResult(TimeStampedModel):
 
 
 class MobSuiteAnalysisGroup(TimeStampedModel):
+    """
+    Model for storing all general MOB suite results for a single AnalysisSample
+    See MobSuiteAnalysisPlasmid for individual plasmid results
+    """
     analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
     contig_report = models.FileField(upload_to=upload_mobsuite_file, blank=True, max_length=1000)
     mobtyper_aggregate_report = models.FileField(upload_to=upload_mobsuite_file, blank=True, max_length=1000)
@@ -103,8 +139,8 @@ class MobSuiteAnalysisGroup(TimeStampedModel):
     def group_id(self):
         return self.analysis_sample.group_id
 
-    def get_plasmid_attribute(self, plasmid_basename: str, attribute: str, aggregate_report_path: Path = None) -> (
-        str, None):
+    def get_plasmid_attribute(self, plasmid_basename: str, attribute: str, aggregate_report_path: Path = None) -> (str,
+                                                                                                                   None):
         valid_attributes = [
             'file_id', 'num_contigs', 'total_length',
             'gc', 'rep_type(s)', 'rep_type_accession(s)',
@@ -153,6 +189,9 @@ class MobSuiteAnalysisGroup(TimeStampedModel):
 
 
 class MobSuiteAnalysisPlasmid(TimeStampedModel):
+    """
+    Model for storing individual plasmid results for MOB suite output on a per-sample basis
+    """
     sample_id = models.ForeignKey(Sample, on_delete=models.CASCADE)
     group_id = models.ForeignKey(MobSuiteAnalysisGroup, on_delete=models.CASCADE)
     plasmid_fasta = models.FileField(upload_to=upload_mobsuite_file, blank=True, max_length=1000)
@@ -182,10 +221,12 @@ class MobSuiteAnalysisPlasmid(TimeStampedModel):
 
 
 class RGIResult(TimeStampedModel):
+    """
+    Model for storing output files from rgi main
+    """
     analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
     rgi_main_text_results = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
     rgi_main_json_results = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
-    rgi_heatmap_result = models.ImageField(upload_to=upload_analysis_file, blank=True)
 
     def sample_id(self):
         return self.analysis_sample.sample_id
@@ -196,3 +237,19 @@ class RGIResult(TimeStampedModel):
     class Meta:
         verbose_name = 'RGI Result'
         verbose_name_plural = 'RGI Results'
+
+
+class RGIGroupResult(TimeStampedModel):
+    """
+    Model for storing overall RGI analysis of entire AnalysisGroup e.g. the RGI heatmap
+    """
+    # TODO: Implement functionality to create a directory at /mnt/MiSeqPortal/analysis_group/RGI/{AnalysisGroup}
+    #  and store results there
+    analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
+    rgi_heatmap_result = models.ImageField(upload_to=upload_group_analysis_file, blank=True)  # Stores .png file
+    rgi_json_results_zip = models.FileField(upload_to=upload_group_analysis_file, blank=True)  # .zip of all .json
+    rgi_txt_results_zip = models.FileField(upload_to=upload_group_analysis_file, blank=True)  # .zip of all .txt
+
+    class Meta:
+        verbose_name = 'RGI Group Result'
+        verbose_name_plural = 'RGI Group Results'
