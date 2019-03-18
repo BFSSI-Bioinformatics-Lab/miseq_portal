@@ -8,7 +8,7 @@ from django.views.generic import View, TemplateView, DetailView, DeleteView
 
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
-    MobSuiteAnalysisGroup, RGIResult
+    MobSuiteAnalysisGroup, RGIResult, RGIGroupResult
 from miseq_portal.analysis.tasks import submit_analysis_job
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
@@ -123,17 +123,18 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
         # Sendketch
         if context['analysis_group'].job_type == 'SendSketch':
             context['sendsketch_results'] = SendsketchResult.objects.filter(
-                sample_id__analysissample__group_id=context['analysis_group'])
+                sample_id__analysissample__group_id=context['analysis_group']).order_by('-sample_id')
         # Mob Suite
         elif context['analysis_group'].job_type == 'MobRecon':
             context['mob_suite_analysis_samples'] = MobSuiteAnalysisGroup.objects.filter(
-                analysis_sample__group_id=context['analysis_group'])
+                analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
             context['mob_suite_analysis_plasmids'] = MobSuiteAnalysisPlasmid.objects.filter(
-                sample_id__analysissample__group_id=context['analysis_group'])
+                sample_id__analysissample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
         # RGI
         elif context['analysis_group'].job_type == 'RGI':
             context['rgi_results'] = RGIResult.objects.filter(
-                analysis_sample__group_id=context['analysis_group'])
+                analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
+            context['rgi_group_result'] = RGIGroupResult.objects.get(analysis_group=context['analysis_group'])
         else:
             return context
         return context
