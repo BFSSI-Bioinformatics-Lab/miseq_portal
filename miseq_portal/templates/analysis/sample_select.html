@@ -21,7 +21,7 @@
       </button>
     </h1>
 
-    <!-- Analysis Sample Selection Modal -->
+    {# Analysis Sample Selection Modal #}
     <div class="modal fade" id="selectionModal" tabindex="-1" role="dialog" aria-labelledby="selectionModalLabel"
          aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -43,6 +43,40 @@
       </div>
     </div>
   </div>
+
+  {# Tool description dropdown #}
+  <h3>
+    <a class="btn btn-success" data-toggle="collapse" href="#toolDescriptions" role="button"
+       aria-expanded="false"
+       aria-controls="toolDescriptions"><i class="far fa-hand-pointer"></i> Tool Descriptions</a>
+  </h3>
+
+  <div class="collapse" id="toolDescriptions">
+    <div class="card">
+      <div class="card-header">
+        A number of tools are available to process existing datasets:
+      </div>
+      <ol class="list-group list-group-flush">
+        <li class="list-group-item"><h5>Sendsketch</h5>
+          <p class="card-text">Sendsketch compares query sketches to reference sketches hosted on a remote server via
+            the Internet.
+            Uses the R1 and R2 reads of any given sample and compares against a sketch of RefSeq.</p>
+        </li>
+        <li class="list-group-item"><h5>Mob Recon</h5>
+          <p class="card-text">This tool reconstructs individual plasmid sequences from draft genome assemblies using the clustered plasmid reference
+  databases provided by MOB-cluster. Provides in silico predictions of the replicon family, relaxase type, mate-pair
+  formation type and predicted transferability of the plasmid.</p>
+        </li>
+        <li class="list-group-item"><h5>RGI</h5>
+          <p class="card-text">This application is used to predict resistome(s) from protein or nucleotide data based on
+            homology and SNP models. The
+            application uses reference data from the Comprehensive Antibiotic Resistance Database (CARD).</p>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <hr>
 
   <div class="row">
     <div class="col">
