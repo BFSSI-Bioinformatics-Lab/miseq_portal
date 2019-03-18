@@ -38,10 +38,23 @@
   </div>
 {% endif %}
 
-<hr>
 <br>
+{% if rgi_results|length > 1 %}
+  <hr>
+  <h3>Retrieve All Results</h3>
+  <a class="btn btn-primary" href="{{ rgi_group_result.rgi_txt_results_zip.url }}" download
+     role="button"><i
+    class="fas fa-download"></i> Download all <strong>.txt</strong> Results (.zip)
+  </a>
+  <a class="btn btn-primary" href="{{ rgi_group_result.rgi_json_results_zip.url }}" download
+     role="button"><i
+    class="fas fa-download"></i> Download all <strong>.json</strong> Results (.zip)
+  </a>
+{% endif %}
 
-<h3>Individual Results</h3>
+<hr>
+
+<h3>Retrieve Individual Results</h3>
 <table class="table">
   <thead>
   <tr>
@@ -66,10 +79,3 @@
   {% endfor %}
   </tbody>
 </table>
-<hr>
-{% if rgi_results|length > 1 %}
-  <a class="btn btn-primary" href="{{ rgi_group_result.rgi_heatmap_result.url }}" download
-     role="button"><i
-    class="fas fa-download"></i> Download All Results (.zip)
-  </a>
-{% endif %}
