@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from miseq_portal.miseq_viewer.models import Project, Run, RunInterOpData, Sample, UserProjectRelationship, \
-    SampleLogData, SampleAssemblyData, MergedSampleComponentGroup, MergedSampleComponent
+    SampleLogData, SampleAssemblyData, MergedSampleComponentGroup, MergedSampleComponent, RunSamplesheet
 
 
 class SampleAdmin(admin.ModelAdmin):
@@ -15,6 +15,7 @@ class SampleAssemblyDataAdmin(admin.ModelAdmin):
 # Register your models here.
 admin.site.register(Project)
 admin.site.register(Run)
+admin.site.register(RunSamplesheet)
 admin.site.register(RunInterOpData)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(UserProjectRelationship)
