@@ -4,6 +4,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import reverse
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.core.models import TimeStampedModel
@@ -154,8 +155,15 @@ class Project(TimeStampedModel):
         samples = Sample.objects.filter(project_id=self.id).order_by('-created')
         return samples[0].modified
 
+    @property
+    def num_samples(self):
+        return len(Sample.objects.filter(project_id=self.pk))
+
     def __str__(self):
         return self.project_id
+
+    def __len__(self):
+        return self.num_samples
 
     class Meta:
         verbose_name = 'Project'
@@ -180,8 +188,8 @@ class UserProjectRelationship(TimeStampedModel):
         return str(self.project_id) + ' : ' + str(self.user_id) + ' : ' + str(self.access_level)
 
     class Meta:
-        verbose_name = 'UserProjectRelationship'
-        verbose_name_plural = 'UserProjectRelationships'
+        verbose_name = 'User Project Relationship'
+        verbose_name_plural = 'User Project Relationships'
 
 
 class Run(TimeStampedModel):
@@ -202,15 +210,57 @@ class Run(TimeStampedModel):
 
     # TODO: Add sequencing type e.g. amplicon, metagenomic, WGS
 
+    def get_interop_directory(self) -> Path:
+        return Path(self.interop_directory_path)
+
+    @property
+    def run_url(self) -> str:
+        return reverse('miseq_viewer:miseq_viewer_run_detail', args=(self.pk,))
+
+    @property
+    def num_samples(self) -> int:
+        return len(Sample.objects.filter(run_id=self.pk))
+
     def __str__(self):
         return str(self.run_id)
 
-    def get_interop_directory(self) -> Path:
-        return Path(self.interop_directory_path)
+    def __len__(self):
+        return self.num_samples
 
     class Meta:
         verbose_name = 'Run'
         verbose_name_plural = 'Runs'
+
+
+class RunSamplesheet(TimeStampedModel):
+    run_id = models.OneToOneField(Run, on_delete=models.CASCADE, primary_key=True)
+
+    # Attempts to capture all possible fields within the [Header] section of a MiSeq or iSeq samplesheet
+    iemfileversion = models.CharField(blank=True, max_length=1028)
+    local_run_manager_analysis_id = models.CharField(blank=True, max_length=1028)
+    investigator_name = models.CharField(blank=True, max_length=1028)
+    experiment_name = models.CharField(blank=True, max_length=1028)
+    samplesheet_date = models.CharField(blank=True, max_length=1028)
+    workflow = models.CharField(blank=True, max_length=1028)
+    date = models.CharField(blank=True, max_length=1028)
+    instrument_type = models.CharField(blank=True, max_length=1028)
+    module = models.CharField(blank=True, max_length=1028)
+    library_prep_kit = models.CharField(blank=True, max_length=1028)
+    application = models.CharField(blank=True, max_length=1028)
+    assay = models.CharField(blank=True, max_length=1028)
+    index_adapters = models.CharField(blank=True, max_length=1028)
+    description = models.CharField(blank=True, max_length=1028)
+    chemistry = models.CharField(blank=True, max_length=1028)
+
+    def get_fields(self):
+        return [(field.name, field.value_to_string(self)) for field in RunSamplesheet._meta.fields]
+
+    class Meta:
+        verbose_name = 'Run Samplesheet'
+        verbose_name_plural = 'Run Samplesheets'
+
+    def __str__(self):
+        return str(self.run_id)
 
 
 class RunInterOpData(TimeStampedModel):
@@ -233,8 +283,8 @@ class RunInterOpData(TimeStampedModel):
         return str(self.run_id) + "_InterOp"
 
     class Meta:
-        verbose_name = 'RunInterOpData'
-        verbose_name_plural = 'RunInterOpData'
+        verbose_name = 'Run InterOp Data'
+        verbose_name_plural = 'Run InterOp Data'
 
 
 class MergedSampleComponentGroup(models.Model):
@@ -246,8 +296,13 @@ class MergedSampleComponentGroup(models.Model):
     modified = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    @property
+    def get_components(self):
+        components = MergedSampleComponent.objects.filter(group_id=self.pk)
+        return components
+
     def __str__(self):
-        return f"MergedSampleComponentGroup ({str(self.pk)})"
+        return f"{str(self.pk)} - {self.created.date()} - " + ", ".join([component.component_id.sample_id for component in self.get_components])
 
     class Meta:
         verbose_name = 'Merged Sample Component Group'
@@ -338,16 +393,16 @@ class SampleLogData(TimeStampedModel):
     r2_yield = models.BigIntegerField(blank=True, null=True)
     r2_yieldq30 = models.BigIntegerField(blank=True, null=True)
 
-    def __str__(self):
-        return str(self.sample_id)
-
     def sample_yield_mbp(self):
         if self.sample_yield is not None:
             return float(self.sample_yield / 1000000)
 
+    def __str__(self):
+        return str(self.sample_id)
+
     class Meta:
-        verbose_name = 'SampleLogData'
-        verbose_name_plural = 'SampleLogData'
+        verbose_name = 'Sample Log Data'
+        verbose_name_plural = 'Sample Log Data'
 
 
 class SampleAssemblyData(TimeStampedModel):
@@ -375,9 +430,6 @@ class SampleAssemblyData(TimeStampedModel):
     pilon_version = models.TextField(blank=True)
     quast_version = models.TextField(blank=True)
 
-    def __str__(self):
-        return str(self.sample_id)
-
     def get_assembly_path(self) -> Path:
         """
         Returns the expected assembly path, if it exists
@@ -398,6 +450,9 @@ class SampleAssemblyData(TimeStampedModel):
         elif assembly_path.exists():
             return True
 
+    def __str__(self):
+        return str(self.sample_id)
+
     class Meta:
-        verbose_name = 'SampleAssemblyData'
-        verbose_name_plural = 'SampleAssemblyData'
+        verbose_name = 'Sample Assembly Data'
+        verbose_name_plural = 'Sample Assembly Data'
