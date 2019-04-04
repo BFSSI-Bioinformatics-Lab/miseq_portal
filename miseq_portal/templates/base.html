@@ -1,9 +1,10 @@
-{% load static i18n %}<!DOCTYPE html>
+{% load static i18n %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>{% block title %}MiSeq Portal{% endblock title %}</title>
+  <title>{% block title %}Genomics Portal{% endblock title %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0 shrink-to-fit=no">
   <meta name="description" content="">
   <meta name="author" content="Forest Dussault">
@@ -41,7 +42,7 @@
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0" id="portal-navbar">
   <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="{% url 'home' %}" id="portal-brand">
     <i class="fas fa-dna"></i>
-    <span class="text">MiSeq Portal</span>
+    <span class="text">Genomics Portal</span>
   </a>
   {% if request.user.is_authenticated %}
     {# SEARCH BAR #}
@@ -99,6 +100,15 @@
                  href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i>
                 Projects</a>
             </li>
+            {% if request.user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link "
+                   href="{% url 'miseq_viewer:miseq_viewer_runs' %}">
+                  {#                <span class="icon-miseq_icon" data-icon="&#xe900;"></span>#}
+                  <span class="icon-miseq"></span>
+                  Runs</a>
+              </li>
+            {% endif %}
             <li class="nav-item">
               <a class="nav-link "
                  href="{% url 'analysis:sample_select' %}"><i class="fas fa-flask"></i> Analysis</a>
