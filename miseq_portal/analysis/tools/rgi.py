@@ -1,18 +1,10 @@
-"""
-TODO: Implement RGI for AMR detection.
-
-Example cmd:
-rgi main -i {input_file} -o {outpath} --clean
-
-RGI also has subcommands to generate visuals (parser, heatmap), create summaries for > 1 samples (tab)
-"""
 import logging
 from pathlib import Path
 from typing import Optional
 
 import pandas as pd
 
-from miseq_portal.analysis.models import RGIResult
+from miseq_portal.analysis.models import AnalysisGroup
 from miseq_portal.analysis.tools.helpers import run_subprocess
 
 logger = logging.getLogger('django')
@@ -47,12 +39,13 @@ def call_rgi_parser(rgi_json: Path, outdir: Path, sample_id: str):
     These files can be uploaded to the CARD website for visualization
     Maybe I'll visualize this myself?
     """
+    # TODO: Finish implementing this
     outpath = outdir / (sample_id + "RGI_Parsed")
     cmd = f'rgi parser -i {rgi_json} -o {outpath} -t contig'
     run_subprocess(cmd)
 
 
-def call_rgi_heatmap(rgi_json_dir: Path, outdir: Path, analysis_group_id: str,
+def call_rgi_heatmap(rgi_json_dir: Path, outdir: Path, analysis_group: AnalysisGroup,
                      category: str = 'drug_class', cluster: str = 'samples', display='text'):
     """
     Calls the RGI heatmap program. This takes an input directory containing all RGI .json results to compare.
@@ -61,28 +54,25 @@ def call_rgi_heatmap(rgi_json_dir: Path, outdir: Path, analysis_group_id: str,
         2) --cluster {samples, genes, both}
         3) --display {plain, fill, text}
     """
-    outpath = outdir / (analysis_group_id + '_heatmap')
+    logger.info(f"Running RGI heatmap on {analysis_group}")
+    outpath = outdir / (analysis_group.created.strftime('%Y%m%d') + '_heatmap')
     cmd = f'rgi heatmap -i {rgi_json_dir} --category {category} ' \
         f'--cluster {cluster} --display {display} --output {outpath}'
     run_subprocess(cmd)
-    eps_out = list(outdir.glob(analysis_group_id + 'heatmap*.eps'))[0]
-    png_out = list(outdir.glob(analysis_group_id + 'heatmap*.png'))[0]
 
-    # Make sure output files exists
+    try:
+        eps_out = list(outdir.glob(analysis_group.created.strftime('%Y%m%d') + '_heatmap*.eps'))[0]
+        png_out = list(outdir.glob(analysis_group.created.strftime('%Y%m%d') + '_heatmap*.png'))[0]
+    except IndexError:
+        logger.warning(f"RGI did not generate the expected output files for {analysis_group}")
+        return None
     try:
         assert eps_out.exists()
         assert png_out.exists()
     except AssertionError:
-        logger.warning(f"Could not find expected RGI output files for {analysis_group_id}")
+        logger.warning(f"Could not find expected RGI output files for {analysis_group}")
         return None
-
-    # Remove the .png file, the .eps contains everything we need
-    png_out.unlink()
-    return eps_out
-
-
-def gather_rgi_json_results(rgi_result_list: [RGIResult], outdir: Path):
-    pass
+    return png_out
 
 
 def parse_rgi_output(rgi_text_results: Path):
