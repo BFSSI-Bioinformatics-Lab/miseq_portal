@@ -4,7 +4,6 @@ from pathlib import Path
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.utils import timezone
 from django.views.generic import DetailView, ListView
 from rest_framework import viewsets
 
@@ -13,7 +12,7 @@ from miseq_portal.analysis.models import AnalysisSample
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
-    MergedSampleComponent, SampleLogData
+    MergedSampleComponent, SampleLogData, RunSamplesheet
 from miseq_portal.miseq_viewer.serializers import SampleSerializer, RunSerializer, ProjectSerializer
 
 logger = logging.getLogger('django')
@@ -26,9 +25,6 @@ class ProjectListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['now'] = timezone.now()
-        context['user'] = self.request.user
-        context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user)
         context['overview_json'] = self.get_overview_data()
         context['sample_count_dict'] = {project.project_id: len(Sample.objects.filter(project_id_id=project)) for
                                         project in Project.objects.all()}
@@ -41,6 +37,15 @@ class ProjectListView(LoginRequiredMixin, ListView):
         overview_dict['number_of_samples'] = len(Sample.objects.all().values())
         overview_dict['number_of_runs'] = len(Run.objects.all().values())
         return json.dumps(overview_dict)
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            queryset = Project.objects.all().order_by('project_id')
+        else:
+            valid_projects = UserProjectRelationship.objects.filter(user_id=self.request.user)
+            valid_projects = [p.project_id for p in valid_projects]
+            queryset = Project.objects.filter(Q(project_id__in=valid_projects)).order_by('project_id')
+        return queryset
 
 
 project_list_view = ProjectListView.as_view()
@@ -57,11 +62,20 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         context['sample_list'] = Sample.objects.filter(project_id=context['project'], hide_flag=False)
         # Filter out samples that are missing data for the project_detail.html template
         context['has_sample_log_data'] = context['sample_list'].filter(samplelogdata__isnull=False)
-        context['has_sendsketch_result'] = context['sample_list'].filter(sendsketchresult__isnull=False)
+        context['has_mash_result'] = context['sample_list'].filter(mashresult__isnull=False)
         return context
 
 
 project_detail_view = ProjectDetailView.as_view()
+
+
+class RunListView(LoginRequiredMixin, ListView):
+    model = Run
+    context_object_name = 'run_list'
+    template_name = "miseq_viewer/run_list.html"
+
+
+run_list_view = RunListView.as_view()
 
 
 class RunDetailView(LoginRequiredMixin, DetailView):
@@ -93,8 +107,8 @@ class RunDetailView(LoginRequiredMixin, DetailView):
             context['interop_data_avaiable'] = False
 
         # logger.debug(f"interop_data_available: {context['interop_data_avaiable']}")
-        context['project_list'] = Project.objects.all()
-        context['sample_list'] = Sample.objects.filter(hide_flag=False)
+        context['sample_list'] = Sample.objects.filter(run_id=context['run'], hide_flag=False)
+        context['samplesheet_headers'] = RunSamplesheet.objects.get(run_id=context['run'])
         context['samplesheet_df'] = parse_samplesheet.read_samplesheet_to_html(sample_sheet=samplesheet)
 
         return context
@@ -115,6 +129,7 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        sample_object = context['sample']
 
         # Query the AnalysisSample model to see if there are any analyses associated with this sample for this user
         analysis_samples = AnalysisSample.objects.filter(sample_id=context['sample'], user_id=self.request.user)
@@ -125,12 +140,16 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
         except SampleAssemblyData.DoesNotExist:
             context['assembly_data'] = None
 
-        # Get top Sendsketch hit if it exists
+        # Get Mash hit if it exists
         try:
-            context['sendsketch'] = SampleAssemblyData.objects.get(
-                sample_id=context['sample']).sample_id.sendsketchresult
+            context['top_refseq_hit'] = sample_object.mashresult.top_hit
         except:
-            context['sendsketch'] = None
+            # Get top Sendsketch hit if it exists
+            try:
+                context['top_refseq_hit'] = SampleAssemblyData.objects.get(
+                    sample_id=context['sample']).sample_id.sendsketchresult.top_taxName
+            except:
+                context['top_refseq_hit'] = None
 
         # Set to None if the FileField for the assembly is empty
         try:
@@ -209,5 +228,13 @@ class RunViewSet(viewsets.ModelViewSet):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all().order_by('project_id')
     serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            queryset = Project.objects.all().order_by('project_id')
+        else:
+            valid_projects = UserProjectRelationship.objects.filter(user_id=self.request.user)
+            valid_projects = [p.project_id for p in valid_projects]
+            queryset = Project.objects.filter(Q(project_id__in=valid_projects)).order_by('project_id')
+        return queryset
