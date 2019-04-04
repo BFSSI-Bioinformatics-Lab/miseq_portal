@@ -3,8 +3,7 @@
 {% block content %}
   {% if user.is_authenticated %}
     <div class="jumbotron" id="home_jumbo">
-
-      <h2>Welcome to the <strong><i class="fas fa-dna"></i> MiSeq Portal</strong></h2>
+      <h2>Welcome to the <strong><i class="fas fa-dna"></i> Genomics Portal</strong></h2>
       <p class="lead">You are logged in as user <strong class="text-success">{{ request.user }}</strong></p>
       <hr class="my-4">
       <p class="lead">
@@ -26,10 +25,8 @@
       If you encounter any issues, please contact <strong>forest.dussault@canada.ca</strong> with a description of
       the bug.
     </div>
-
   {% else %}
     <div class="container">
-
       <div class="jumbotron" id="home_jumbo">
         <p class="lead">Please sign in to access the <strong>MiSeq Portal</strong></p>
         <hr class="my-4">
@@ -39,7 +36,5 @@
           </i></p>
       </div>
     </div>
-
   {% endif %}
-
 {% endblock %}
