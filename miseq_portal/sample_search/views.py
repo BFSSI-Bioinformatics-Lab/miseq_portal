@@ -41,6 +41,7 @@ class SampleSearchViewAsJSON(LoginRequiredMixin, View):
 sample_search_view_json = SampleSearchViewAsJSON.as_view()
 
 
+# TODO: Refactor to utilize the API + django-rest-framework-datatables
 class SampleSearchView(LoginRequiredMixin, ListView):
     model = Sample
     template_name = 'sample_search/sample_search.html'
@@ -50,14 +51,14 @@ class SampleSearchView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         search_term = self.request.GET.get('search_term')
 
-        # Queries various fields from Sample as well as the top_TaxID from SendsketchResult
-        # prefetch_related joins Sample and SendsketchResult on the OneToOne field sample_id
-        sample_list = self.model.objects.prefetch_related('sendsketchresult').filter(
+        # Queries various fields from Sample as well as the top_hit from MashResult
+        # prefetch_related joins Sample and MashResult on the OneToOne field sample_id
+        sample_list = self.model.objects.prefetch_related('mashresult').filter(
             Q(sample_id__icontains=search_term) |
             Q(project_id__project_id__icontains=search_term) |
             Q(sample_name__icontains=search_term) |
             Q(run_id__run_id__icontains=search_term) |
-            Q(sendsketchresult__top_taxName__icontains=search_term)
+            Q(mashresult__top_hit__icontains=search_term)
         )
 
         # Filter out hidden samples
