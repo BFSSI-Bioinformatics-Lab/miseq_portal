@@ -7,10 +7,12 @@ from typing import Union
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.tasks import assemble_sample_instance
 from miseq_portal.miseq_uploader.parse_miseq_analysis_folder import parse_miseq_folder
-from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects, validate_sample_id
+from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_objects, validate_sample_id, \
+    extract_samplesheet_headers
 from miseq_portal.miseq_uploader.parse_stats_json import stats_json_to_df
 from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, \
-    SampleLogData, upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, \
+    SampleLogData, RunSamplesheet, \
+    upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, \
     RunDataObject
 from miseq_portal.users.models import User
 
@@ -54,7 +56,7 @@ def receive_miseq_run_dir(miseq_dir: Path):
 
     logger.info(f'CHECKING SAMPLESHEET AND RUN DETAILS')
     run_data_object = miseq_dict['run_data_object']
-    sample_object_list = generate_sample_objects(sample_sheet=run_data_object.sample_sheet)
+    sample_object_list = generate_sample_objects(samplesheet=run_data_object.sample_sheet)
 
     # Update SampleObjects with stats and reads
     sample_object_list = append_sample_object_reads(sample_dict=miseq_dict['sample_dict'],
@@ -73,6 +75,7 @@ def receive_miseq_run_dir(miseq_dir: Path):
 
     sample_object_list = upload_to_db(sample_object_list=sample_object_list,
                                       run_data_object=run_data_object)
+
     logger.info(f'UPLOAD COMPLETE')
 
     # Run assembly pipeline on sample_object_list
@@ -314,10 +317,19 @@ def db_create_sample_log(sample_object: SampleDataObject, sample_instance: Sampl
     return sample_log_instance
 
 
+def db_create_runsamplesheet(run_instance: Run) -> RunSamplesheet:
+    runsamplesheet_instance, run_created = RunSamplesheet.objects.get_or_create(run_id=run_instance)
+    if run_created:
+        attr_dict = extract_samplesheet_headers(samplesheet=Path(MEDIA_ROOT) / str(run_instance.sample_sheet))
+        for attribute, value in attr_dict.items():
+            setattr(runsamplesheet_instance, attribute, value)
+        runsamplesheet_instance.save()
+    return runsamplesheet_instance
+
+
 def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDataObject) -> [SampleDataObject]:
     """
     Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database
-    This should only work with sample_type=="BMH" samples
     """
     updated_sample_object_list = []
     for sample_object in sample_object_list:
@@ -331,8 +343,11 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
         # RUN
         run_instance = db_create_run(sample_object=sample_object, run_data_object=run_data_object)
 
+        # RUN SAMPLESHEET
+        run_samplesheet_instance = db_create_runsamplesheet(run_instance=run_instance, run_data_object=run_data_object)
+
         # RUN INTEROP
-        run_interop_instance = db_create_run_interop(run_instance, run_data_object=run_data_object)
+        run_interop_instance = db_create_run_interop(run_instance=run_instance, run_data_object=run_data_object)
 
         # SAMPLE
         sample_instance = db_create_sample(sample_object=sample_object,
