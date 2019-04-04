@@ -15,14 +15,14 @@ logger = logging.getLogger('django')
 
 
 def samplesheet_to_samplename_dict(samplesheet: Path) -> dict:
-    df = read_samplesheet(sample_sheet=samplesheet)
+    df = read_samplesheet(samplesheet=samplesheet)
 
     # Validate header
     validate_samplesheet_header(header=list(df))
     logger.info("PASS: Header is valid")
 
     # Grab Run Name
-    run_id = extract_run_name(sample_sheet=samplesheet)
+    run_id = extract_run_name(samplesheet=samplesheet)
     logger.info(f"\nDetected the following Run name: {run_id}")
 
     # Get all Projects and associated samples from the SampleSheet
