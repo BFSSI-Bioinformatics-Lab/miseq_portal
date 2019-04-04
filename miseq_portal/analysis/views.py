@@ -82,9 +82,8 @@ class ToolSelectionView(LoginRequiredMixin, View):
             logger.info(f"Queued job for {analysis_group}")
 
             # Submit analysis to queue. Note that the ID must be submitted because a straight object is not serializable
-            # submit_analysis_job.delay(analysis_group_id=analysis_group.id)
             submit_analysis_job.apply_async(args=[],
-                                            kwargs={'analysis_group_id': analysis_group.id},
+                                            kwargs={'analysis_group': analysis_group.id},
                                             queue='analysis_queue')
 
             return redirect(self.success_url)
