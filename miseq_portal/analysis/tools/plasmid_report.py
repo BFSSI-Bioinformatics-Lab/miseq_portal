@@ -10,9 +10,10 @@ General overview:
 """
 
 from pathlib import Path
+
 from dataclasses import dataclass
+
 from miseq_portal.analysis.tools.helpers import run_subprocess
-from config.settings.base import MOB_SUITE_PATH, ABRICATE_PATH, STAR_AMR_PATH
 
 
 @dataclass
@@ -24,8 +25,6 @@ class MobSuiteDataObject:
 
 
 def call_mob_recon(assembly: Path, outdir: Path) -> MobSuiteDataObject:
-    mob_recon = MOB_SUITE_PATH / 'mob_recon'
-    # cmd = f'{mob_recon} --infile {assembly} --outdir {outdir} --run_typer'
     cmd = f'mob_recon --infile {assembly} --outdir {outdir} --run_typer'
     run_subprocess(cmd)
     contig_report = list(outdir.glob("contig_report.txt"))[0]
