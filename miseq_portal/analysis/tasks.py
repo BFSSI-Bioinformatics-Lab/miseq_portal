@@ -9,14 +9,14 @@ from celery import shared_task
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
-    SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, \
+    SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
     upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file
 from miseq_portal.analysis.tools.assemble_run import logger, assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data
 from miseq_portal.analysis.tools.plasmid_report import call_mob_recon
 from miseq_portal.analysis.tools.rgi import call_rgi_main, call_rgi_heatmap
 from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
-from miseq_portal.analysis.tools.sendsketch import sendsketch_tophit_pipeline, create_sendsketch_result_object
+# from miseq_portal.analysis.tools.sendsketch import sendsketch_tophit_pipeline, create_sendsketch_result_object
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
 
 MEDIA_ROOT = Path(MEDIA_ROOT)
@@ -74,18 +74,23 @@ def submit_rgi_heatmap_job(analysis_group: AnalysisGroup, rgi_sample_list: [RGIR
     outdir = MEDIA_ROOT / analysis_dir
     outdir.mkdir(parents=True, exist_ok=False)
 
+    # Create object instance
+    rgi_group_result = RGIGroupResult.objects.create(analysis_group=analysis_group)
+
     # Collect results
     rgi_json_dir, rgi_txt_dir = gather_rgi_results(rgi_sample_list=rgi_sample_list, outdir=outdir)
-    png_out = call_rgi_heatmap(rgi_json_dir=rgi_json_dir, outdir=outdir, analysis_group=analysis_group)
-    rgi_group_result = RGIGroupResult.objects.create(analysis_group=analysis_group)
 
     # Zip the gathered JSON and TXT result files
     rgi_json_zip = zip_rgi_results(rgi_group_result=rgi_group_result, result_dir=rgi_json_dir, result_type='json')
     rgi_txt_zip = zip_rgi_results(rgi_group_result=rgi_group_result, result_dir=rgi_txt_dir, result_type='txt')
 
+    png_out = call_rgi_heatmap(rgi_json_dir=rgi_json_dir, outdir=outdir, analysis_group=analysis_group)
+    if png_out is None:
+        logger.error(f"ERROR: Could not generate heatmap for {analysis_group}")
+    else:
+        rgi_group_result.rgi_heatmap_result = upload_group_analysis_file(analysis_group=analysis_group,
+                                                                         filename=png_out.name)
     # Update fields for the model
-    rgi_group_result.rgi_heatmap_result = upload_group_analysis_file(analysis_group=analysis_group,
-                                                                     filename=png_out.name)
     rgi_group_result.rgi_json_results_zip = upload_group_analysis_file(analysis_group=analysis_group,
                                                                        filename=rgi_json_zip.name)
     rgi_group_result.rgi_txt_results_zip = upload_group_analysis_file(analysis_group=analysis_group,
@@ -304,16 +309,16 @@ def assemble_sample_instance(sample_object_id: str):
         report_file = run_quast(assembly=polished_assembly, outdir=outdir)
         quast_df = get_quast_df(report_file)
 
-        sendsketch_outpath = outdir / 'best_refseq_hit.txt'
-        sendsketch_tophit_df = sendsketch_tophit_pipeline(fwd_reads=fwd_reads,
-                                                          rev_reads=rev_reads,
-                                                          outpath=sendsketch_outpath)
+        # sendsketch_outpath = outdir / 'best_refseq_hit.txt'
+        # sendsketch_tophit_df = sendsketch_tophit_pipeline(fwd_reads=fwd_reads,
+        #                                                   rev_reads=rev_reads,
+        #                                                   outpath=sendsketch_outpath)
 
         # Run sendsketch and save the results to a SendsketchResult model instance
-        sendsketch_result_object = create_sendsketch_result_object(sendsketch_tophit_df=sendsketch_tophit_df,
-                                                                   sample_object=sample_instance)
-        sendsketch_result_object.save()
-        logging.info(f"Saved Sendsketch results for {sample_instance}")
+        # sendsketch_result_object = create_sendsketch_result_object(sendsketch_tophit_df=sendsketch_tophit_df,
+        #                                                            sample_object=sample_instance)
+        # sendsketch_result_object.save()
+        # logging.info(f"Saved Sendsketch results for {sample_instance}")
 
         # Push the data to the database for SampleAssemblyData
         sample_assembly_instance = upload_sampleassembly_data(sample_assembly_instance=sample_assembly_instance,
@@ -323,6 +328,19 @@ def assemble_sample_instance(sample_object_id: str):
                                                               std_coverage=std_coverage)
         sample_assembly_instance.save()
         logging.info(f"Saved assembly data for {sample_instance}")
+
+        # Run Mash and save the results to a MashResult model instance
+        logger.info(f"Running Mash on {sample_instance}...")
+        mash_result_object, mr_created = MashResult.objects.get_or_create(sample_id=sample_instance)
+        top_mash_result, mash_result_file = mash_result_object.get_top_mash_hit()
+        mash_result_object.mash_result_file = upload_analysis_file(sample_instance,
+                                                                   filename=mash_result_file.name,
+                                                                   analysis_folder='assembly')
+        mash_result_object.top_hit = top_mash_result['hit']
+        mash_result_object.top_identity = top_mash_result['identity']
+        mash_result_object.top_query_id = top_mash_result['query_id']
+        mash_result_object.save()
+        logger.info(f"Mash complete - top hit is {top_mash_result['hit']}")
     else:
         logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
 
