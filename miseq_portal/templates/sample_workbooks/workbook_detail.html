@@ -55,7 +55,7 @@
         <td>{{ workbook_sample.sample.sample_name }}</td>
         <td>{{ workbook_sample.sample.project_id }}</td>
         <td>{{ workbook_sample.sample.run_id }}</td>
-        <td>{{ workbook_sample.sample.sendsketchresult.top_taxName }}</td>
+        <td>{{ workbook_sample.sample.mashresult.top_hit }}</td>
         <td>
           <div class="form-group samplenotes-field" id="{{ workbook_sample.id }}">
             <textarea class="form-control" rows="3">{{ workbook_sample.sample_notes }}</textarea>
@@ -233,7 +233,6 @@
               }
           })
         });
-
       }
     )
   </script>
