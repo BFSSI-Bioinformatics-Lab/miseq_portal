@@ -30,10 +30,54 @@
       {% endif %}
     </div>
 
-    <div class="container">
-      <h3>Sample Sheet</h3>
-      {{ samplesheet_df | safe }}
-    </div>
+    <table id="samplesheet-header-table" class="table table-striped table-sm table-compact">
+      <thead>
+      <tr>
+        <th>Header</th>
+        <th>Value</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for field, value in samplesheet_headers.get_fields %}
+        {% if field != 'created' and field != 'modified' and value != "" %}
+          <tr>
+            <td>{{ field|parse_samplesheet_header_value }}</td>
+            <td>{{ value }}</td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <h4>Run Samples</h4>
+    <table id="run-table" class="display" style="width:100%">
+      <thead>
+      <tr>
+        <th>Sample ID</th>
+        <th>Sample Name</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for sample in sample_list %}
+        <tr>
+          <td>
+            <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample.pk %}">
+              {{ sample.sample_id }}
+            </a>
+          </td>
+          <td>
+            {{ sample.sample_name }}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    {##}
+    {#    <div class="container">#}
+    {#      <h3>Sample Sheet</h3>#}
+    {#      {{ samplesheet_df | safe }}#}
+    {#    </div>#}
     <br>
   </div>
 {% endblock content %}
@@ -45,10 +89,9 @@
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script>
     $(document).ready(function () {
-      $('#samplesheet').DataTable({
+      $('#run-table').DataTable({
         "scrollX": true
-      });
-    });
-
+      })
+    })
   </script>
 {% endblock %}
