@@ -59,8 +59,8 @@
               {% endif %}
             </td>
             <td>
-              {% if sample.sendsketchresult != None %}
-                {{ sample.sendsketchresult.top_taxName }}
+              {% if sample.mashresult != None %}
+                {{ sample.mashresult.top_hit }}
               {% endif %}
             </td>
             {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
@@ -99,8 +99,8 @@
                   {% endif %}
                 </td>
                 <td>
-                  {% if sample.sendsketchresult != None %}
-                    {{ sample.sendsketchresult.top_taxName }}
+                  {% if sample.mashresult != None %}
+                    {{ sample.mashresult.top_hit }}
                   {% endif %}
                 </td>
                 {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
