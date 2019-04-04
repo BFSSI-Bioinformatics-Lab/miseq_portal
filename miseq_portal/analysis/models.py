@@ -1,9 +1,11 @@
+import re
 from pathlib import Path
 
 import pandas as pd
 from django.db import models
 
-from config.settings.base import MEDIA_ROOT
+from config.settings.base import MEDIA_ROOT, MASH_REFSEQ_DATABASE
+from miseq_portal.analysis.tools.helpers import run_subprocess
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
@@ -122,6 +124,65 @@ class SendsketchResult(TimeStampedModel):
     class Meta:
         verbose_name = 'Sendsketch Result'
         verbose_name_plural = 'Sendsketch Results'
+
+
+class MashResult(TimeStampedModel):
+    """
+    Model for storing Mash results against RefSeq for an individual sample
+    """
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+    mash_result_file = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
+
+    top_hit = models.CharField(max_length=256, blank=True, null=True)
+    top_shared_hashes = models.CharField(max_length=32, blank=True, null=True)
+    top_identity = models.FloatField(blank=True, null=True)
+    top_query_id = models.CharField(max_length=128, blank=True, null=True)
+
+    @staticmethod
+    def call_mash(assembly: Path, outdir: Path, n_cpu: int = 16) -> Path:
+        outfile = outdir / 'mash_refseq_results.tab'
+        cmd = f"mash screen -p {n_cpu} -w {str(MASH_REFSEQ_DATABASE)} {assembly} > {outfile}"
+        run_subprocess(cmd)
+        return outfile
+
+    @staticmethod
+    def parse_mash_results(mash_result_file: Path) -> pd.DataFrame:
+        df = pd.read_csv(mash_result_file, sep="\t", header=None, index_col=None)
+        df.columns = ['identity', 'shared-hashes', 'median-multiplicity', 'p-value', 'query-ID', 'query-comment']
+        df = df.sort_values(by=['identity'], ascending=False).reset_index(drop=True)
+        return df
+
+    @staticmethod
+    def parse_top_mash_hit(top_mash_hit: str) -> str:
+        """ Removes extraneous characters from the Mash query-comment string """
+        # Remove square bracketed terms if there are any
+        top_mash_hit_parsed = re.sub(r'\[[^\]]*\]', '', top_mash_hit).lstrip()
+        # Remove the identifier (useless)
+        top_mash_hit_parsed = top_mash_hit_parsed.split(" ", 1)[1].strip()
+        # Remove everything after the first comma
+        top_mash_hit_parsed = top_mash_hit_parsed.split(",")[0].strip()
+        return top_mash_hit_parsed
+
+    def get_top_mash_hit(self) -> tuple:
+        """ Grabs the assembly for the parent Sample, calls Mash on it, and parses the result """
+        assembly_path = self.sample_id.sampleassemblydata.get_assembly_path()
+        mash_result_file = self.call_mash(assembly=assembly_path, outdir=assembly_path.parent)
+        df = self.parse_mash_results(mash_result_file=mash_result_file)
+        # df is sorted so we can use grab the data from the first row for the top result
+        top_mash_result = {
+            'hit': self.parse_top_mash_hit(df['query-comment'][0]),
+            'shared_hashes': df['shared-hashes'][0],
+            'identity': float(df['identity'][0]),
+            'query_id': df['query-ID'][0]
+        }
+        return top_mash_result, mash_result_file
+
+    def __str__(self):
+        return f"{self.sample_id} - {self.top_hit}"
+
+    class Meta:
+        verbose_name = 'Mash Result'
+        verbose_name_plural = 'Mash Results'
 
 
 class MobSuiteAnalysisGroup(TimeStampedModel):
@@ -243,8 +304,6 @@ class RGIGroupResult(TimeStampedModel):
     """
     Model for storing overall RGI analysis of entire AnalysisGroup e.g. the RGI heatmap
     """
-    # TODO: Implement functionality to create a directory at /mnt/MiSeqPortal/analysis_group/RGI/{AnalysisGroup}
-    #  and store results there
     analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
     rgi_heatmap_result = models.ImageField(upload_to=upload_group_analysis_file, blank=True)  # Stores .png file
     rgi_json_results_zip = models.FileField(upload_to=upload_group_analysis_file, blank=True)  # .zip of all .json
