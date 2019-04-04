@@ -17,7 +17,7 @@
     </div>
   </div>
 
-  <table id="run_table" class="display" style="width:100%">
+  <table id="sample-table" class="display" style="width:100%">
     <thead>
     <tr>
       <th>Sample ID</th>
@@ -54,8 +54,8 @@
           {% endif %}
         </td>
         <td>
-          {% if sample in has_sendsketch_result %}
-            {{ sample.sendsketchresult.top_taxName }}
+          {% if has_mash_result %}
+            {{ sample.mashresult.top_hit }}
           {% endif %}
         </td>
         <td>
@@ -65,7 +65,6 @@
     {% endfor %}
     </tbody>
   </table>
-  </div>
 {% endblock content %}
 
 
@@ -75,7 +74,7 @@
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script>
     $(document).ready(function () {
-      $('#run_table').DataTable();
+      $('#sample-table').DataTable();
     });
   </script>
 {% endblock %}
