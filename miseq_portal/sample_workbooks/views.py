@@ -3,7 +3,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, CreateView, DetailView
+from django.views.generic import TemplateView, CreateView, DetailView, DeleteView
 from rest_framework import viewsets, mixins, filters
 
 from miseq_portal.miseq_viewer.models import Sample
@@ -92,3 +92,18 @@ class WorkbookSampleViewset(viewsets.ModelViewSet, mixins.UpdateModelMixin):
     queryset = WorkbookSample.objects.all()
     filter_backends = (filters.SearchFilter,)
     search_fields = ('sample__sample_id', 'workbook__workbook_title',)
+
+
+class WorkbookDeleteView(LoginRequiredMixin, DeleteView):
+    model = Workbook
+    success_url = reverse_lazy('sample_workbooks:workbook_delete_success_view')
+
+
+workbook_delete_view = WorkbookDeleteView.as_view()
+
+
+class WorkbookDeleteSuccessView(LoginRequiredMixin, TemplateView):
+    template_name = 'sample_workbooks/workbook_delete_success.html'
+
+
+workbook_delete_success_view = WorkbookDeleteSuccessView.as_view()
