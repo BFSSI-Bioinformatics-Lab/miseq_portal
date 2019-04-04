@@ -4,6 +4,7 @@ from rest_framework import routers
 from miseq_portal.miseq_viewer.views import (
     project_list_view,
     project_detail_view,
+    run_list_view,
     run_detail_view,
     sample_detail_view,
     SampleViewSet, RunViewSet, ProjectViewSet
@@ -15,11 +16,12 @@ app_name = "miseq_viewer"
 # Django-rest-framework (https://django-rest-framework-datatables.readthedocs.io/en/latest/tutorial.html)
 router = routers.DefaultRouter()
 router.register(r'samples', SampleViewSet, base_name='samples-detail')
-router.register(r'runs', RunViewSet)
-router.register(r'projects', ProjectViewSet)
+router.register(r'runs', RunViewSet, base_name='runs-detail')
+router.register(r'projects', ProjectViewSet, base_name='projects-detail')
 
 urlpatterns = [
-    path("", view=project_list_view, name="miseq_viewer_projects"),
+    path("projects/", view=project_list_view, name="miseq_viewer_projects"),
+    path("runs/", view=run_list_view, name="miseq_viewer_runs"),
     # path("samples_api/", view=samples_api_view, name="miseq_viewer_samples_api"),
     re_path("^api/", include(router.urls), name="miseq_viewer_api"),
     re_path("^project/(?P<pk>\d+)$", view=project_detail_view, name="miseq_viewer_project_detail"),
