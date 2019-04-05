@@ -344,7 +344,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
         run_instance = db_create_run(sample_object=sample_object, run_data_object=run_data_object)
 
         # RUN SAMPLESHEET
-        run_samplesheet_instance = db_create_runsamplesheet(run_instance=run_instance, run_data_object=run_data_object)
+        run_samplesheet_instance = db_create_runsamplesheet(run_instance=run_instance)
 
         # RUN INTEROP
         run_interop_instance = db_create_run_interop(run_instance=run_instance, run_data_object=run_data_object)
