@@ -4,7 +4,6 @@ from pathlib import Path
 from miseq_portal.miseq_uploader.parse_samplesheet import extract_run_name, read_samplesheet
 from miseq_portal.miseq_viewer.models import RunDataObject
 
-# logger = logging.getLogger('raven')
 logger = logging.getLogger('django')
 
 
@@ -209,7 +208,7 @@ def parse_miseq_folder(miseq_dir: Path) -> dict:
 
     # RunParameters.xml
     try:
-        runparametersxml = Path(list(miseq_dir.glob('RunParameters.xml'))[0])
+        runparametersxml = Path(list(miseq_dir.glob('*unParameters.xml'))[0])
     except IndexError as e:
         logger.info("WARNING: Could not find RunParameters.xml")
         logger.info(f"TRACEBACK: {e}")
