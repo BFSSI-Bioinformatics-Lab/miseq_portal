@@ -32,11 +32,13 @@
         <th>Run ID</th>
         <th>Samplesheet</th>
         <th>Run Type</th>
+        <th># Samples</th>
         <th>Date Created</th>
       </tr>
       </thead>
       <tbody>
       <tr>
+        <td></td>
         <td></td>
         <td></td>
         <td></td>
@@ -80,6 +82,10 @@
               "defaultContent": "",
               "className": "text-center",
             },
+            {
+              'orderable': false,
+              targets: 4  // Disable sorting on the num_samples column to prevent a strange bug
+            }
           ],
         columns:
           [
@@ -104,6 +110,10 @@
             {
               "data": "run_type",
               "title": "Run Type",
+            },
+            {
+              "data": "num_samples",
+              "title": "# Samples",
             },
             {
               "data": "created",
