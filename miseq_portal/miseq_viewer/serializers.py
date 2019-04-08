@@ -12,6 +12,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RunSerializer(serializers.ModelSerializer):
+    num_samples = serializers.ReadOnlyField()
+
     class Meta:
         model = Run
         fields = '__all__'
