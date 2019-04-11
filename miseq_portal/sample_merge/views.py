@@ -15,6 +15,14 @@ logger = logging.getLogger('django')
 
 
 @method_decorator(staff_member_required, name='dispatch')
+class SampleMergeQueueView(LoginRequiredMixin, TemplateView):
+    template_name = 'sample_merge/sample_merge_queue.html'
+
+
+sample_merge_queue_view = SampleMergeQueueView.as_view()
+
+
+@method_decorator(staff_member_required, name='dispatch')
 class SampleMergeIndexView(LoginRequiredMixin, ListView):
     template_name = 'sample_merge/sample_merge_index.html'
     success_url = 'merge_success/'
