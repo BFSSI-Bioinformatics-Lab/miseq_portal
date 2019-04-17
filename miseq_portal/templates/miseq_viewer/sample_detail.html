@@ -91,6 +91,7 @@
         <th>R2</th>
         <th># Reads</th>
         <th>Sample Yield (Mbp)</th>
+        <th>Sequencing Type</th>
         <th>Date Created</th>
       </tr>
       </thead>
@@ -133,6 +134,8 @@
             {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 | default:"N/A" }}
           {% endif %}
         </td>
+        {# https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display #}
+        <td>{{ sample.get_sequencing_type_display }}</td>
         <td>{{ sample.created }}</td>
       </tr>
       </tbody>
@@ -141,14 +144,15 @@
   </div>
 
   <div class="container-fluid">
+    <h4>Assembly Details
+      <!-- Button trigger for assembly pipeline modal -->
+      <button type="button" class="btn btn-sm btn-light" data-toggle="modal"
+              data-target="#assemblyModal">
+        <i class="fas fa-question-circle fa-lg"></i>
+      </button>
+    </h4>
+
     {% if assembly_data != None %}
-      <h4>Assembly Details
-        <!-- Button trigger for assembly pipeline modal -->
-        <button type="button" class="btn btn-sm btn-light" data-toggle="modal"
-                data-target="#assemblyModal">
-          <i class="fas fa-question-circle fa-lg"></i>
-        </button>
-      </h4>
 
       <!-- Assembly Pipeline Modal -->
       <div class="modal fade" id="assemblyModal" tabindex="-1" role="dialog"
@@ -233,6 +237,12 @@
         </tbody>
       </table>
       <br>
+    {% else %}
+      <div class="alert alert-info" role="alert">
+      <span class="text">
+        An assembly for this sample is not available. It may be currently assembling, or there may not be enough data to produce a complete assembly.
+      </span>
+      </div>
     {% endif %}
   </div>
 
