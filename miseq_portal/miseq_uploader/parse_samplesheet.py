@@ -189,7 +189,14 @@ def generate_sample_objects(samplesheet: Path) -> [SampleDataObject]:
         sample_type = "EXT"
 
     # Get Sample Names
-    sample_name_dictionary = get_sample_name_dictionary(df=df)
+    sample_name_dict = get_sample_name_dictionary(df=df)
+
+    # Attempt to get Sample sequencing_type values from the Description field if these are BMH samples
+    if sample_type == "BMH":
+        sample_sequencing_type_dict = extract_sample_sequencing_types(df=df)
+    else:
+        # For EXT runs, manually assign WGS for every sample even though this may be incorrect in some cases
+        sample_sequencing_type_dict = {sample_id: "WGS" for sample_id in sample_id_list}
 
     # Create SampleDataObject list. Need to consolidate sample_id, sample_name, project_id, and run_id per-sample
     sample_object_list = list()
@@ -197,12 +204,45 @@ def generate_sample_objects(samplesheet: Path) -> [SampleDataObject]:
         for project_id, sample_list in project_dict.items():
             if sample_id in sample_list:
                 sample_object = SampleDataObject(sample_id=sample_id,
-                                                 sample_name=sample_name_dictionary[sample_id],
+                                                 sample_name=sample_name_dict[sample_id],
                                                  run_id=run_id,
                                                  project_id=project_id,
-                                                 sample_type=sample_type)
+                                                 sample_type=sample_type,
+                                                 sequencing_type=sample_sequencing_type_dict[sample_id])
                 sample_object_list.append(sample_object)
     return sample_object_list
+
+
+def extract_sample_sequencing_types(df: pd.DataFrame) -> dict:
+    """
+    Method to iterate through the SampleSheet dataframe and attempt to extract a sample sequencing type for each sample.
+    This method will only return meaningful information for BMH runs, where the description field should contain either
+    a 'WGS' or 'META' identifier, indicating a whole-genome sequence sample or metagenomic sample. This information is
+    passed on to a SampleDataObject, and can be used to determine if an assembly should be conducted or not.
+
+    Defaults to the default_value if a valid sequencing type can't be found.
+
+    :param df: pandas DataFrame containing the SampleSheet data. the read_samplesheet() method can generate this
+    :return:
+    """
+    sample_sequencing_type_dict = {}
+    for i, row in df.iterrows():
+        sample_id = row['Sample_ID']
+        description = row['Description']
+        default_value = 'WGS'
+        valid_sequencing_types = ['WGS',  # Whole genome sequence
+                                  'META',  # Metagenomic
+                                  'RNA',  # RNA-Seq
+                                  'AMP']  # Amplicon
+        try:
+            sequencing_type = description.split("_", 1)[0].upper()
+        except IndexError:
+            sequencing_type = default_value
+        if sequencing_type in valid_sequencing_types:
+            sample_sequencing_type_dict[sample_id] = sequencing_type
+        else:
+            sample_sequencing_type_dict[sample_id] = default_value
+    return sample_sequencing_type_dict
 
 
 def extract_samplesheet_header_lines(samplesheet: Path):

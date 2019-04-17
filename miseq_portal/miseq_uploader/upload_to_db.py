@@ -78,15 +78,17 @@ def receive_miseq_run_dir(miseq_dir: Path):
 
     logger.info(f'UPLOAD COMPLETE')
 
-    # Run assembly pipeline on sample_object_list
-    sample_object_id_list = [sample_object.sample_id for sample_object in sample_object_list]
-    for sample_object_id in sample_object_id_list:
-        logging.info(sample_object_id)
-        # assemble_sample_instance.delay(sample_object_id=sample_object_id)
-        assemble_sample_instance.apply_async(args=[],
-                                             kwargs={'sample_object_id': sample_object_id},
-                                             queue='assembly_queue')
-        logger.info(f"Submitted {sample_object_id} to assembly queue")
+    # Call assembly pipeline on all valid sample objects
+    for sample_object in sample_object_list:
+        if sample_object.sequencing_type == 'WGS':
+            assemble_sample_instance.apply_async(args=[],
+                                                 kwargs={'sample_object_id': sample_object.sample_id},
+                                                 queue='assembly_queue')
+            logger.info(f"Submitted {sample_object.sample_id} to assembly queue")
+        else:
+            logger.info(f"Sample {sample_object.sample_id} sequencing type is"
+                        f" {sample_object.sequencing_type}, skipping assembly")
+            continue
 
 
 def append_sample_object_reads(sample_dict: dict, sample_object_list: [SampleDataObject]) -> [SampleDataObject]:
@@ -289,6 +291,7 @@ def db_create_sample(sample_object: SampleDataObject, run_instance: Run, project
         sample_instance.fwd_reads = fwd_read_path
         sample_instance.rev_reads = rev_read_path
         sample_instance.sample_name = sample_object.sample_name
+        sample_instance.sequencing_type = sample_object.sequencing_type
         sample_instance.save()
     else:
         logger.info(f"Sample '{sample_instance}' already exists, skipping'")
