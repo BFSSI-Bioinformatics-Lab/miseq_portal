@@ -124,12 +124,12 @@
           {% endif %}
         </td>
         <td>
-          {% if sample in has_sample_log_data %}
+          {% if has_sample_log_data %}
             {{ sample.samplelogdata.number_reads | default:"N/A" }}
           {% endif %}
         </td>
         <td>
-          {% if sample in has_sample_log_data %}
+          {% if has_sample_log_data %}
             {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 | default:"N/A" }}
           {% endif %}
         </td>
