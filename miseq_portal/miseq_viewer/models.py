@@ -210,15 +210,6 @@ class Run(TimeStampedModel):
     )
     run_type = models.CharField(max_length=3, choices=RUN_TYPES, default="BMH")
 
-    # sequencing_type is used to track the sample sequencing type which can be used to determine assembly method
-    SEQUENCING_TYPES = (
-        ('WGS', 'Whole-Genome Sequence'),
-        ('META', 'Metagenomic Sequence'),
-        ('RNA', 'RNA-Seq'),
-        ('AMP', 'Amplicon')
-    )
-    sequencing_type = models.CharField(max_length=32, choices=SEQUENCING_TYPES, default="WGS")
-
     def get_interop_directory(self) -> Path:
         return Path(self.interop_directory_path)
 
@@ -337,6 +328,16 @@ class Sample(TimeStampedModel):
         ('EXT', 'EXTERNAL')
     )
     sample_type = models.CharField(choices=sample_type_choices, max_length=3, default='BMH')
+
+    # sequencing_type is used to track the sample sequencing type which can be used to determine assembly method
+    SEQUENCING_TYPES = (
+        ('WGS', 'Whole-Genome Sequence'),
+        ('META', 'Metagenomic Sequence'),
+        ('RNA', 'RNA-Seq'),
+        ('AMP', 'Amplicon')
+    )
+    sequencing_type = models.CharField(max_length=32, choices=SEQUENCING_TYPES, default="WGS")
+
     component_group = models.ForeignKey(MergedSampleComponentGroup, on_delete=models.CASCADE, blank=True, null=True)
 
     # All BMH samples must be associated with a Project and Run
