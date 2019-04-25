@@ -12,7 +12,8 @@ from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
     upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file
 from miseq_portal.analysis.tools.assemble_run import logger, assembly_pipeline, call_qualimap, \
-    extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data
+    extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data, \
+    prodigal_pipeline
 from miseq_portal.analysis.tools.plasmid_report import call_mob_recon
 from miseq_portal.analysis.tools.rgi import call_rgi_main, call_rgi_heatmap
 from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
@@ -309,6 +310,9 @@ def assemble_sample_instance(sample_object_id: str):
         report_file = run_quast(assembly=polished_assembly, outdir=outdir)
         quast_df = get_quast_df(report_file)
 
+        # Run prodigal to get gene count
+        num_predicted_genes = prodigal_pipeline(assembly=polished_assembly, outdir=outdir)
+
         # sendsketch_outpath = outdir / 'best_refseq_hit.txt'
         # sendsketch_tophit_df = sendsketch_tophit_pipeline(fwd_reads=fwd_reads,
         #                                                   rev_reads=rev_reads,
@@ -325,7 +329,8 @@ def assemble_sample_instance(sample_object_id: str):
                                                               assembly=polished_assembly,
                                                               quast_df=quast_df,
                                                               mean_coverage=mean_coverage,
-                                                              std_coverage=std_coverage)
+                                                              std_coverage=std_coverage,
+                                                              num_predicted_genes=num_predicted_genes)
         sample_assembly_instance.save()
         logging.info(f"Saved assembly data for {sample_instance}")
 
