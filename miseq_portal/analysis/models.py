@@ -141,14 +141,20 @@ class MashResult(TimeStampedModel):
     @staticmethod
     def call_mash(assembly: Path, outdir: Path, n_cpu: int = 16) -> Path:
         outfile = outdir / 'mash_refseq_results.tab'
-        cmd = f"mash screen -p {n_cpu} -w {str(MASH_REFSEQ_DATABASE)} {assembly} > {outfile}"
+        cmd = f"mash screen -p {n_cpu} {str(MASH_REFSEQ_DATABASE)} {assembly} > {outfile}"
         run_subprocess(cmd)
         return outfile
 
     @staticmethod
     def parse_mash_results(mash_result_file: Path) -> pd.DataFrame:
+        # Read in CSV with proper headers
         df = pd.read_csv(mash_result_file, sep="\t", header=None, index_col=None)
         df.columns = ['identity', 'shared-hashes', 'median-multiplicity', 'p-value', 'query-ID', 'query-comment']
+        # Filter out phages and plasmids - TODO: validate that this is desired behaviour
+        df['valid_row'] = df['query-comment'].apply(
+            lambda x: 'false' if ' phage ' in x.lower() or ' plasmid ' in x.lower() else 'true')
+        df = df[df['valid_row'] == 'true']
+        # Sort the best match to the top
         df = df.sort_values(by=['identity'], ascending=False).reset_index(drop=True)
         return df
 
