@@ -321,7 +321,13 @@ def call_bbmap(fwd_reads: Path, rev_reads: Path, outdir: Path, assembly: Path) -
     if outbam.exists():
         return outbam
 
-    cmd = f"bbmap.sh in1={fwd_reads} in2={rev_reads} ref={assembly} out={outbam} overwrite=t bamscript=bs.sh; sh bs.sh"
+    """
+    NOTE: Added deterministic=t averagepairdist=50 and pigz=t on May 6th, 2019.
+    This ensures calls to bbmap.sh on a pair of reads will always result in the exact same output; this was not the
+    case previously.
+    """
+    cmd = f"bbmap.sh in1={fwd_reads} in2={rev_reads} ref={assembly} out={outbam} overwrite=t " \
+        f"pigz=t deterministic=t averagepairdist=50 bamscript=bs.sh; sh bs.sh"
     run_subprocess(cmd)
 
     # Grab the sorted .bam file produced by bbmap.sh
