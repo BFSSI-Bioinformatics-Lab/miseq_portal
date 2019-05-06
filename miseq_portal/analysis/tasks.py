@@ -313,17 +313,6 @@ def assemble_sample_instance(sample_object_id: str):
         # Run prodigal to get gene count
         num_predicted_genes = prodigal_pipeline(assembly=polished_assembly, outdir=outdir)
 
-        # sendsketch_outpath = outdir / 'best_refseq_hit.txt'
-        # sendsketch_tophit_df = sendsketch_tophit_pipeline(fwd_reads=fwd_reads,
-        #                                                   rev_reads=rev_reads,
-        #                                                   outpath=sendsketch_outpath)
-
-        # Run sendsketch and save the results to a SendsketchResult model instance
-        # sendsketch_result_object = create_sendsketch_result_object(sendsketch_tophit_df=sendsketch_tophit_df,
-        #                                                            sample_object=sample_instance)
-        # sendsketch_result_object.save()
-        # logging.info(f"Saved Sendsketch results for {sample_instance}")
-
         # Push the data to the database for SampleAssemblyData
         sample_assembly_instance = upload_sampleassembly_data(sample_assembly_instance=sample_assembly_instance,
                                                               assembly=polished_assembly,
