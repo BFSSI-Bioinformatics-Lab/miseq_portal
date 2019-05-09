@@ -63,12 +63,6 @@
       </li>
     </ul>
   {% else %}
-    {#    <ul class="navbar-nav px-3">#}
-    {#      <li class="nav-item text-nowrap">#}
-    {#        <a id="sign-up-link" class="nav-link "#}
-    {#           href="{% url 'account_signup' %}"><i class="fas fa-user-plus"></i> Sign Up</a>#}
-    {#      </li>#}
-    {#    </ul>#}
     <ul class="navbar-nav px-3">
       <li class="nav-item text-nowrap">
         <a id="log-in-link" class="nav-link "
@@ -104,7 +98,6 @@
               <li class="nav-item">
                 <a class="nav-link "
                    href="{% url 'miseq_viewer:miseq_viewer_runs' %}">
-                  {#                <span class="icon-miseq_icon" data-icon="&#xe900;"></span>#}
                   <span class="icon-miseq"></span>
                   Runs</a>
               </li>
@@ -116,7 +109,7 @@
             {% if request.user.is_staff %}
               <li class="nav-item">
                 <a class="nav-link "
-                   href="{% url 'sample_merge:sample_merge_queue' %}"><i class="fas fa-plus-square"></i> Merge Queue</a>
+                   href="{% url 'sample_merge:sample_merge_queue' %}"><i class="fas fa-clone"></i> Merge Queue</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link "
@@ -140,9 +133,6 @@
                 class="badge badge-danger">Admin only</span></a>
             </li>
           {% endif %}
-          {#          <div class="container" id="canada-brand">#}
-          {#            <img src="{% static 'sig-blk-en.svg' %}" alt="">#}
-          {#          </div>#}
         </ul>
       </div>
     </nav>
