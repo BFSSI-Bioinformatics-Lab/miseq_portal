@@ -178,7 +178,8 @@ STATICFILES_FINDERS = [
 # MEDIA_ROOT = str(APPS_DIR('media'))  # Old default for MEDIA_ROOT
 MEDIA_ROOT = "/mnt/MiSeqPortal"  # Store user uploads on BMH-WGS-Backup (~50 TB storage)
 if len(list(Path(MEDIA_ROOT).glob("*"))) == 0:
-    print("WARNING: There was an issue mounting BMH-WGS-Backup")
+    print("WARNING: There was an issue mounting BMH-WGS-Backup. "
+          "Confirm that the NAS has an SFTP connection to the server.")
 else:
     print("Confirmed contents of BMH-WGS-Backup")
 
