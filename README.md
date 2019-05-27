@@ -102,3 +102,9 @@ The status of each process, as well as live updating logs can be viewed here.
 
 /var/log/flower.out.log
 
+### Using Django's manage.py
+To use basic Django commands like `python manage.py makemigrations`, you'll need to ensure several things:
+1) Connected via ssh to the Venture server
+2) The miseq_portal conda environment is active, e.g. `conda activate miseq_portal`
+3) You have exported the CELERY_BROKER_URL_CREDENTIALS environment variable, e.g:
+    `export CELERY_BROKER_URL_CREDENTIALS="{username}:{password}"`
