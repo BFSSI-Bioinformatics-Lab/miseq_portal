@@ -63,14 +63,25 @@
             Uses the R1 and R2 reads of any given sample and compares against a sketch of RefSeq.</p>
         </li>
         <li class="list-group-item"><h5>Mob Recon</h5>
-          <p class="card-text">This tool reconstructs individual plasmid sequences from draft genome assemblies using the clustered plasmid reference
-  databases provided by MOB-cluster. Provides in silico predictions of the replicon family, relaxase type, mate-pair
-  formation type and predicted transferability of the plasmid.</p>
+          <p class="card-text">This tool reconstructs individual plasmid sequences from draft genome assemblies using
+            the clustered plasmid reference
+            databases provided by MOB-cluster. Provides in silico predictions of the replicon family, relaxase type,
+            mate-pair
+            formation type and predicted transferability of the plasmid.</p>
         </li>
         <li class="list-group-item"><h5>RGI</h5>
           <p class="card-text">This application is used to predict resistome(s) from protein or nucleotide data based on
             homology and SNP models. The
             application uses reference data from the Comprehensive Antibiotic Resistance Database (CARD).</p>
+        </li>
+        <li class="list-group-item"><h5>PlasmidAMR <span class="font-weight-light text-secondary">(under construction)</span></h5>
+          <p class="card-text">This tool will first extract plasmids from your sample with Mob Recon, then conduct
+            resitome prediction via RGI on any detected plasmids.</p>
+        </li>
+        <li class="list-group-item"><h5>Core Pipeline <span class="font-weight-light text-secondary">(under construction)</span></h5>
+          <p class="card-text">This tool will establish a core genome among the selected samples,
+            construct a core tree, generate a network visualization, and more.
+            Supports a maximum of 100 samples; if you need a larger sample set, please contact the administrator.</p>
         </li>
       </ol>
     </div>
@@ -98,7 +109,7 @@
         <th data-data="sample_name">Sample Name</th>
         <th data-data="project_id.project_id">Project ID</th>
         <th data-data="run_id.run_id">Run ID</th>
-        <th data-data="sendsketchresult.top_taxName">Top RefSeq Hit</th>
+        <th data-data="mashresult.top_hit">Top RefSeq Hit</th>
       </tr>
       </thead>
       <tbody>
