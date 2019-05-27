@@ -356,8 +356,9 @@ class Sample(TimeStampedModel):
         This method must be used for EXT or MER samples. First, instantiate the object, then call this method and assign
         the generated value to Sample.sample_id
         """
-        return f'{self.sample_type}-{self.sample_year()}-{self.pk:06}'
+        return f'{self.sample_type}-{self.sample_year}-{self.pk:06}'
 
+    @property
     def sample_year(self):
         return str(self.created.year)
 
@@ -404,6 +405,7 @@ class SampleLogData(TimeStampedModel):
     r2_yield = models.BigIntegerField(blank=True, null=True)
     r2_yieldq30 = models.BigIntegerField(blank=True, null=True)
 
+    @property
     def sample_yield_mbp(self):
         if self.sample_yield is not None:
             return float(self.sample_yield / 1000000)
