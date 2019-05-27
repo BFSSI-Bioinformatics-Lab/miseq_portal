@@ -165,13 +165,23 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
 
         # Get associated samples if sample type is MER
         if context['sample'].sample_type == 'MER':
+            merged_number_reads = 0
+            merged_sample_yield = 0
             components = MergedSampleComponent.objects.filter(group_id=context['sample'].component_group)
             sample_components = []
             # Get corresponding Sample objects
             for component in components:
                 sample_component = Sample.objects.get(sample_id=component.component_id)
                 sample_components.append(sample_component)
+                # Sum up total number of reads across each sample_component
+                merged_number_reads += sample_component.samplelogdata.number_reads
+                merged_sample_yield += sample_component.samplelogdata.sample_yield / 1000000
             context['sample_components'] = sample_components
+
+            # TODO: Refactor this logic into a property for a Sample object in models.py?
+            # The summed values for each component for number_reads and sample_yield, respectively
+            context['merged_number_reads'] = merged_number_reads
+            context['merged_sample_yield'] = merged_sample_yield
 
         # Check if sample is part of a MER sample
         merged_sample_references = []
