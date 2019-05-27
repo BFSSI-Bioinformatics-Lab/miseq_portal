@@ -1,9 +1,10 @@
-import pytest
 import tempfile
 from pathlib import PosixPath
+
+import pytest
+from django.test import TestCase
 from mock import Mock
 from model_mommy import mommy
-from django.test import TestCase
 
 from miseq_portal.miseq_viewer.models import *
 
@@ -175,11 +176,11 @@ class SampleTest(TestCase):
         assert self.bmh_sample.__str__() == self.bmh_sample.sample_id
 
     def test_sample_year(self):
-        assert self.bmh_sample.sample_year() == str(self.bmh_sample.created.year)
+        assert self.bmh_sample.sample_year == str(self.bmh_sample.created.year)
 
     def test_generate_sample_id(self):
         assert self.mer_sample.sample_id == \
-               f'{self.mer_sample.sample_type}-{self.mer_sample.sample_year()}-{self.mer_sample.pk:06}'
+               f'{self.mer_sample.sample_type}-{self.mer_sample.sample_year}-{self.mer_sample.pk:06}'
 
 
 class MergedSampleComponentTest(TestCase):
@@ -200,7 +201,7 @@ class SampleLogDataTest(TestCase):
         assert self.sample_log_data.__str__() == str(self.sample_log_data.sample_id)
 
     def test_sample_yield_mbp(self):
-        assert self.sample_log_data.sample_yield_mbp() == float(self.sample_log_data.sample_yield / 1000000)
+        assert self.sample_log_data.sample_yield_mbp == float(self.sample_log_data.sample_yield / 1000000)
 
 
 class SampleAssemblyDataTest(TestCase):
