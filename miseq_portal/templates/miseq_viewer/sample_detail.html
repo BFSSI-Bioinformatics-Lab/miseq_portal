@@ -125,13 +125,17 @@
           {% endif %}
         </td>
         <td>
-          {% if has_sample_log_data %}
+          {% if has_sample_log_data == True %}
             {{ sample.samplelogdata.number_reads | default:"N/A" }}
+          {% elif sample.sample_type == 'MER' %}
+            {{ merged_number_reads | default:"N/A" }}
           {% endif %}
         </td>
         <td>
           {% if has_sample_log_data %}
             {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 | default:"N/A" }}
+          {% elif sample.sample_type == 'MER' %}
+            {{ merged_sample_yield | floatformat:2 | default:"N/A" }}
           {% endif %}
         </td>
         {# https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display #}
