@@ -169,19 +169,39 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
             merged_sample_yield = 0
             components = MergedSampleComponent.objects.filter(group_id=context['sample'].component_group)
             sample_components = []
+
             # Get corresponding Sample objects
+            merged_sample_yield_broken_flag = False
+            merged_number_reads_broken_flag = False
             for component in components:
                 sample_component = Sample.objects.get(sample_id=component.component_id)
                 sample_components.append(sample_component)
-                # Sum up total number of reads across each sample_component
-                merged_number_reads += sample_component.samplelogdata.number_reads
-                merged_sample_yield += sample_component.samplelogdata.sample_yield / 1000000
+
+                # If one of the components is missing data, display N/A for merged value on page
+                if sample_component.samplelogdata.number_reads is None:
+                    merged_number_reads_broken_flag = True
+                if sample_component.samplelogdata.sample_yield is None:
+                    merged_sample_yield_broken_flag = True
+
+                if merged_sample_yield_broken_flag or merged_number_reads_broken_flag:
+                    continue
+                else:
+                    # Sum up total number of reads across each sample_component if none of them have N/A values
+                    merged_number_reads += sample_component.samplelogdata.number_reads
+                    merged_sample_yield += sample_component.samplelogdata.sample_yield / 1000000
+
             context['sample_components'] = sample_components
 
             # TODO: Refactor this logic into a property for a Sample object in models.py?
             # The summed values for each component for number_reads and sample_yield, respectively
-            context['merged_number_reads'] = merged_number_reads
-            context['merged_sample_yield'] = merged_sample_yield
+            if merged_number_reads_broken_flag:
+                context['merged_number_reads'] = "N/A"
+            else:
+                context['merged_number_reads'] = merged_number_reads
+            if merged_sample_yield_broken_flag:
+                context['merged_sample_yield'] = "N/A"
+            else:
+                context['merged_sample_yield'] = merged_sample_yield
 
         # Check if sample is part of a MER sample
         merged_sample_references = []
