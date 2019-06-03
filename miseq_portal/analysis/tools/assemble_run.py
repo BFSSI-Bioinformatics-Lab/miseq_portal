@@ -58,7 +58,8 @@ def call_qualimap(bamfile: Path, outdir: Path) -> Path:
     run_subprocess(cmd)
     qualimap_result_file = qualimap_dir / 'genome_results.txt'
     if not qualimap_result_file.is_file():
-        logging.error(f"ERROR: Could not find genome_results.txt in {qualimap_dir}")
+        logging.warning(f"ERROR: Could not find genome_results.txt in {qualimap_dir}")
+        qualimap_result_file = None
     return qualimap_result_file
 
 
