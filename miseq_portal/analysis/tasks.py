@@ -229,8 +229,7 @@ def submit_sendsketch_job(sample_instance: AnalysisSample) -> SendsketchResult:
     parent_sample = Sample.objects.get(sample_id=sample_instance.sample_id)
 
     sendsketch_result_file = run_sendsketch(fwd_reads=fwd_reads, rev_reads=rev_reads, outpath=outpath)
-    sendsketch_object, sendsketch_object_created = SendsketchResult.objects.get_or_create(
-        sample_id=parent_sample)
+    sendsketch_object, sendsketch_object_created = SendsketchResult.objects.get_or_create(sample_id=parent_sample)
 
     if sendsketch_object_created:
         logger.info("Creating new SendSketch results object")
@@ -257,8 +256,7 @@ def submit_sendsketch_job(sample_instance: AnalysisSample) -> SendsketchResult:
 
     # Update path to result file in database
     sendsketch_object.sendsketch_result_file = upload_analysis_file(instance=root_sample_instance,
-                                                                    filename=sendsketch_result_file.name,
-                                                                    analysis_folder=sample_folder)
+                                                                    filename=sendsketch_result_file.name)
     sendsketch_object.save()
     logger.info(f"Saved {sendsketch_object} successfully")
     return sendsketch_object
@@ -278,9 +276,16 @@ def assemble_sample_instance(sample_object_id: str):
         return
 
     # Get/create SampleAssemblyData instance
-    # TODO: Don't even attempt the assembly if the number_reads (if available) is less than 1000.
     sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
     if sa_created or str(sample_assembly_instance.assembly) == '' or sample_assembly_instance.assembly is None:
+
+        # Check if it's even worth attempting the assembly
+        # TODO: Verify that this works
+        if sample_instance.samplelogdata.number_reads < 1000 and sample_instance.samplelogdata.number_reads is not None:
+            logging.warning(f"Number of reads for sample {sample_instance} is less than 1000. Skipping assembly step."
+                            f"Number of reads: {sample_instance.samplelogdata.number_reads}")
+            return
+
         logger.info(f"Running assembly pipeline on {sample_instance}...")
 
         # Setup assembly directory on NAS
@@ -325,16 +330,22 @@ def assemble_sample_instance(sample_object_id: str):
 
         # Run Mash and save the results to a MashResult model instance
         logger.info(f"Running Mash on {sample_instance}...")
+        # TODO: Add handling for empty mash results. Currently raises an exception (EmptyDataError)
         mash_result_object, mr_created = MashResult.objects.get_or_create(sample_id=sample_instance)
         top_mash_result, mash_result_file = mash_result_object.get_top_mash_hit()
         mash_result_object.mash_result_file = upload_analysis_file(sample_instance,
                                                                    filename=mash_result_file.name,
                                                                    analysis_folder='assembly')
-        mash_result_object.top_hit = top_mash_result['hit']
-        mash_result_object.top_identity = top_mash_result['identity']
-        mash_result_object.top_query_id = top_mash_result['query_id']
+        if top_mash_result is not None:
+            mash_result_object.top_hit = top_mash_result['hit']
+            mash_result_object.top_identity = top_mash_result['identity']
+            mash_result_object.top_query_id = top_mash_result['query_id']
+            logging.info(f"Top mash hit: {mash_result_object.top_hit}")
+        else:
+            logging.warning(f"WARNING: Mash failed for {sample_assembly_instance} likely due to poor assembly quality")
+
         mash_result_object.save()
-        logger.info(f"Mash complete - top hit is {top_mash_result['hit']}")
+        logger.info(f"Mash complete for {sample_assembly_instance}")
     else:
         logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
 
