@@ -1,3 +1,4 @@
+import os
 import re
 from pathlib import Path
 
@@ -173,14 +174,19 @@ class MashResult(TimeStampedModel):
         """ Grabs the assembly for the parent Sample, calls Mash on it, and parses the result """
         assembly_path = self.sample_id.sampleassemblydata.get_assembly_path()
         mash_result_file = self.call_mash(assembly=assembly_path, outdir=assembly_path.parent)
-        df = self.parse_mash_results(mash_result_file=mash_result_file)
-        # df is sorted so we can use grab the data from the first row for the top result
-        top_mash_result = {
-            'hit': self.parse_top_mash_hit(df['query-comment'][0]),
-            'shared_hashes': df['shared-hashes'][0],
-            'identity': float(df['identity'][0]),
-            'query_id': df['query-ID'][0]
-        }
+
+        # Check if the file actually has any data in it
+        if os.stat(str(mash_result_file)).st_size > 50:
+            df = self.parse_mash_results(mash_result_file=mash_result_file)
+            # df is sorted so we can use grab the data from the first row for the top result
+            top_mash_result = {
+                'hit': self.parse_top_mash_hit(df['query-comment'][0]),
+                'shared_hashes': df['shared-hashes'][0],
+                'identity': float(df['identity'][0]),
+                'query_id': df['query-ID'][0]
+            }
+        else:
+            top_mash_result = None
         return top_mash_result, mash_result_file
 
     def __str__(self):
