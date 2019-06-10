@@ -139,9 +139,9 @@ class MashResult(TimeStampedModel):
     top_query_id = models.CharField(max_length=128, blank=True, null=True)
 
     @staticmethod
-    def call_mash(assembly: Path, outdir: Path, n_cpu: int = 16) -> Path:
+    def call_mash(assembly: Path, outdir: Path, n_cpu: int = 16, pct_identity: float = 0.80) -> Path:
         outfile = outdir / 'mash_refseq_results.tab'
-        cmd = f"mash screen -p {n_cpu} {str(MASH_REFSEQ_DATABASE)} {assembly} > {outfile}"
+        cmd = f"mash screen -i {pct_identity} -p {n_cpu} {str(MASH_REFSEQ_DATABASE)} {assembly} > {outfile}"
         run_subprocess(cmd)
         return outfile
 
