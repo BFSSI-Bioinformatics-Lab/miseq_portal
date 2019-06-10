@@ -55,6 +55,7 @@
       <tr>
         <th>Sample ID</th>
         <th>Sample Name</th>
+        <th>Top RefSeq</th>
       </tr>
       </thead>
       <tbody>
@@ -67,6 +68,9 @@
           </td>
           <td>
             {{ sample.sample_name }}
+          </td>
+          <td>
+            {{ sample.mashresult.top_hit }}
           </td>
         </tr>
       {% endfor %}
@@ -90,7 +94,8 @@
   <script>
     $(document).ready(function () {
       $('#run-table').DataTable({
-        "scrollX": true
+        "scrollX": true,
+        "pageLength": 100
       })
     })
   </script>
