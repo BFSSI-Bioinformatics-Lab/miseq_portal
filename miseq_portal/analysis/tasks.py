@@ -6,12 +6,13 @@ import shutil
 from pathlib import Path
 
 from celery import shared_task
+from django.core.exceptions import ObjectDoesNotExist
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
     upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file
-from miseq_portal.analysis.tools.assemble_run import logger, assembly_pipeline, call_qualimap, \
+from miseq_portal.analysis.tools.assemble_run import assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data, \
     prodigal_pipeline
 from miseq_portal.analysis.tools.plasmid_report import call_mob_recon
@@ -172,9 +173,8 @@ def submit_mob_recon_job(sample_instance: AnalysisSample) -> MobSuiteAnalysisGro
     mob_suite_analysis_group.contig_report = upload_mobsuite_file(root_sample_instance,
                                                                   mob_recon_data_object.contig_report.name,
                                                                   mobsuite_dir_name=mobsuite_dir_name)
-    mob_suite_analysis_group.mobtyper_aggregate_report = upload_mobsuite_file(root_sample_instance,
-                                                                              mob_recon_data_object.mobtyper_aggregate_report.name,
-                                                                              mobsuite_dir_name=mobsuite_dir_name)
+    mob_suite_analysis_group.mobtyper_aggregate_report = upload_mobsuite_file(
+        root_sample_instance, mob_recon_data_object.mobtyper_aggregate_report.name, mobsuite_dir_name=mobsuite_dir_name)
     mob_suite_analysis_group.save()
 
     # Update database for MobSuiteAnalysisPlasmid
@@ -278,13 +278,19 @@ def assemble_sample_instance(sample_object_id: str):
     # Get/create SampleAssemblyData instance
     sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
     if sa_created or str(sample_assembly_instance.assembly) == '' or sample_assembly_instance.assembly is None:
-
-        # Check if it's even worth attempting the assembly
-        # TODO: Verify that this works
-        if sample_instance.samplelogdata.number_reads < 1000 and sample_instance.samplelogdata.number_reads is not None:
-            logging.warning(f"Number of reads for sample {sample_instance} is less than 1000. Skipping assembly step."
-                            f"Number of reads: {sample_instance.samplelogdata.number_reads}")
-            return
+        """
+        Check if it's even worth attempting the assembly by quickly checking the # of reads available. 
+        Note that this is contingent on there being # reads data available, which is not always the case.
+        """
+        try:
+            if sample_instance.samplelogdata.number_reads < 1000 and sample_instance.samplelogdata.number_reads is not None:
+                logger.warning(f"Number of reads for sample {sample_instance} is less than 1000. "
+                               f"Skipping assembly step."
+                               f"Number of reads: {sample_instance.samplelogdata.number_reads}")
+                return
+        except ObjectDoesNotExist:
+            # Continue on like usual if samplelogdata doesn't exist yet
+            pass
 
         logger.info(f"Running assembly pipeline on {sample_instance}...")
 
@@ -326,28 +332,37 @@ def assemble_sample_instance(sample_object_id: str):
                                                               std_coverage=std_coverage,
                                                               num_predicted_genes=num_predicted_genes)
         sample_assembly_instance.save()
-        logging.info(f"Saved assembly data for {sample_instance}")
+        logger.info(f"Saved assembly data for {sample_instance}")
 
         # Run Mash and save the results to a MashResult model instance
-        logger.info(f"Running Mash on {sample_instance}...")
-        # TODO: Add handling for empty mash results. Currently raises an exception (EmptyDataError)
-        mash_result_object, mr_created = MashResult.objects.get_or_create(sample_id=sample_instance)
-        top_mash_result, mash_result_file = mash_result_object.get_top_mash_hit()
-        mash_result_object.mash_result_file = upload_analysis_file(sample_instance,
-                                                                   filename=mash_result_file.name,
-                                                                   analysis_folder='assembly')
-        if top_mash_result is not None:
-            mash_result_object.top_hit = top_mash_result['hit']
-            mash_result_object.top_identity = top_mash_result['identity']
-            mash_result_object.top_query_id = top_mash_result['query_id']
-            logging.info(f"Top mash hit: {mash_result_object.top_hit}")
+        if sample_assembly_instance.get_assembly_path().stat().st_size > 800:
+            print(sample_assembly_instance.get_assembly_path().stat().st_size)
+            logger.info(f"Running Mash on {sample_instance}...")
+            mash_result_object = create_mash_result_object(assembly_instance=assemble_sample_instance,
+                                                           sample=sample_instance)
+            mash_result_object.save()
         else:
-            logging.warning(f"WARNING: Mash failed for {sample_assembly_instance} likely due to poor assembly quality")
-
-        mash_result_object.save()
-        logger.info(f"Mash complete for {sample_assembly_instance}")
+            logger.warning(f"The input assembly for {sample_instance} is too small to pass to Mash. Skipping.")
     else:
         logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
+
+
+def create_mash_result_object(assembly_instance: SampleAssemblyData, sample: Sample) -> MashResult:
+    mash_result_object, mr_created = MashResult.objects.get_or_create(sample_id=sample)
+    top_mash_result, mash_result_file = mash_result_object.get_top_mash_hit()
+    mash_result_object.mash_result_file = upload_analysis_file(sample,
+                                                               filename=mash_result_file.name,
+                                                               analysis_folder='assembly')
+    if top_mash_result is not None:
+        mash_result_object.top_hit = top_mash_result['hit']
+        mash_result_object.top_identity = top_mash_result['identity']
+        mash_result_object.top_query_id = top_mash_result['query_id']
+        logger.info(f"Top mash hit: {mash_result_object.top_hit}")
+    else:
+        logger.warning(f"WARNING: Mash failed for {assembly_instance}. This is likely due to poor assembly quality.")
+
+    logger.info(f"Mash complete for {assembly_instance}")
+    return mash_result_object
 
 
 def gather_rgi_results(rgi_sample_list: [RGIResult], outdir: Path) -> tuple:
