@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.views.generic import DetailView, ListView
 from rest_framework import viewsets
@@ -177,18 +178,26 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
                 sample_component = Sample.objects.get(sample_id=component.component_id)
                 sample_components.append(sample_component)
 
-                # If one of the components is missing data, display N/A for merged value on page
-                if sample_component.samplelogdata.number_reads is None:
+                # Try to access samplelogdata from Sample, if it's missing continue to the next sample
+                try:
+                    samplelogdata = sample_component.samplelogdata
+                except ObjectDoesNotExist:
                     merged_number_reads_broken_flag = True
-                if sample_component.samplelogdata.sample_yield is None:
+                    merged_sample_yield_broken_flag = True
+                    continue
+
+                # If one of the components is missing data, display N/A for merged value on page
+                if samplelogdata.number_reads is None:
+                    merged_number_reads_broken_flag = True
+                if samplelogdata.sample_yield is None:
                     merged_sample_yield_broken_flag = True
 
                 if merged_sample_yield_broken_flag or merged_number_reads_broken_flag:
                     continue
                 else:
                     # Sum up total number of reads across each sample_component if none of them have N/A values
-                    merged_number_reads += sample_component.samplelogdata.number_reads
-                    merged_sample_yield += sample_component.samplelogdata.sample_yield / 1000000
+                    merged_number_reads += samplelogdata.number_reads
+                    merged_sample_yield += samplelogdata.sample_yield / 1000000
 
             context['sample_components'] = sample_components
 
