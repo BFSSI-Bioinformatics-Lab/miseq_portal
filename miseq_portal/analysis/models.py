@@ -1,4 +1,3 @@
-import os
 import re
 from pathlib import Path
 
@@ -176,7 +175,7 @@ class MashResult(TimeStampedModel):
         mash_result_file = self.call_mash(assembly=assembly_path, outdir=assembly_path.parent)
 
         # Check if the file actually has any data in it
-        if os.stat(str(mash_result_file)).st_size > 50:
+        if mash_result_file.stat().st_size > 1:
             df = self.parse_mash_results(mash_result_file=mash_result_file)
             # df is sorted so we can use grab the data from the first row for the top result
             top_mash_result = {
