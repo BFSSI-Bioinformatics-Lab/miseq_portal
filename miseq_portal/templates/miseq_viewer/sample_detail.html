@@ -164,22 +164,25 @@
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h4 class="modal-title" id="assemblyModalTitle">Assembly Pipeline Overview</h4>
+              <h5 class="modal-title" id="assemblyModalTitle">Assembly Pipeline Overview</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
             <div class="modal-body">
               <ol>
-                <li>QC on reads with <a
-                  href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/">BBDuk</a> (adapter
-                  trimming/quality filtering)
-                </li>
+                <li>Adapter trimming and quality filtering reads with <a
+                  href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/">BBDuk</a>
+                  <span><i>({{ assembly_data.bbduk_version }})</i></span></li>
                 <li>Error-correction of reads with <a
-                  href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/tadpole-guide/">Tadpole</a></li>
-                <li>Assembly of reads with <a href="https://github.com/ncbi/SKESA">SKESA</a></li>
-                <li>Polishing of assembly with <a href="https://github.com/broadinstitute/pilon/wiki">Pilon</a></li>
-                <li>Assembly metrics with <a href="http://quast.sourceforge.net/quast">QUAST</a></li>
+                  href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/tadpole-guide/">Tadpole</a>
+                                  <span><i>({{ assembly_data.tadpole_version }})</i></span></li>
+                <li>Assembly of reads with <a href="https://github.com/ncbi/SKESA">SKESA</a>
+                  <span><i>({{ assembly_data.skesa_version }})</i></span></li>
+                <li>Polishing of assembly with <a href="https://github.com/broadinstitute/pilon/wiki">Pilon</a>
+                                  <span><i>({{ assembly_data.pilon_version }})</i></span></li>
+                <li>Assembly metrics with <a href="http://quast.sourceforge.net/quast">QUAST</a>
+                                  <span><i>({{ assembly_data.quast_version }})</i></span></li>
                 <li>Gene prediction with <a href="https://github.com/hyattpd/Prodigal">Prodigal</a></li>
                 <li>Taxonomic assignment with <a href="https://mash.readthedocs.io/en/latest/">Mash</a></li>
               </ol>
