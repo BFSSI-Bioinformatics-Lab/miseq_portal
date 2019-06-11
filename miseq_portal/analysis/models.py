@@ -148,6 +148,24 @@ class ProkkaResult(TimeStampedModel):
         verbose_name_plural = 'Prokka Results'
 
 
+class ConfindrResult(TimeStampedModel):
+    """
+    TODO: Finish implementing this
+    """
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+
+    @staticmethod
+    def call_confindr():
+        pass
+
+    def __str__(self):
+        return f"{self.sample_id}"
+
+    class Meta:
+        verbose_name = 'Confindr Result'
+        verbose_name_plural = 'Confindr Results'
+
+
 class MashResult(TimeStampedModel):
     """
     Model for storing Mash results against RefSeq for an individual sample
