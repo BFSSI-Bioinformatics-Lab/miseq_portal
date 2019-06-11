@@ -126,6 +126,28 @@ class SendsketchResult(TimeStampedModel):
         verbose_name_plural = 'Sendsketch Results'
 
 
+class ProkkaResult(TimeStampedModel):
+    """
+    TODO: Finish implementing this
+    """
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+    prokka_dir = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
+
+    @staticmethod
+    def call_prokka(fasta_path: Path, sample_id: str, outdir: Path, n_cpu: int) -> Path:
+        cmd = f"prokka --centre PORTAL --compliant --kingdom Bacteria " \
+            f"--cpus {n_cpu} --prefix {sample_id} --locustag {sample_id} --force --outdir {outdir} {fasta_path}"
+        run_subprocess(cmd, get_stdout=False)
+        return outdir
+
+    def __str__(self):
+        return f"{self.sample_id}"
+
+    class Meta:
+        verbose_name = 'Prokka Result'
+        verbose_name_plural = 'Prokka Results'
+
+
 class MashResult(TimeStampedModel):
     """
     Model for storing Mash results against RefSeq for an individual sample
