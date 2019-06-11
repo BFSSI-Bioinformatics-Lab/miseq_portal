@@ -224,6 +224,16 @@ def get_tadpole_version() -> str:
     """
     cmd = f"tadpole.sh --version"
     version = run_subprocess(cmd, get_stdout=True)
+    version = extract_bbtool_version_line(version)
+    return version
+
+
+def extract_bbtool_version_line(version: str) -> str:
+    # Extract version line
+    elements = version.split("\n")
+    for e in elements:
+        if 'version' in e.lower():
+            version = e
     return version
 
 
@@ -234,6 +244,10 @@ def get_bbmap_version() -> str:
     """
     cmd = f"bbmap.sh --version"
     version = run_subprocess(cmd, get_stdout=True)
+
+    # Extract version line
+    version = extract_bbtool_version_line(version)
+
     return version
 
 
@@ -244,6 +258,10 @@ def get_bbduk_version() -> str:
     """
     cmd = f"bbduk.sh --version"
     version = run_subprocess(cmd, get_stdout=True)
+
+    # Extract version line
+    version = extract_bbtool_version_line(version)
+
     return version
 
 
