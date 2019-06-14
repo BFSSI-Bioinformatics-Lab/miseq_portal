@@ -25,7 +25,6 @@
     </div>
 
     {# Sample Table #}
-    {#    <table id="run-table" class="display compact" style="width:100%" data-server-side="true" data-ajax="/miseq_viewer/api/runs/?format=datatables">#}
     <table id="run-table" class="display compact" style="width:100%">
       <thead>
       <tr>
@@ -33,7 +32,6 @@
         <th>Run ID</th>
         <th>Samplesheet</th>
         <th>Run Type</th>
-{#        <th># Samples</th>#}
         <th>Date Created</th>
       </tr>
       </thead>
@@ -43,7 +41,6 @@
         <td></td>
         <td></td>
         <td></td>
-{#        <td></td>#}
         <td></td>
       </tr>
       </tbody>
@@ -71,6 +68,7 @@
         serverSide: true,
         processing: true,
         pageLength: 15,
+        order: [[4,"desc"]],
         ajax: '/miseq_viewer/api/runs/?format=datatables',
         drawCallback: function (settings) {
           console.log(settings.json)
@@ -83,10 +81,6 @@
               "defaultContent": "",
               "className": "text-center",
             },
-          //  {
-          //    'orderable': false,
-          //    targets: 4  // Disable sorting on the num_samples column to prevent a strange bug
-          //  }
           ],
         columns:
           [
@@ -112,10 +106,6 @@
               "data": "run_type",
               "title": "Run Type",
             },
-          //  {
-          //    "data": "num_samples",
-          //    "title": "# Samples",
-          //  },
             {
               "data": "created",
               "title": "Date Created",
