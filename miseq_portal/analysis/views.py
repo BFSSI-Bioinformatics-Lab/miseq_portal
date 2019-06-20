@@ -8,7 +8,7 @@ from django.views.generic import View, TemplateView, DetailView, DeleteView
 
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
-    MobSuiteAnalysisGroup, RGIResult, RGIGroupResult
+    MobSuiteAnalysisGroup, RGIResult, RGIGroupResult, ConfindrGroupResult, ConfindrResult
 from miseq_portal.analysis.tasks import submit_analysis_job
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
@@ -134,6 +134,11 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
             context['rgi_results'] = RGIResult.objects.filter(
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
             context['rgi_group_result'] = RGIGroupResult.objects.get(analysis_group=context['analysis_group'])
+        # Confindr
+        elif context['analysis_group'].job_type == 'Confindr':
+            context['confindr_group_result'] = ConfindrGroupResult.objects.get(analysis_group=context['analysis_group'])
+            context['confindr_results'] = ConfindrResult.objects.filter(
+                analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
         else:
             return context
         return context
