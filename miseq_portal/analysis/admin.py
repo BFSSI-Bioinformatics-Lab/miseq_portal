@@ -2,7 +2,8 @@ from django.contrib import admin
 
 from .models import AnalysisSample, AnalysisGroup, \
     SendsketchResult, MobSuiteAnalysisGroup, \
-    MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult
+    MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
+    ConfindrGroupResult, ConfindrResult
 
 # Register your models here.
 admin.site.register(AnalysisSample)
@@ -13,3 +14,5 @@ admin.site.register(MobSuiteAnalysisGroup)
 admin.site.register(MobSuiteAnalysisPlasmid)
 admin.site.register(RGIResult)
 admin.site.register(RGIGroupResult)
+admin.site.register(ConfindrResult)
+admin.site.register(ConfindrGroupResult)
