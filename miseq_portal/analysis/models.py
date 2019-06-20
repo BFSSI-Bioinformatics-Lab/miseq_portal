@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 from django.db import models
 
-from config.settings.base import MEDIA_ROOT, MASH_REFSEQ_DATABASE
+from config.settings.base import MEDIA_ROOT, MASH_REFSEQ_DATABASE, CONFINDR_DB, CONFINDR_PATH
 from miseq_portal.analysis.tools.helpers import run_subprocess
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
@@ -55,6 +55,7 @@ class AnalysisGroup(models.Model):
         ('SendSketch', 'SendSketch'),
         ('MobRecon', 'MobRecon'),
         ('RGI', 'RGI'),
+        ('Confindr', 'Confindr'),
         # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
@@ -148,18 +149,71 @@ class ProkkaResult(TimeStampedModel):
         verbose_name_plural = 'Prokka Results'
 
 
-class ConfindrResult(TimeStampedModel):
+class ConfindrGroupResult(TimeStampedModel):
     """
-    TODO: Finish implementing this
+    Model for storing overall Confindr results of entire AnalysisGroup e.g. the confindr_report.csv file
     """
-    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+    analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
+    confindr_report = models.FileField(upload_to=upload_group_analysis_file, blank=True)
+    confindr_log = models.FileField(upload_to=upload_group_analysis_file, blank=True)
 
     @staticmethod
-    def call_confindr():
-        pass
+    def call_confindr(reads_dir: Path, outdir: Path, forward_id: str = "_R1", reverse_id: str = "_R2") -> tuple:
+        """
+        System call to confindr.py. Uses a Conda environment specifically for Confindr.
+        This takes ~3 minutes to run per sample.
+        :param reads_dir: Path to directory containing paired-end reads (.fastq.gz)
+        :param outdir: Desired path to output directory
+        :param forward_id: ID for forwards reads. Uses sensible default for Portal .fastq.gz files.
+        :param reverse_id: ID for reverse reads. Uses sensible default for Portal .fastq.gz files.
+        :return: Path to output file
+        """
+        cmd = f"{CONFINDR_PATH}/python {CONFINDR_PATH}/confindr.py -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
+            f"-fid {forward_id} -rid {reverse_id}"
+        run_subprocess(cmd, get_stdout=False)
+
+        report = outdir / 'confindr_report.csv'
+        logfile = outdir / 'confindr_log.txt'
+
+        return report, logfile
+
+    class Meta:
+        verbose_name = 'Confindr Group Result'
+        verbose_name_plural = 'Confindr Group Results'
+
+
+class ConfindrResult(TimeStampedModel):
+    """
+    Model for storing individual sample output files and results produced by Confindr
+    """
+    # Must be instantiated with these values
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    contamination_csv = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
+    rmlst_csv = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
+
+    # Fields parsed from confindr_report.csv
+    genus = models.CharField(max_length=256, blank=True, null=True)
+    num_contam_snvs = models.IntegerField(blank=True, null=True)
+    contam_status = models.CharField(max_length=32, blank=True, null=True)
+    percent_contam = models.FloatField(blank=True, null=True)
+    percent_contam_std_dev = models.FloatField(blank=True, null=True)
+    bases_examined = models.IntegerField(blank=True, null=True)
+    database_download_date = models.DateField(blank=True, null=True)
+
+    def get_contamination_df(self):
+        df = pd.read_csv(self.contamination_csv)
+        return df
+
+    def get_rmlst_df(self):
+        df = pd.read_csv(self.rmlst_csv)
+        return df
+
+    @property
+    def sample_id(self):
+        return self.analysis_sample.sample_id
 
     def __str__(self):
-        return f"{self.sample_id}"
+        return str(f"{self.pk} - {self.sample_id}")
 
     class Meta:
         verbose_name = 'Confindr Result'
