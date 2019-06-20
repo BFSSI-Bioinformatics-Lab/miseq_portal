@@ -5,20 +5,21 @@ import os
 import shutil
 from pathlib import Path
 
+import pandas as pd
 from celery import shared_task
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.dateparse import parse_date
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
-    upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file
+    ConfindrGroupResult, ConfindrResult, upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file
 from miseq_portal.analysis.tools.assemble_run import assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data, \
     prodigal_pipeline
 from miseq_portal.analysis.tools.plasmid_report import call_mob_recon
 from miseq_portal.analysis.tools.rgi import call_rgi_main, call_rgi_heatmap
 from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
-# from miseq_portal.analysis.tools.sendsketch import sendsketch_tophit_pipeline, create_sendsketch_result_object
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
 
 MEDIA_ROOT = Path(MEDIA_ROOT)
@@ -45,13 +46,15 @@ def submit_analysis_job(analysis_group: AnalysisGroup) -> AnalysisGroup:
 
     logger.info(f"Starting {job_type} job for user '{user}' for samples in group ID {group_id}")
 
-    # TODO: Impement handling for failed jobs so they actually switch over to 'FAILED' instead of 'Working' forever
+    # TODO: Implement handling for failed jobs so they actually switch over to 'FAILED' instead of 'Working' forever
 
     # Iterate over each sample instance and pass them to according method depending on job type
     if job_type == 'SendSketch':
         [submit_sendsketch_job(sample_instance) for sample_instance in analysis_samples]
     elif job_type == 'MobRecon':
         [submit_mob_recon_job(sample_instance) for sample_instance in analysis_samples]
+    elif job_type == 'Confindr':
+        submit_confindr_job(analysis_group=analysis_group)
     elif job_type == 'RGI':
         rgi_sample_list = [submit_rgi_job(sample_instance) for sample_instance in analysis_samples]
         # If multiple samples are selected, generate group analysis job
@@ -62,6 +65,68 @@ def submit_analysis_job(analysis_group: AnalysisGroup) -> AnalysisGroup:
     analysis_group.job_status = 'Complete'
     analysis_group.save()
     return analysis_group
+
+
+def submit_confindr_job(analysis_group: AnalysisGroup) -> ConfindrGroupResult:
+    analysis_dir = Path(upload_group_analysis_file(analysis_group=analysis_group, filename='confindr'))
+    outdir = MEDIA_ROOT / analysis_dir
+    outdir.mkdir(parents=True, exist_ok=False)
+
+    # Prepare reads directory
+    reads_dir = outdir / 'reads'
+    reads_dir.mkdir(parents=True, exist_ok=True)
+
+    # Grab all of the reads and symlink them to the reads_dir
+    analysis_samples = AnalysisSample.objects.filter(group_id=analysis_group)
+    samples = [analysis_sample.sample_id for analysis_sample in analysis_samples]
+    reads_dict = {sample: {'fwd_reads': MEDIA_ROOT / str(sample.fwd_reads),
+                           'rev_reads': MEDIA_ROOT / str(sample.rev_reads)}
+                  for sample in samples}
+
+    # Create symlinks. Note that these are being renamed to stricly the sample ID + direction
+    for sample_id, reads in reads_dict.items():
+        fwd_dst = reads_dir / f"{sample_id}_R1.fastq.gz"
+        rev_dst = reads_dir / f"{sample_id}_R2.fastq.gz"
+        fwd_dst.symlink_to(reads['fwd_reads'])
+        rev_dst.symlink_to(reads['rev_reads'])
+
+    # Create group instance
+    confindr_group_result = ConfindrGroupResult.objects.create(analysis_group=analysis_group)
+
+    # Run confindr on input read directory
+    report, logfile = confindr_group_result.call_confindr(reads_dir=reads_dir, outdir=outdir)
+
+    confindr_group_result.confindr_report = str(report)
+    confindr_group_result.confindr_log = str(logfile)
+    confindr_group_result.save()
+
+    # Create and populate individual result objects
+    report_path = MEDIA_ROOT / str(confindr_group_result.confindr_report)
+    report_df = pd.read_csv(report_path)
+    logger.info(f"report_path: {report_path}")
+
+    for analysis_sample in analysis_samples:
+        contam_csv = outdir / f"{analysis_sample.sample_id}_contamination.csv"
+        rmlst_csv = outdir / f"{analysis_sample.sample_id}_rmlstcsv"
+        confindr_result = ConfindrResult.objects.create(analysis_sample=analysis_sample,
+                                                        contamination_csv=str(contam_csv),
+                                                        rmlst_csv=str(rmlst_csv))
+        confindr_result.save()
+
+        # Filter to only sample of interest
+        df = report_df[report_df['Sample'] == str(analysis_sample.sample_id)]
+
+        # Populate ConfindrResult object
+        confindr_result.genus = str(df['Genus'][0])
+        confindr_result.num_contam_snvs = int(df['NumContamSNVs'][0])
+        confindr_result.contam_status = str(df['ContamStatus'][0])
+        confindr_result.percent_contam = float(df['PercentContam'][0])
+        confindr_result.percent_contam_std_dev = float(df['PercentContamStandardDeviation'][0])
+        confindr_result.bases_examined = int(df['BasesExamined'][0])
+        confindr_result.database_download_date = parse_date(df['DatabaseDownloadDate'][0])
+        confindr_result.save()
+
+    return confindr_group_result
 
 
 def submit_rgi_heatmap_job(analysis_group: AnalysisGroup, rgi_sample_list: [RGIResult]) -> RGIGroupResult:
