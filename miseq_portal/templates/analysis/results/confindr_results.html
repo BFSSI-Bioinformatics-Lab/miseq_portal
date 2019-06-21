@@ -3,11 +3,14 @@
     <span aria-hidden="true">&times;</span>
   </button>
   <h4>Tool Description</h4>
-  ConFindr
+ConFindr works by looking at conserved core genes - either using rMLST genes (53 genes are known to be single copy and
+  conserved across all bacteria with some known exceptions, which ConFindr handles), or custom sets of genes derived
+  from core-genome schemes. As the genes ConFindr looks at are single copy, any sample that has multiple alleles of one
+  or more gene is likely to be contaminated.
   <hr>
   <ul>
     <li>
-      <strong>Tool URL:</strong> <a href="https://github.com/OLC-Bioinformatics/ConFindr">ConFindr</a>
+      <strong>Tool URL:</strong> <a href="https://olc-bioinformatics.github.io/ConFindr/">ConFindr</a>
     </li>
     <li>
       <strong>Version:</strong> ConFindr Version 0.5.0 {# TODO: Automatically pull version and pass context here #}
@@ -15,8 +18,59 @@
     <li>
       <strong>Script:</strong> confindr.py
     </li>
-
   </ul>
 </div>
 
-<h5>UNDER CONSTRUCTION</h5>
+<h3>Results</h3>
+<table class="table table-sm">
+  <thead>
+  <tr>
+    <td><strong>Sample ID</strong></td>
+    <td><strong>Sample Name</strong></td>
+    <td><strong>Genus</strong></td>
+    <td><strong># Contam. SNVs</strong></td>
+    <td><strong>Contam. Status</strong></td>
+    <td><strong>% Contam.</strong></td>
+    <td><strong>% Contam. (std dev)</strong></td>
+    <td><strong>Bases Examined</strong></td>
+    <td><strong>Database Download Date</strong></td>
+  </tr>
+  </thead>
+  <tbody>
+  {% for result in confindr_results %}
+    <tr>
+      <td>
+          <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=result.sample_id.pk %}">
+            {{ result.sample_id }}
+          </a>
+      </td>
+      <td>{{ result.sample_id.sample_name }}</td>
+      <td>{{ result.genus }}</td>
+      <td>{{ result.num_contam_snvs }}</td>
+      {% if result.contam_status == 'False' %}
+        <td class="table-success">{{ result.contam_status }}</td>
+      {% else %}
+        <td class="table-danger">{{ result.contam_status }}</td>
+      {% endif %}
+      <td>{{ result.percent_contam }}</td>
+      <td>{{ result.percent_contam_std_dev }}</td>
+      <td>{{ result.bases_examined }}</td>
+      <td>{{ result.database_download_date }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<hr>
+
+<h3>Retrieve Raw Data</h3>
+
+<a class="btn btn-primary btn-sm" href="{{ confindr_group_result.confindr_report.url|filter_media_root_from_url }}" download
+   role="button"><i
+  class="fas fa-download"></i> Report (.csv)
+</a>
+
+<a class="btn btn-primary btn-sm" href="{{ confindr_group_result.confindr_log.url|filter_media_root_from_url }}" download
+   role="button"><i
+  class="fas fa-download"></i> Log (.txt)
+</a>
