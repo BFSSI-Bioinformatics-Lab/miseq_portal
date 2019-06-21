@@ -23,6 +23,7 @@
   <thead>
   <tr>
     <th>Sample ID</th>
+    <th>Sample Name</th>
     <th>Result File</th>
     <th>taxName</th>
     <th>ANI</th>
@@ -39,6 +40,7 @@
           {{ sendsketch_result.sample_id }}
         </a>
       </td>
+    <td>{{ sendsketch_result.sample_id.sample_name }}</td>
       {% if sendsketch_result.sendsketch_result_file.url == None %}
         <td>N/A</td>
       {% else %}
