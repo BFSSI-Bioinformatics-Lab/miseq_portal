@@ -1,0 +1,46 @@
+<div class="collapse" id="toolDescriptions">
+  <div class="card">
+    <div class="card-header">
+      A number of tools are available to process existing datasets:
+    </div>
+    <ol class="list-group list-group-flush">
+      <li class="list-group-item"><h5>Sendsketch</h5>
+        <p class="card-text">Sendsketch compares query sketches to reference sketches hosted on a remote server via
+          the Internet.
+          Uses the R1 and R2 reads of any given sample and compares against a sketch of RefSeq.</p>
+      </li>
+      <li class="list-group-item"><h5>Mob Recon</h5>
+        <p class="card-text">This tool reconstructs individual plasmid sequences from draft genome assemblies using
+          the clustered plasmid reference
+          databases provided by MOB-cluster. Provides in silico predictions of the replicon family, relaxase type,
+          mate-pair
+          formation type and predicted transferability of the plasmid.</p>
+      </li>
+      <li class="list-group-item"><h5>RGI</h5>
+        <p class="card-text">This application is used to predict resistome(s) from protein or nucleotide data based on
+          homology and SNP models. The
+          application uses reference data from the Comprehensive Antibiotic Resistance Database (CARD).</p>
+      </li>
+      <li class="list-group-item"><h5>ConFindr</h5>
+        <p class="card-text">ConFindr works by looking at conserved core genes - either using rMLST genes (53 genes are
+          known to be single copy and
+          conserved across all bacteria with some known exceptions, which ConFindr handles), or custom sets of genes
+          derived
+          from core-genome schemes. As the genes ConFindr looks at are single copy, any sample that has multiple alleles
+          of one
+          or more gene is likely to be contaminated.</p>
+      </li>
+      <li class="list-group-item"><h5>PlasmidAMR <span
+        class="font-weight-light text-secondary">(under construction)</span></h5>
+        <p class="card-text">This tool will first extract plasmids from your sample with Mob Recon, then conduct
+          resitome prediction via RGI on any detected plasmids.</p>
+      </li>
+      <li class="list-group-item"><h5>Core Pipeline <span
+        class="font-weight-light text-secondary">(under construction)</span></h5>
+        <p class="card-text">This tool will establish a core genome among the selected samples,
+          construct a core tree, generate a network visualization, and more.
+          Supports a maximum of 100 samples; if you need a larger sample set, please contact the administrator.</p>
+      </li>
+    </ol>
+  </div>
+</div>
