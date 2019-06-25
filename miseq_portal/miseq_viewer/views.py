@@ -89,16 +89,28 @@ class RunDetailView(LoginRequiredMixin, DetailView):
         context['interop_data_avaiable'] = True
 
         # Get run folder to feed to the interop parser
-        interop_folder = context['run'].interop_directory_path
+        """
+        TODO:   This is triggering for http://192.168.1.61:8000/miseq_viewer/run/137 (20190607_META_M01308). 
+                Figure out what's going wrong here because it's still bugged.
+        """
+        try:
+            run = context['run']
+        except KeyError:
+            run = context['object']  #
 
-        if context['run'].interop_directory_path is not None:
+        try:
+            interop_folder = run.interop_directory_path
+        except KeyError:
+            interop_folder = run.interop_directory_path
+
+        if interop_folder is not None:
             interop_folder = Path(interop_folder)
         else:
             logger.info("WARNING: The InterOp directory for this run is not stored in the database")
             context['interop_data_avaiable'] = False
 
         # Grab Samplesheet path
-        samplesheet = Path(MEDIA_ROOT) / str(context['run'].sample_sheet)
+        samplesheet = Path(MEDIA_ROOT) / str(run.sample_sheet)
 
         # Try to receive InterOp data, if it's not available then display an alert on miseq_viewer/run_detail.html
         try:
@@ -108,8 +120,8 @@ class RunDetailView(LoginRequiredMixin, DetailView):
             context['interop_data_avaiable'] = False
 
         # logger.debug(f"interop_data_available: {context['interop_data_avaiable']}")
-        context['sample_list'] = Sample.objects.filter(run_id=context['run'], hide_flag=False)
-        context['samplesheet_headers'] = RunSamplesheet.objects.get(run_id=context['run'])
+        context['sample_list'] = Sample.objects.filter(run_id=run, hide_flag=False)
+        context['samplesheet_headers'] = RunSamplesheet.objects.get(run_id=run)
         context['samplesheet_df'] = parse_samplesheet.read_samplesheet_to_html(sample_sheet=samplesheet)
 
         return context
