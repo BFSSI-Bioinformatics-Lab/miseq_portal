@@ -11,7 +11,7 @@ from miseq_portal.miseq_uploader.parse_samplesheet import generate_sample_object
     extract_samplesheet_headers
 from miseq_portal.miseq_uploader.parse_stats_json import stats_json_to_df
 from miseq_portal.miseq_viewer.models import Project, UserProjectRelationship, Run, RunInterOpData, Sample, \
-    SampleLogData, RunSamplesheet, \
+    SampleLogData, RunSamplesheet, SampleSheetSampleData, \
     upload_run_file, upload_reads, upload_interop_file, upload_interop_dir, SampleDataObject, \
     RunDataObject
 from miseq_portal.users.models import User
@@ -320,7 +320,27 @@ def db_create_sample_log(sample_object: SampleDataObject, sample_instance: Sampl
     return sample_log_instance
 
 
+def db_create_samplesheetsampledata(sample_object: Sample, run_instance: Run):
+    """ Create SampleSheetSampleData instance and populate with relevant data from SampleSheet """
+    samplesheet = run_instance.sample_sheet
+    samplesheetsampledata_instance, samplesheetsampledata_created = SampleSheetSampleData.objects.get_or_create(
+        sample_id=sample_object)
+    if samplesheetsampledata_created:
+        row = samplesheetsampledata_instance.extract_sample_row_from_samplesheet(
+            samplesheet=(Path(MEDIA_ROOT) / str(samplesheet))
+        )
+        attr_dict = samplesheetsampledata_instance.samplesheet_row_to_dict(row=row)
+        for attribute, value in attr_dict.items():
+            setattr(samplesheetsampledata_instance, attribute, value)
+        samplesheetsampledata_instance.save()
+    else:
+        logger.info(f"{samplesheetsampledata_instance} already exists! Skipping!")
+
+    return samplesheetsampledata_instance
+
+
 def db_create_runsamplesheet(run_instance: Run) -> RunSamplesheet:
+    """ Create RunSamplesheet instance and populate with relevant data from SampleSheet """
     runsamplesheet_instance, run_created = RunSamplesheet.objects.get_or_create(run_id=run_instance)
     if run_created:
         attr_dict = extract_samplesheet_headers(samplesheet=Path(MEDIA_ROOT) / str(run_instance.sample_sheet))
@@ -331,9 +351,7 @@ def db_create_runsamplesheet(run_instance: Run) -> RunSamplesheet:
 
 
 def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDataObject) -> [SampleDataObject]:
-    """
-    Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database
-    """
+    """ Takes list of fully populated SampleObjects + path to SampleSheet and uploads to the database """
     updated_sample_object_list = []
     for sample_object in sample_object_list:
         # PROJECT
@@ -360,4 +378,9 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
 
         # SAMPLE LOG
         sample_log_instance = db_create_sample_log(sample_object=sample_object, sample_instance=sample_instance)
+
+        # SAMPLESHEET SAMPLE DATA
+        samplesheetsampledata_instance = db_create_samplesheetsampledata(sample_object=sample_object,
+                                                                         run_instance=run_instance)
+
     return updated_sample_object_list
