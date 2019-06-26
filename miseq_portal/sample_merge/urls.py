@@ -15,5 +15,5 @@ urlpatterns = [
     path("queue/", view=sample_merge_queue_view, name="sample_merge_queue"),
     path("sample_delete/success", view=sample_delete_success_view, name="sample_delete_success_view"),
     re_path("^delete/(?P<pk>\d+)$", view=sample_delete_view, name="sample_delete_view"),
-    re_path("^success/", view=merge_success_view, name="merge_success_view")
+    re_path("^manual/merge_success/", view=merge_success_view, name="merge_success_view")
 ]
