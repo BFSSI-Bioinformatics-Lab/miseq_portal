@@ -10,7 +10,6 @@ from miseq_uploader.parse_miseq_analysis_folder import retrieve_fastqgz, filter_
 from miseq_uploader.parse_samplesheet import get_sample_name_dictionary, read_samplesheet, extract_run_name, \
     group_by_project, get_sample_id_list, validate_sample_id, validate_samplesheet_header
 
-# logger = logging.getLogger('raven')
 logger = logging.getLogger('django')
 
 
