@@ -55,6 +55,7 @@
       <tr>
         <th>Sample ID</th>
         <th>Sample Name</th>
+        <th>Description</th>
         <th>Top RefSeq</th>
       </tr>
       </thead>
@@ -70,6 +71,9 @@
             {{ sample.sample_name }}
           </td>
           <td>
+            {{ sample.samplesheetsampledata.description }}
+          </td>
+          <td>
             {{ sample.mashresult.top_hit }}
           </td>
         </tr>
@@ -77,11 +81,6 @@
       </tbody>
     </table>
 
-    {##}
-    {#    <div class="container">#}
-    {#      <h3>Sample Sheet</h3>#}
-    {#      {{ samplesheet_df | safe }}#}
-    {#    </div>#}
     <br>
   </div>
 {% endblock content %}
