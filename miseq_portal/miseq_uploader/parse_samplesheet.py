@@ -39,6 +39,8 @@ def validate_samplesheet_header(header: list) -> bool:
 
 def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
     """
+    TODO:   This code has been duplicated -> method was moved to miseq_viewer.models.SampleSheetSampleData as a
+            static method. Should refactor all calls to this method to use SampleSheetSampleData.read_samplesheet()
     Reads SampleSheet.csv and returns dataframe (all header information will be stripped)
     :param samplesheet: Path to SampleSheet.csv
     :return: pandas df of SampleSheet.csv with head section stripped away
