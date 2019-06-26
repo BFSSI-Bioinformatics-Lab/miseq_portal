@@ -76,7 +76,7 @@ def merge_reads_sample_objects(sample_object_list: [Sample], merged_sample: Samp
                                          queue='assembly_queue')
 
 
-def create_merge_sample_dir(merged_sample: Sample):
+def create_merge_sample_dir(merged_sample: Sample) -> tuple:
     merge_dir = Path(MEDIA_ROOT) / 'merged_samples'
     merged_sample_path = merge_dir / merged_sample.sample_id
     os.makedirs(merged_sample_path, exist_ok=False)
