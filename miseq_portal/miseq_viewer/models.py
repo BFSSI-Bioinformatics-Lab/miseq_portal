@@ -1,6 +1,8 @@
 import logging
 from pathlib import Path
+from typing import Optional
 
+import pandas as pd
 from dataclasses import dataclass
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -252,6 +254,11 @@ class RunSamplesheet(TimeStampedModel):
     description = models.CharField(blank=True, max_length=1028)
     chemistry = models.CharField(blank=True, max_length=1028)
 
+    # Capture the [Settings] section
+    # TODO: Populate these values post-hoc
+    reversecomplement = models.CharField(blank=True, max_length=256)
+    adapter = models.CharField(blank=True, max_length=256)
+
     def get_fields(self):
         return [(field.name, field.value_to_string(self)) for field in RunSamplesheet._meta.fields]
 
@@ -368,6 +375,108 @@ class Sample(TimeStampedModel):
     class Meta:
         verbose_name = 'Sample'
         verbose_name_plural = 'Samples'
+
+
+class SampleSheetSampleData(TimeStampedModel):
+    """
+     Model to store data from a SampleSheet for a Sample. Must be populated after the Sample has been instantiated.
+     This model was built with a different design pattern than the others, with a 'fat model' approach where much of the
+     logic is baked in. All new models going forward should follow this pattern.
+
+        -   Note that all data is pulled from the SampleSheet.csv
+        -   Columns for SampleSheets are not always the same - model attempts to accommodate all possibilities, but it
+            may need to be expanded
+     """
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+
+    # SampleSheet data
+    sample_name = models.TextField(blank=True)
+    sample_plate = models.TextField(blank=True)
+    sample_well = models.TextField(blank=True)
+    i7_index_id = models.TextField(blank=True)
+    index = models.TextField(blank=True)
+    i5_index_id = models.TextField(blank=True)
+    index2 = models.TextField(blank=True)
+    sample_project = models.TextField(blank=True)
+    description = models.TextField(blank=True)
+
+    @staticmethod
+    def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
+        """
+        Reads SampleSheet.csv and returns dataframe (all header information will be stripped)
+        :param samplesheet: Path to SampleSheet.csv
+        :return: pandas df of SampleSheet.csv with head section stripped away
+        """
+        counter = 1
+        with open(str(samplesheet)) as f:
+            for line in f:
+                if '[Data]' in line:
+                    break
+                else:
+                    counter += 1
+        df = pd.read_csv(samplesheet, sep=",", index_col=False, skiprows=counter)
+
+        # Force Sample_Name and Sample_Project into str types
+        df['Sample_Name'] = df['Sample_Name'].astype(str)
+        df['Sample_Project'] = df['Sample_Project'].astype(str)
+
+        # Fill in missing projects
+        df['Sample_Project'] = df['Sample_Project'].replace(r"\s+", "MISSING_PROJECT", regex=True)
+        df['Sample_Project'] = df['Sample_Project'].fillna(value="MISSING_PROJECT")
+
+        return df
+
+    def extract_sample_row_from_samplesheet(self, samplesheet: Path) -> Optional[pd.DataFrame]:
+        """ Given the [Data] section of a SampleSheet as a DataFrame, will filter to row for sample """
+        # Filter df to only our row of interest
+        df = self.read_samplesheet(samplesheet=samplesheet)
+
+        if self.sample_id.sample_type != 'BMH':
+            sample_id = self.sample_id.sample_name
+        else:
+            sample_id = str(self.sample_id)
+
+        df_ = df[df['Sample_ID'] == sample_id]
+
+        # If the df is empty, try to find the ID according to Sample_Name
+        if len(df_) == 0:
+            df_ = df[df['Sample_Name'] == sample_id]
+            if len(df_) == 0:
+                logger.warning(f"Could not detect '{sample_id}' in provided DataFrame")
+                return None
+        return df_
+
+    @property
+    def attribute_dict(self):
+        """ Stores relationship between Model field names and column names from SampleSheet """
+        attribute_dict = {
+            'sample_name': 'Sample_Name',
+            'sample_plate': 'Sample_Plate',
+            'sample_well': 'Sample_Well',
+            'i7_index_id': 'I7_Index_ID',
+            'index': 'index',
+            'i5_index_id': 'I5_Index_ID',
+            'index2': 'index2',
+            'sample_project': 'Sample_Project',
+            'description': 'Description',
+        }
+        return attribute_dict
+
+    def samplesheet_row_to_dict(self, row: pd.DataFrame) -> dict:
+        # These keys should correspond 1:1 with this model's CharFields
+        value_dict = {attr: '' for attr in self.attribute_dict.keys()}
+
+        # Populate value_dict which stores the values from the row in a dictionary with relevant model fields as keys
+        for attr, col in self.attribute_dict.items():
+            value_dict[attr] = row[col].values[0]
+        return value_dict
+
+    def __str__(self):
+        return str(self.sample_id)
+
+    class Meta:
+        verbose_name = 'SampleSheet Sample Data'
+        verbose_name_plural = 'SampleSheet Sample Data'
 
 
 class MergedSampleComponent(models.Model):
