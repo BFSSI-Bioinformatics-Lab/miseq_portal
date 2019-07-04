@@ -320,11 +320,11 @@ def db_create_sample_log(sample_object: SampleDataObject, sample_instance: Sampl
     return sample_log_instance
 
 
-def db_create_samplesheetsampledata(sample_object: Sample, run_instance: Run):
+def db_create_samplesheetsampledata(sample_instance: Sample, run_instance: Run):
     """ Create SampleSheetSampleData instance and populate with relevant data from SampleSheet """
     samplesheet = run_instance.sample_sheet
     samplesheetsampledata_instance, samplesheetsampledata_created = SampleSheetSampleData.objects.get_or_create(
-        sample_id=sample_object)
+        sample_id=sample_instance)
     if samplesheetsampledata_created:
         row = samplesheetsampledata_instance.extract_sample_row_from_samplesheet(
             samplesheet=(Path(MEDIA_ROOT) / str(samplesheet))
@@ -380,7 +380,7 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
         sample_log_instance = db_create_sample_log(sample_object=sample_object, sample_instance=sample_instance)
 
         # SAMPLESHEET SAMPLE DATA
-        samplesheetsampledata_instance = db_create_samplesheetsampledata(sample_object=sample_object,
+        samplesheetsampledata_instance = db_create_samplesheetsampledata(sample_instance=sample_instance,
                                                                          run_instance=run_instance)
 
     return updated_sample_object_list
