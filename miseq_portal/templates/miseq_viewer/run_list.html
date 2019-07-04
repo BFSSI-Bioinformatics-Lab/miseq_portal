@@ -112,7 +112,6 @@
               "render": function (data, type, full, meta) {
                 let options = {year: 'numeric', month: 'numeric', weekday: 'numeric'};
                 let formatted_date = new Date(data).toLocaleDateString("en-US");
-                console.log(formatted_date);
                 return formatted_date
               }
             }
