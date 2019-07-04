@@ -114,7 +114,7 @@ def submit_confindr_job(analysis_group: AnalysisGroup) -> ConfindrGroupResult:
         confindr_result.save()
 
         # Filter to only sample of interest
-        df = report_df[report_df['Sample'] == str(analysis_sample.sample_id)]
+        df = report_df[report_df['Sample'] == str(analysis_sample.sample_id)].reset_index()
 
         # Populate ConfindrResult object
         confindr_result.genus = str(df['Genus'][0])
