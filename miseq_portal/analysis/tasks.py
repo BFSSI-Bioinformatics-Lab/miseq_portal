@@ -349,9 +349,10 @@ def assemble_sample_instance(sample_object_id: str):
         """
         try:
             if sample_instance.samplelogdata.number_reads < 1000 and sample_instance.samplelogdata.number_reads is not None:
-                logger.warning(f"Number of reads for sample {sample_instance} is less than 1000. "
-                               f"Skipping assembly step."
-                               f"Number of reads: {sample_instance.samplelogdata.number_reads}")
+                logger.warning(
+                    f"Number of reads for sample {sample_instance} is less than 1000 "
+                    f"(number_reads={sample_instance.samplelogdata.number_reads}). "
+                    f"Skipping assembly step.")
                 return
         except ObjectDoesNotExist:
             # Continue on like usual if samplelogdata doesn't exist yet
