@@ -150,14 +150,12 @@
   <div class="container-fluid">
     <h4>Assembly Details
       <!-- Button trigger for assembly pipeline modal -->
-      <button type="button" class="btn btn-sm btn-light" data-toggle="modal"
-              data-target="#assemblyModal">
+      <button type="button" class="btn btn-sm btn-light" data-toggle="modal" data-target="#assemblyModal">
         <i class="fas fa-question-circle fa-lg"></i>
       </button>
     </h4>
 
     {% if assembly_data != None %}
-
       <!-- Assembly Pipeline Modal -->
       <div class="modal fade" id="assemblyModal" tabindex="-1" role="dialog"
            aria-labelledby="assemblyModalTitle" aria-hidden="true">
@@ -176,13 +174,13 @@
                   <span><i>({{ assembly_data.bbduk_version }})</i></span></li>
                 <li>Error-correction of reads with <a
                   href="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/tadpole-guide/">Tadpole</a>
-                                  <span><i>({{ assembly_data.tadpole_version }})</i></span></li>
+                  <span><i>({{ assembly_data.tadpole_version }})</i></span></li>
                 <li>Assembly of reads with <a href="https://github.com/ncbi/SKESA">SKESA</a>
                   <span><i>({{ assembly_data.skesa_version }})</i></span></li>
                 <li>Polishing of assembly with <a href="https://github.com/broadinstitute/pilon/wiki">Pilon</a>
-                                  <span><i>({{ assembly_data.pilon_version }})</i></span></li>
+                  <span><i>({{ assembly_data.pilon_version }})</i></span></li>
                 <li>Assembly metrics with <a href="http://quast.sourceforge.net/quast">QUAST</a>
-                                  <span><i>({{ assembly_data.quast_version }})</i></span></li>
+                  <span><i>({{ assembly_data.quast_version }})</i></span></li>
                 <li>Gene prediction with <a href="https://github.com/hyattpd/Prodigal">Prodigal</a></li>
                 <li>Taxonomic assignment with <a href="https://mash.readthedocs.io/en/latest/">Mash</a></li>
               </ol>
@@ -392,7 +390,6 @@
       }
 
       if (merge_present === true && assembly_present === false) {
-        console.log("Disabling delete button until assembly is completed!");
         $("#delete-sample-button").addClass("disabled");
       }
     }
