@@ -34,9 +34,9 @@ class ProjectListView(LoginRequiredMixin, ListView):
     @staticmethod
     def get_overview_data():
         overview_dict = dict()
-        overview_dict['number_of_projects'] = len(Project.objects.all().values())
-        overview_dict['number_of_samples'] = len(Sample.objects.all().values())
-        overview_dict['number_of_runs'] = len(Run.objects.all().values())
+        overview_dict['number_of_projects'] = len(Project.objects.all())
+        overview_dict['number_of_samples'] = len(Sample.objects.all())
+        overview_dict['number_of_runs'] = len(Run.objects.all())
         return json.dumps(overview_dict)
 
     def get_queryset(self):
@@ -61,9 +61,11 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['run_list'] = Run.objects.all()
         context['sample_list'] = Sample.objects.filter(project_id=context['project'], hide_flag=False)
+
         # Filter out samples that are missing data for the project_detail.html template
         context['has_sample_log_data'] = context['sample_list'].filter(samplelogdata__isnull=False)
         context['has_mash_result'] = context['sample_list'].filter(mashresult__isnull=False)
+
         return context
 
 
@@ -89,14 +91,10 @@ class RunDetailView(LoginRequiredMixin, DetailView):
         context['interop_data_avaiable'] = True
 
         # Get run folder to feed to the interop parser
-        """
-        TODO:   This is triggering for http://192.168.1.61:8000/miseq_viewer/run/137 (20190607_META_M01308). 
-                Figure out what's going wrong here because it's still bugged.
-        """
         try:
             run = context['run']
         except KeyError:
-            run = context['object']  #
+            run = context['object']
 
         try:
             interop_folder = run.interop_directory_path
