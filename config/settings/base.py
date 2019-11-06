@@ -222,6 +222,10 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries': {
+                'analysis_extras': 'analysis.templatetags.analysis_extras',
+                'miseq_viewer_extras': 'miseq_viewer.templatetags.miseq_viewer_extras',
+            }
         },
     },
 ]
@@ -253,16 +257,12 @@ MANAGERS = ADMINS
 
 # django-allauth
 # ------------------------------------------------------------------------------
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ALLOW_REGISTRATION = env.bool('DJANGO_ACCOUNT_ALLOW_REGISTRATION', True)
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = 'username'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = 'miseq_portal.users.adapters.AccountAdapter'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = 'miseq_portal.users.adapters.SocialAccountAdapter'
 
 # Your stuff...
@@ -323,13 +323,11 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework_datatables.filters.DatatablesFilterBackend',
-        # 'django_filters.rest_framework.DjangoFilterBackend',  # Not sure if this is doing anything
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         # https://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication
         'rest_framework.authentication.TokenAuthentication',
-
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
     'PAGE_SIZE': 100,
@@ -339,4 +337,14 @@ REST_FRAMEWORK = {
 MOB_SUITE_PATH = Path("/home/brock/miniconda3/envs/mob_suite/bin/")
 ABRICATE_PATH = Path("/home/brock/miniconda3/envs/abricate/bin/")
 STAR_AMR_PATH = Path("/home/brock/miniconda3/envs/staramr/bin/")
+CONFINDR_PATH = Path("/home/brock/miniconda3/envs/confindr/bin/")
+
+# Databases
 MASH_REFSEQ_DATABASE = Path(MEDIA_ROOT) / 'resources' / 'refseq.genomes.k21s1000.msh'
+assert MASH_REFSEQ_DATABASE.exists()
+
+CONFINDR_DB = Path(MEDIA_ROOT) / 'resources' / 'confindr_db'
+assert CONFINDR_DB.exists()
+
+CONFINDR_SECRET = Path(MEDIA_ROOT) / 'resources' / 'pubmlst_secret.txt'
+assert CONFINDR_SECRET.exists()
