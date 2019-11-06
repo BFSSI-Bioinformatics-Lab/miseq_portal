@@ -346,7 +346,7 @@ def call_bbmap(fwd_reads: Path, rev_reads: Path, outdir: Path, assembly: Path) -
     case previously.
     """
     cmd = f"bbmap.sh in1={fwd_reads} in2={rev_reads} ref={assembly} out={outbam} overwrite=t " \
-        f"pigz=t deterministic=t averagepairdist=50 bamscript=bs.sh; sh bs.sh"
+        f"pigz=t deterministic=t unbgzip=f averagepairdist=50 bamscript=bs.sh; sh bs.sh"
     run_subprocess(cmd)
 
     # Grab the sorted .bam file produced by bbmap.sh
@@ -373,7 +373,7 @@ def call_tadpole(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
     if fwd_out.exists() and rev_out.exists():
         return fwd_out, rev_out
 
-    cmd = f"tadpole.sh in1={fwd_reads} in2={rev_reads} out1={fwd_out} out2={rev_out} mode=correct"
+    cmd = f"tadpole.sh in1={fwd_reads} in2={rev_reads} out1={fwd_out} out2={rev_out} mode=correct unbgzip=f"
     run_subprocess(cmd)
     return fwd_out, rev_out
 
@@ -395,6 +395,7 @@ def call_bbduk(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
 
     # TODO: Store these parameters for BBDuk + other system tools in a single config file
     cmd = f"bbduk.sh in1={fwd_reads} in2={rev_reads} out1={fwd_out} out2={rev_out} " \
-        f"ref=adapters maq=12 qtrim=rl tpe tbo overwrite=t"
+        f"ref=adapters maq=12 qtrim=rl tpe tbo overwrite=t unbgzip=f"
     run_subprocess(cmd)
     return fwd_out, rev_out
+
