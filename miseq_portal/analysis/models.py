@@ -4,12 +4,16 @@ from pathlib import Path
 import pandas as pd
 from django.db import models
 
-from config.settings.base import MEDIA_ROOT, MASH_REFSEQ_DATABASE, CONFINDR_DB, CONFINDR_PATH
+from django.conf import settings
 from miseq_portal.analysis.tools.helpers import run_subprocess
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
 
+MEDIA_ROOT = settings.MEDIA_ROOT
+MASH_REFSEQ_DATABASE = settings.MASH_REFSEQ_DATABASE
+CONFINDR_DB = settings.CONFINDR_DB
+CONFINDR_PATH = settings.CONFINDR_PATH
 MEDIA_ROOT = Path(MEDIA_ROOT)
 
 
@@ -137,7 +141,7 @@ class ProkkaResult(TimeStampedModel):
     @staticmethod
     def call_prokka(fasta_path: Path, sample_id: str, outdir: Path, n_cpu: int) -> Path:
         cmd = f"prokka --centre PORTAL --compliant --kingdom Bacteria " \
-            f"--cpus {n_cpu} --prefix {sample_id} --locustag {sample_id} --force --outdir {outdir} {fasta_path}"
+              f"--cpus {n_cpu} --prefix {sample_id} --locustag {sample_id} --force --outdir {outdir} {fasta_path}"
         run_subprocess(cmd, get_stdout=False)
         return outdir
 
@@ -169,7 +173,7 @@ class ConfindrGroupResult(TimeStampedModel):
         :return: Path to output file
         """
         cmd = f"{CONFINDR_PATH}/python {CONFINDR_PATH}/confindr.py -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
-            f"-fid {forward_id} -rid {reverse_id}"
+              f"-fid {forward_id} -rid {reverse_id}"
         run_subprocess(cmd, get_stdout=False)
 
         report = outdir / 'confindr_report.csv'
