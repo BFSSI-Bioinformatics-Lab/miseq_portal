@@ -9,6 +9,12 @@ from miseq_portal.analysis.tools.helpers import run_subprocess
 
 logger = logging.getLogger('django')
 
+# TODO: Don't use hard coded path... get this guy into $PATH
+RGI = "/home/brock/Desktop/BioInfo/rgi-5.1.0/rgi"
+
+
+# TODO: Had to manually modify the !# line in /home/brock/Desktop/BioInfo/rgi-5.1.0/rgi to call the correct interpreter
+#   seems like a bad solution
 
 def call_rgi_main(fasta: Path, outdir: Path, sample_id: str) -> Optional[tuple]:
     """
@@ -20,8 +26,10 @@ def call_rgi_main(fasta: Path, outdir: Path, sample_id: str) -> Optional[tuple]:
     :return:
     """
     outpath = outdir / (sample_id + "_RGI_Results")
-    cmd = f'rgi main -i {fasta} -o {outpath} --clean'
-    run_subprocess(cmd)
+    cmd = f'{RGI} main -i {fasta} -o {outpath} --clean'
+    outlog = run_subprocess(cmd, get_stdout=True)
+    logger.info(cmd)
+    logger.info(outlog)
     rgi_text_results = outpath.with_suffix(".txt")
     rgi_json_results = outpath.with_suffix(".json")
     try:
@@ -41,8 +49,10 @@ def call_rgi_parser(rgi_json: Path, outdir: Path, sample_id: str):
     """
     # TODO: Finish implementing this
     outpath = outdir / (sample_id + "RGI_Parsed")
-    cmd = f'rgi parser -i {rgi_json} -o {outpath} -t contig'
-    run_subprocess(cmd)
+    cmd = f'{RGI} parser -i {rgi_json} -o {outpath} -t contig'
+    outlog = run_subprocess(cmd, get_stdout=True)
+    logger.info(cmd)
+    logger.info(outlog)
 
 
 def call_rgi_heatmap(rgi_json_dir: Path, outdir: Path, analysis_group: AnalysisGroup,
@@ -56,9 +66,11 @@ def call_rgi_heatmap(rgi_json_dir: Path, outdir: Path, analysis_group: AnalysisG
     """
     logger.info(f"Running RGI heatmap on {analysis_group}")
     outpath = outdir / (analysis_group.created.strftime('%Y%m%d') + '_heatmap')
-    cmd = f'rgi heatmap -i {rgi_json_dir} --category {category} ' \
-        f'--cluster {cluster} --display {display} --output {outpath}'
-    run_subprocess(cmd)
+    cmd = f'{RGI} heatmap -i {rgi_json_dir} --category {category} ' \
+          f'--cluster {cluster} --display {display} --output {outpath}'
+    outlog = run_subprocess(cmd, get_stdout=True)
+    logger.info(cmd)
+    logger.info(outlog)
 
     try:
         eps_out = list(outdir.glob(analysis_group.created.strftime('%Y%m%d') + '_heatmap*.eps'))[0]
