@@ -15,6 +15,8 @@ from dataclasses import dataclass
 
 from miseq_portal.analysis.tools.helpers import run_subprocess
 
+MOB_RECON = "/home/brock/miniconda3/envs/mobsuite/bin/mob_recon"
+
 
 @dataclass
 class MobSuiteDataObject:
@@ -25,7 +27,7 @@ class MobSuiteDataObject:
 
 
 def call_mob_recon(assembly: Path, outdir: Path) -> MobSuiteDataObject:
-    cmd = f'mob_recon --infile {assembly} --outdir {outdir} --run_typer'
+    cmd = f'{MOB_RECON} --infile {assembly} --outdir {outdir} --run_typer'
     run_subprocess(cmd)
     contig_report = list(outdir.glob("contig_report.txt"))[0]
     mobtyper_aggregate_report = list(outdir.glob("mobtyper_aggregate_report.txt"))[0]
