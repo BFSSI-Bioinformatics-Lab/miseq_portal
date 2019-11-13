@@ -166,6 +166,9 @@ class ConfindrGroupResult(TimeStampedModel):
         """
         System call to confindr.py. Uses a Conda environment specifically for Confindr.
         This takes ~3 minutes to run per sample.
+
+        NOTE: Versions of confindr above 0.7.0 appear to be broken - stick with 0.7.0
+
         :param reads_dir: Path to directory containing paired-end reads (.fastq.gz)
         :param outdir: Desired path to output directory
         :param forward_id: ID for forwards reads. Uses sensible default for Portal .fastq.gz files.
