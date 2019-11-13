@@ -20,7 +20,6 @@ from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.tools.helpers import run_subprocess, remove_dir_files
 from miseq_portal.miseq_viewer.models import SampleAssemblyData, upload_assembly
 
-# logger = logging.getLogger('raven')
 logger = logging.getLogger('django')
 
 MEDIA_ROOT = Path(MEDIA_ROOT)
@@ -311,7 +310,8 @@ def call_skesa(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id: str) -
     if assembly_out.exists():
         return assembly_out
 
-    cmd = f'skesa --use_paired_ends --gz --fastq "{fwd_reads},{rev_reads}" --contigs_out {assembly_out}'
+    cmd = f'skesa --use_paired_ends --fastq "{fwd_reads},{rev_reads}" --contigs_out {assembly_out}'
+    logger.info(cmd)
     run_subprocess(cmd)
     return assembly_out
 
@@ -347,6 +347,7 @@ def call_bbmap(fwd_reads: Path, rev_reads: Path, outdir: Path, assembly: Path) -
     """
     cmd = f"bbmap.sh in1={fwd_reads} in2={rev_reads} ref={assembly} out={outbam} overwrite=t " \
         f"pigz=t deterministic=t unbgzip=f averagepairdist=50 bamscript=bs.sh; sh bs.sh"
+    logger.info(cmd)
     run_subprocess(cmd)
 
     # Grab the sorted .bam file produced by bbmap.sh
