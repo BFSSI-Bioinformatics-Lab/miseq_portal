@@ -27,8 +27,8 @@ MEDIA_ROOT = Path(MEDIA_ROOT)
 logger = logging.getLogger('django')
 
 
-@shared_task()
-def submit_analysis_job(analysis_group: AnalysisGroup) -> AnalysisGroup:
+@shared_task(serializer='json')
+def submit_analysis_job(analysis_group: AnalysisGroup):
     """
     Given an AnalysisGroup, retrieves all AnalysisSample members and runs an asynchronous call to the specified job_type
     :param analysis_group: Instance of AnalysisGroup object
@@ -61,10 +61,9 @@ def submit_analysis_job(analysis_group: AnalysisGroup) -> AnalysisGroup:
         if len(rgi_sample_list) > 1:
             submit_rgi_heatmap_job(analysis_group=analysis_group, rgi_sample_list=rgi_sample_list)
 
-    logger.info(f"Analysis for Group {analysis_group} completed")
+    logger.info(f'Analysis for Group {analysis_group} completed')
     analysis_group.job_status = 'Complete'
     analysis_group.save()
-    return analysis_group
 
 
 def submit_confindr_job(analysis_group: AnalysisGroup) -> ConfindrGroupResult:
