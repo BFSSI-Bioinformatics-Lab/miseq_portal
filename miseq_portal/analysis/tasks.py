@@ -376,6 +376,11 @@ def assemble_sample_instance(sample_object_id: str):
             outdir=outdir,
             sample_id=str(sample_instance.sample_id)
         )
+        # Do a check to make sure the assembly isn't empty
+        if os.stat(str(polished_assembly)).st_size == 0:
+            logger.warning(f"The input assembly for {sample_instance} is empty. Skipping downstream analyses.")
+            return
+
         # Run and parse Qualimap
         qualimap_result_file = call_qualimap(bamfile=bamfile, outdir=outdir)
         mean_coverage, std_coverage = extract_coverage_from_qualimap_results(qualimap_result_file=qualimap_result_file)
