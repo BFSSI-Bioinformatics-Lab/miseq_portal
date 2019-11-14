@@ -62,7 +62,7 @@ def call_qualimap(bamfile: Path, outdir: Path) -> Path:
     return qualimap_result_file
 
 
-def assembly_pipeline(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id: str) -> tuple:
+def assembly_pipeline(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id: str) -> (Path, Path):
     """
     Wrapper for high-level steps of the assembly pipeline.
     1. BBduk (read QC)
