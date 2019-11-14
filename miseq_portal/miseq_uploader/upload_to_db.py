@@ -213,8 +213,6 @@ def db_create_run(sample_object: SampleDataObject, run_data_object: RunDataObjec
         # Save instance
         run_instance.save()
         logger.info(f"Saved {run_instance} to the database")
-    else:
-        logger.info(f"Run '{run_instance}' already exists, skipping")
 
     return run_instance
 
