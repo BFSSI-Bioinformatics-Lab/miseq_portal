@@ -117,13 +117,17 @@ def submit_confindr_job(analysis_group: AnalysisGroup) -> ConfindrGroupResult:
 
         # Populate ConfindrResult object
         if not df.empty:
-            confindr_result.genus = str(df['Genus'][0])
-            confindr_result.num_contam_snvs = int(df['NumContamSNVs'][0])
-            confindr_result.contam_status = str(df['ContamStatus'][0])
-            confindr_result.percent_contam = float(df['PercentContam'][0])
-            confindr_result.percent_contam_std_dev = float(df['PercentContamStandardDeviation'][0])
-            confindr_result.bases_examined = int(df['BasesExamined'][0])
-            confindr_result.database_download_date = parse_date(df['DatabaseDownloadDate'][0])
+            try:
+                confindr_result.genus = str(df['Genus'][0])
+                confindr_result.num_contam_snvs = int(df['NumContamSNVs'][0])
+                confindr_result.contam_status = str(df['ContamStatus'][0])
+                confindr_result.percent_contam = float(df['PercentContam'][0])
+                confindr_result.percent_contam_std_dev = float(df['PercentContamStandardDeviation'][0])
+                confindr_result.bases_examined = int(df['BasesExamined'][0])
+                confindr_result.database_download_date = parse_date(df['DatabaseDownloadDate'][0])
+            except BaseException as e:
+                logger.warning(f"Something is wrong with the Confindr report for {analysis_sample.sample_id}")
+                logger.warning(e)
             confindr_result.save()
 
     return confindr_group_result
