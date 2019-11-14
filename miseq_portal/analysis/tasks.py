@@ -377,7 +377,7 @@ def assemble_sample_instance(sample_object_id: str):
             sample_id=str(sample_instance.sample_id)
         )
         # Do a check to make sure the assembly isn't empty
-        if os.stat(str(polished_assembly)).st_size == 0:
+        if polished_assembly.stat().st_size == 0:
             logger.warning(f"The input assembly for {sample_instance} is empty. Skipping downstream analyses.")
             return
 
