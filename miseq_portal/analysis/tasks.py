@@ -116,14 +116,15 @@ def submit_confindr_job(analysis_group: AnalysisGroup) -> ConfindrGroupResult:
         df = report_df[report_df['Sample'] == str(analysis_sample.sample_id)].reset_index()
 
         # Populate ConfindrResult object
-        confindr_result.genus = str(df['Genus'][0])
-        confindr_result.num_contam_snvs = int(df['NumContamSNVs'][0])
-        confindr_result.contam_status = str(df['ContamStatus'][0])
-        confindr_result.percent_contam = float(df['PercentContam'][0])
-        confindr_result.percent_contam_std_dev = float(df['PercentContamStandardDeviation'][0])
-        confindr_result.bases_examined = int(df['BasesExamined'][0])
-        confindr_result.database_download_date = parse_date(df['DatabaseDownloadDate'][0])
-        confindr_result.save()
+        if not df.empty:
+            confindr_result.genus = str(df['Genus'][0])
+            confindr_result.num_contam_snvs = int(df['NumContamSNVs'][0])
+            confindr_result.contam_status = str(df['ContamStatus'][0])
+            confindr_result.percent_contam = float(df['PercentContam'][0])
+            confindr_result.percent_contam_std_dev = float(df['PercentContamStandardDeviation'][0])
+            confindr_result.bases_examined = int(df['BasesExamined'][0])
+            confindr_result.database_download_date = parse_date(df['DatabaseDownloadDate'][0])
+            confindr_result.save()
 
     return confindr_group_result
 
