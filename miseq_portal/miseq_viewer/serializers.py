@@ -27,7 +27,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# TODO: Remove; replaced by MashResult
 class SendsketchResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = SendsketchResult
@@ -43,7 +42,7 @@ class MashResultSerializer(serializers.ModelSerializer):
 class SampleSerializer(serializers.ModelSerializer):
     run_id = RunSerializer()
     project_id = ProjectSerializer()
-    sendsketchresult = SendsketchResultSerializer()  # TODO: Deprecated
+    sendsketchresult = SendsketchResultSerializer()
     mashresult = MashResultSerializer()
 
     class Meta:
