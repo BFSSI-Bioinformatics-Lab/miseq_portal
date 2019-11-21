@@ -34,6 +34,11 @@ crontab entry to backup the database every day at 1:00AM:
 0 1 * * * pg_dump miseq_portal > /mnt/Dean-Venture/miseq_portal_postgres_backup/"$(date +"miseq_portal_db_\%Y\%m\%d").bak"
 ```
 
+Restoring a backup to a brand new database example command:
+```
+psql miseq_portal_backup_restore < /mnt/Dean-Venture/miseq_portal_postgres_backup/miseq_portal_db_20191121.bak
+```
+
 **Additional setup to enable JDBC connection with DBeaver:**
 
 1. Change `listen_addresses` from `'local'` to `'*'` in postgresql.conf i.e. `#listen_addresses = '*'  `
