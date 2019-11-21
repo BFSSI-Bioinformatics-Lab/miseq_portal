@@ -85,7 +85,6 @@ class ToolSelectionView(LoginRequiredMixin, View):
             submit_analysis_job.apply_async(args=[],
                                             kwargs={'analysis_group': analysis_group.id},
                                             queue='analysis_queue')
-
             return redirect(self.success_url)
         else:
             logger.error("Form is not valid")
