@@ -11,6 +11,7 @@ from .base import env
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = True  # TODO: Disable this without breaking everything
+# TODO: Move everything to a .env file
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='nzLmaOFkXcklXlRqXokowxivfd52TY4YmIJQCuLUea55r2roP73n8Ts4cJ3Ykgc6')
