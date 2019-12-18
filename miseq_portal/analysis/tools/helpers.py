@@ -7,15 +7,16 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 
-def run_subprocess(cmd: str, get_stdout=False) -> str:
+def run_subprocess(cmd: str, get_stdout=False, cwd=None) -> str:
     """
     Wrapper for subprocess.Popen()
     :param cmd: String containing command to pass to system
     :param get_stdout: Flag to grab stdout/stderr and return as str
+    :param cwd: Path to desired working dir
     :return: If get_stdout, returns str of stdout/stderr, else doesn't return anything
     """
     if get_stdout:
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=cwd)
         out, err = p.communicate()
         out = out.decode().strip()
         err = err.decode().strip()
@@ -26,7 +27,7 @@ def run_subprocess(cmd: str, get_stdout=False) -> str:
         else:
             return ""
     else:
-        p = Popen(cmd, shell=True)
+        p = Popen(cmd, shell=True, cwd=cwd)
         p.wait()
 
 
