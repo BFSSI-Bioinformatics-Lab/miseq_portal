@@ -346,16 +346,24 @@ def call_bbmap(fwd_reads: Path, rev_reads: Path, outdir: Path, assembly: Path) -
     case previously.
     """
     cmd = f"bbmap.sh in1={fwd_reads} in2={rev_reads} ref={assembly} out={outbam} overwrite=t " \
-        f"pigz=t deterministic=t unbgzip=f averagepairdist=50 bamscript=bs.sh; sh bs.sh"
+          f"pigz=t deterministic=t unbgzip=f averagepairdist=50"
     logger.info(cmd)
-    run_subprocess(cmd)
+    run_subprocess(cmd, cwd=outdir)
 
-    # Grab the sorted .bam file produced by bbmap.sh
-    sorted_bam_file = outdir / outbam.name.replace(".bam", "_sorted.bam")
+    # Sort .bam produced by bbmap.sh
+    sorted_bam_file = sort_bamfile(bamfile=outbam, outdir=outdir)
 
     # Index .bam with samtools index
     index_bamfile(sorted_bam_file)
 
+    return sorted_bam_file
+
+
+def sort_bamfile(bamfile: Path, outdir: Path) -> Path:
+    sorted_bam_file = outdir / bamfile.name.replace(".bam", "_sorted.bam")
+    cmd = f"samtools sort --output-fmt BAM -o {sorted_bam_file} {bamfile}"
+    logger.info(cmd)
+    run_subprocess(cmd)
     return sorted_bam_file
 
 
@@ -396,7 +404,6 @@ def call_bbduk(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
 
     # TODO: Store these parameters for BBDuk + other system tools in a single config file
     cmd = f"bbduk.sh in1={fwd_reads} in2={rev_reads} out1={fwd_out} out2={rev_out} " \
-        f"ref=adapters maq=12 qtrim=rl tpe tbo overwrite=t unbgzip=f"
+          f"ref=adapters maq=12 qtrim=rl tpe tbo overwrite=t unbgzip=f"
     run_subprocess(cmd)
     return fwd_out, rev_out
-
