@@ -334,10 +334,10 @@ REST_FRAMEWORK = {
 }
 
 # ASSEMBLY PIPELINE SETTINGS
-MOB_SUITE_PATH = Path("/home/brock/miniconda3/envs/mob_suite/bin/")
-ABRICATE_PATH = Path("/home/brock/miniconda3/envs/abricate/bin/")
-STAR_AMR_PATH = Path("/home/brock/miniconda3/envs/staramr/bin/")
-CONFINDR_PATH = Path("/home/brock/miniconda3/envs/confindr/bin/")
+MOB_SUITE_PATH = Path("/home/forest/miniconda3/envs/mob_suite/bin/")
+ABRICATE_PATH = Path("/home/forest/miniconda3/envs/abricate/bin/")
+STAR_AMR_PATH = Path("/home/forest/miniconda3/envs/staramr/bin/")
+CONFINDR_PATH = Path("/home/forest/miniconda3/envs/confindr/bin/")
 
 # Databases
 MASH_REFSEQ_DATABASE = Path(MEDIA_ROOT) / 'resources' / 'refseq.genomes.k21s1000.msh'
