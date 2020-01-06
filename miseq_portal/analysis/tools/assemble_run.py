@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 
 from config.settings.base import MEDIA_ROOT
-from miseq_portal.analysis.tools.helpers import run_subprocess, remove_dir_files
+from miseq_portal.analysis.tools.helpers import run_subprocess, remove_fastq_and_bam_files
 from miseq_portal.miseq_viewer.models import SampleAssemblyData, upload_assembly
 
 logger = logging.getLogger('django')
@@ -186,7 +186,7 @@ def assembly_cleanup(assembly_dir: Path, assembly: Path) -> Path:
     """
 
     # Delete everything except for the polished assembly
-    remove_dir_files(target_directory=assembly_dir)
+    remove_fastq_and_bam_files(target_directory=assembly_dir)
     # Move the polished assembly to the root
     shutil.move(str(assembly),
                 str(assembly_dir / assembly.name))
@@ -296,6 +296,11 @@ def call_pilon(bamfile: Path, outdir: Path, assembly: Path, prefix: str, memory:
     return polished_assembly
 
 
+def call_fastqc():
+    # TODO: Implement!
+    pass
+
+
 def call_skesa(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id: str) -> Path:
     """
     System call to skesa to complete an assembly
@@ -387,6 +392,26 @@ def call_tadpole(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
     return fwd_out, rev_out
 
 
+def bbduk_trim_adapters(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
+    fwd_out = outdir / fwd_reads.name.replace(".fastq.gz", ".cleaned.fastq.gz")
+    rev_out = outdir / rev_reads.name.replace(".fastq.gz", ".cleaned.fastq.gz")
+    stats_out = outdir / 'adapter_trimming_stats.txt'
+    cmd = f"bbduk.sh in1={fwd_reads} in2={rev_reads} out1={fwd_out} out2={rev_out} " \
+          f"ref=adapters tpe tbo overwrite=t unbgzip=f ktrim=r k=23 mink=11 hdist=1 stats={stats_out}"
+    run_subprocess(cmd)
+    return fwd_out, rev_out
+
+
+def bbduk_qc_filtering(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
+    fwd_out = outdir / fwd_reads.name.replace(".fastq.gz", ".filtered.fastq.gz")
+    rev_out = outdir / rev_reads.name.replace(".fastq.gz", ".filtered.fastq.gz")
+    stats_out = outdir / 'quality_filtering_stats.txt'
+    cmd = f"bbduk.sh in1={fwd_reads} in2={rev_reads} out1={fwd_out} out2={rev_out} unbgzip=f qtrim=rl " \
+          f"trimq=10 2> {stats_out}"
+    run_subprocess(cmd)
+    return fwd_out, rev_out
+
+
 def call_bbduk(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
     """
     System call to bbduk.sh to perform adapter trimming/quality filtering on a given read pair
@@ -395,15 +420,7 @@ def call_bbduk(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
     :param outdir: Path to desired output directory
     :return: tuple(filtered forward reads, filtered reverse reads)
     """
-    fwd_out = outdir / fwd_reads.name.replace(".fastq.gz", ".filtered.fastq.gz")
-    rev_out = outdir / rev_reads.name.replace(".fastq.gz", ".filtered.fastq.gz")
-
-    # Exit function early if the filtered reads already exist for some reason
-    if fwd_out.exists() and rev_out.exists():
-        return fwd_out, rev_out
-
-    # TODO: Store these parameters for BBDuk + other system tools in a single config file
-    cmd = f"bbduk.sh in1={fwd_reads} in2={rev_reads} out1={fwd_out} out2={rev_out} " \
-          f"ref=adapters maq=12 qtrim=rl tpe tbo overwrite=t unbgzip=f"
-    run_subprocess(cmd)
-    return fwd_out, rev_out
+    fwd_reads_trimmed, rev_reads_trimmed = bbduk_trim_adapters(fwd_reads=fwd_reads, rev_reads=rev_reads, outdir=outdir)
+    fwd_reads_filtered, rev_reads_filtered = bbduk_qc_filtering(fwd_reads=fwd_reads_trimmed,
+                                                                rev_reads=rev_reads_trimmed, outdir=outdir)
+    return fwd_reads_filtered, rev_reads_filtered
