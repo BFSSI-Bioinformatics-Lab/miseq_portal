@@ -31,11 +31,12 @@ def run_subprocess(cmd: str, get_stdout=False, cwd=None) -> str:
         p.wait()
 
 
-def remove_dir_files(target_directory: Path):
+def remove_fastq_and_bam_files(target_directory: Path):
     """
     Delete all of the files in a given directory
     :param target_directory: Path to directory to delete files in
     """
-    to_delete = list(target_directory.glob("*.*"))
+    to_delete = list(target_directory.glob("*.bam")) + list(target_directory.glob("*.fastq.gz")) + list(
+        target_directory.glob("*.bai"))
     for f in to_delete:
         os.remove(str(f))
