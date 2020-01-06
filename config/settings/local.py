@@ -10,7 +10,7 @@ from .base import env
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
-DEBUG = True  # TODO: Disable this without breaking everything
+DEBUG = True
 # TODO: Move everything to a .env file
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
@@ -23,6 +23,8 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "192.168.1.61",
     "192.168.1.53",
+    "192.168.1.25",
+    "*"
 ]
 
 # CACHES
@@ -85,6 +87,10 @@ MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorI
 # ------------------------------------------------------------------------------
 # TODO: Read this in from env e.g. env('SENTRY_DSN')
 SENTRY_DSN = 'https://17c3f4a0263e4b50b48f706cafb9afd0:fc8010ba656740d185a48cbafbc27437@sentry.io/1276151'
+
+# TODO: Use the sentry-sdk Django integration
+#  https://docs.sentry.io/platforms/python/django/
+
 
 SENTRY_CLIENT = env('DJANGO_SENTRY_CLIENT', default='raven.contrib.django.raven_compat.DjangoClient')
 LOGGING = {
