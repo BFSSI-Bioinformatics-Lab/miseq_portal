@@ -11,4 +11,4 @@ def test_run_subprocess():
 
 
 def test_remove_dir_files():
-    assert helpers.remove_dir_files(Path("/fake/directory")) is None
+    assert helpers.remove_fastq_and_bam_files(Path("/fake/directory")) is None
