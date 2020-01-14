@@ -18,7 +18,7 @@ from miseq_portal.users.models import User
 
 logger = logging.getLogger('django')
 
-print("hi again")
+print("hi dev branch")
 
 def determine_run_type(sample_object_list: list) -> str:
     sample_types = []
