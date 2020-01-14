@@ -59,6 +59,7 @@ def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
     df['Sample_Project'] = df['Sample_Project'].astype(str)
 
     # Fill in missing projects
+    # TODO: Fix this logic, right now it will just insert 'MISSING_PROJECT' between spaces which is dumb
     df['Sample_Project'] = df['Sample_Project'].replace(r"\s+", "MISSING_PROJECT", regex=True)
     df['Sample_Project'] = df['Sample_Project'].fillna(value="MISSING_PROJECT")
 
