@@ -58,10 +58,20 @@ def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
     df['Sample_Name'] = df['Sample_Name'].astype(str)
     df['Sample_Project'] = df['Sample_Project'].astype(str)
 
-    # Fill in missing projects
-    # TODO: Fix this logic, right now it will just insert 'MISSING_PROJECT' between spaces which is dumb
-    df['Sample_Project'] = df['Sample_Project'].replace(r"\s+", "MISSING_PROJECT", regex=True)
-    df['Sample_Project'] = df['Sample_Project'].fillna(value="MISSING_PROJECT")
+    sample_project_col = df['Sample_Project']
+
+    # Checking for space character in Sample Project
+    for item in sample_project_col.iteritems():
+        project_string = item[1]
+        if project_string.find(" ") != -1:
+            raise Exception(f"Invalid Sample_Project, {project_string} should not have spaces.")
+
+    # Checking for missing/empty in in Sample_project
+    # Note: value is not nan, null, or empty but it is a string 'nan'
+    for item in sample_project_col.iteritems():
+        project_string = item[1]
+        if project_string == 'nan':
+            raise Exception(f"Invalid Sample_Project. Empty Sample_Project.")
 
     return df
 
