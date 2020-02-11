@@ -336,3 +336,4 @@ pip-selfcheck.json
 miseq_portal/media/
 
 .pytest_cache/
+.env
