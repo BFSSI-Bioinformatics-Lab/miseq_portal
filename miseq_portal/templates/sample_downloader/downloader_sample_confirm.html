@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% load crispy_forms_tags %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+{% endblock %}
+
+{% block title %}Downloader Confirm{% endblock %}
+
+{% block content %}
+
+  <div class="page-header">
+    <h1>Downloader Suite</h1>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header"><h4>Download Sample Group</h4></div>
+    <div class="card-body text-success">
+      {% for sample_object in analysis_samples %}
+        <p class="card-text">{{ sample_object.sample_id }}</p>
+      {% endfor %}
+    </div>
+  </div>
+  <br>
+
+  <div class="card mb-3">
+    <div class="card-header"><h4>File Type Selection</h4>Select the types of files to download</div>
+
+    <div class="card-body">
+      <form action="{% url "sample_downloader:download_sample_confirm" %}" method="post" enctype="multipart/form-data">
+        {% crispy form %}
+      </form>
+    </div>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-sm"></div>
+    <div class="col-sm">
+      <button id="submit-button" class="btn btn-block btn-success">Download</button>
+    </div>
+    <div class="col-sm"></div>
+  </div>
+
+  {#  TODO: Implement this#}
+  {#  <div class="card mb-3">#}
+  {#    <div class="card-header"><h4>Comments (not yet functional)</h4>Provide a description of the sample group or analysis#}
+  {#    </div>#}
+  {##}
+  {#    <div class="card-body">#}
+  {#      <form action="{% url "analysis:tool_selection" %}" method="post" enctype="multipart/form-data">#}
+  {#        {% crispy form %}#}
+  {#      </form>#}
+  {#    </div>#}
+  {#  </div>#}
+
+  <br>
+
+{% endblock content %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+{% endblock %}

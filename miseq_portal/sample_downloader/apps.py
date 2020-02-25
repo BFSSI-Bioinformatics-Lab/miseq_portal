@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class SampleDownloaderConfig(AppConfig):
-    name = 'sample_downloader'
+    name = 'miseq_portal.sample_downloader'
