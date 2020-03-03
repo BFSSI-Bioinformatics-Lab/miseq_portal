@@ -10,7 +10,7 @@ APPS_DIR = ROOT_DIR.path('miseq_portal')
 
 env = environ.Env()
 
-READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
+READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=True)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(ROOT_DIR.path('.env')))
@@ -80,6 +80,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_datatables',
     'widget_tweaks',
     'django_filters',
+    'chunked_upload',
 ]
 LOCAL_APPS = [
     # Your stuff: custom apps go here
@@ -92,6 +93,8 @@ LOCAL_APPS = [
     'miseq_portal.miseq_uploader.apps.MiseqUploaderConfig',
     'miseq_portal.sample_workbooks.apps.SampleWorkbooksConfig',
     'miseq_portal.sample_downloader.apps.SampleDownloaderConfig',
+    'miseq_portal.minion_uploader.apps.MinionUploaderConfig',
+    'miseq_portal.minion_viewer.apps.MinionViewerConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

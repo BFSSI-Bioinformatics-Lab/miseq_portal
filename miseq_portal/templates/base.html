@@ -16,25 +16,25 @@
 
   <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
 
-  {% block css %}
+    {% block css %}
 
-    <!-- Latest compiled and minified Bootstrap 4.1.1 CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
-          integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+      <!-- Latest compiled and minified Bootstrap 4.1.1 CSS -->
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+            integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
 
-    <!-- Your stuff: Third-party CSS libraries go here -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
-          integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+      <!-- Your stuff: Third-party CSS libraries go here -->
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
+            integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
 
-    <!-- This file stores project-specific CSS -->
-    <link href="{% static 'css/project.css' %}" rel="stylesheet">
+      <!-- This file stores project-specific CSS -->
+      <link href="{% static 'css/project.css' %}" rel="stylesheet">
 
-    {# Dashboard styling #}
-    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+        {# Dashboard styling #}
+      <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
 
-  {% endblock %}
-  {% block extra_css %}
-  {% endblock %}
+    {% endblock %}
+    {% block extra_css %}
+    {% endblock %}
 
 </head>
 
@@ -44,39 +44,39 @@
     <i class="fas fa-dna"></i>
     <span class="text">Genomics Portal</span>
   </a>
-  {% if request.user.is_authenticated %}
-    {# SEARCH BAR #}
-    <form action="{% url 'sample_search:sample_search' %}" method="get" style='width:100%;'>
-      <input class="form-control form-control-lg w-100" type="text" placeholder="Sample Search"
-             aria-label="Search" name="search_term" id="search_bar">
-    </form>
-    <ul class="navbar-nav px-3">
-      <li class="nav-item text-nowrap">
-        <a class="nav-link "
-           href="{% url 'users:detail' request.user.username %}"><i class="fas fa-user"></i> Profile
-          ({{ request.user.username }})</a>
-      </li>
-    </ul>
-    <ul class="navbar-nav px-3">
-      <li class="nav-item text-nowrap">
-        <a class="nav-link " href="{% url 'account_logout' %}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
-      </li>
-    </ul>
-  {% else %}
-    <ul class="navbar-nav px-3">
-      <li class="nav-item text-nowrap">
-        <a id="log-in-link" class="nav-link "
-           href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
-      </li>
-    </ul>
-  {% endif %}
-  {% if request.user.is_superuser %}
-    <ul class="navbar-nav px-3">
-      <li class="nav-item text-nowrap">
-        <a class="btn btn-outline-warning" href="{% url 'admin:index' %}"><span> Admin Panel </span></a>
-      </li>
-    </ul>
-  {% endif %}
+    {% if request.user.is_authenticated %}
+        {# SEARCH BAR #}
+      <form action="{% url 'sample_search:sample_search' %}" method="get" style='width:100%;'>
+        <input class="form-control form-control-lg w-100" type="text" placeholder="Sample Search"
+               aria-label="Search" name="search_term" id="search_bar">
+      </form>
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <a class="nav-link "
+             href="{% url 'users:detail' request.user.username %}"><i class="fas fa-user"></i> Profile
+            ({{ request.user.username }})</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <a class="nav-link " href="{% url 'account_logout' %}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+        </li>
+      </ul>
+    {% else %}
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <a id="log-in-link" class="nav-link "
+             href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+        </li>
+      </ul>
+    {% endif %}
+    {% if request.user.is_superuser %}
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <a class="btn btn-outline-warning" href="{% url 'admin:index' %}"><span> Admin Panel </span></a>
+        </li>
+      </ul>
+    {% endif %}
 </nav>
 
 <div class="container-fluid">
@@ -88,33 +88,48 @@
             <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i>
               Home <span class="sr-only">(current)</span></a>
           </li>
-          {% if request.user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link "
-                 href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i>
-                Projects</a>
-            </li>
-            {% if request.user.is_staff %}
+            {% if request.user.is_authenticated %}
               <li class="nav-item">
                 <a class="nav-link "
-                   href="{% url 'miseq_viewer:miseq_viewer_runs' %}">
-                  <span class="icon-miseq"></span>
-                  Runs</a>
+                   href="{% url 'miseq_viewer:miseq_viewer_projects' %}"><i class="fas fa-project-diagram"></i>
+                  Projects</a>
               </li>
-            {% endif %}
-            <li class="nav-item">
-              <a class="nav-link "
-                 href="{% url 'analysis:sample_select' %}"><i class="fas fa-flask"></i> Analysis</a>
-            </li>
-            {% if request.user.is_staff %}
+                {% if request.user.is_staff %}
+                  <li class="nav-item">
+                    <a class="nav-link "
+                       href="{% url 'miseq_viewer:miseq_viewer_runs' %}">
+                      <span class="icon-miseq"></span>
+                      MiSeq Runs</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link "
+                       href="{% url 'minion_viewer:minion_viewer_index' %}">
+                      <span class="icon-miseq"></span>
+                      MinION Runs</a>
+                  </li>
+                {% endif %}
               <li class="nav-item">
                 <a class="nav-link "
-                   href="{% url 'sample_merge:sample_merge_queue' %}"><i class="fas fa-clone"></i> Merge Queue</a>
+                   href="{% url 'analysis:sample_select' %}"><i class="fas fa-flask"></i> Analysis</a>
+              </li>
+                {% if request.user.is_staff %}
+                  <li class="nav-item">
+                    <a class="nav-link "
+                       href="{% url 'sample_merge:sample_merge_queue' %}"><i class="fas fa-clone"></i> Merge Queue</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link "
+                       href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Manual
+                      Merge</a>
+                  </li>
+                {% endif %}
+              <li class="nav-item">
+                <a class="nav-link "
+                   href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link "
-                   href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Manual
-                  Merge</a>
+                   href="{% url 'sample_workbooks:sample_workbook_index' %}"><i class="fas fa-book"></i> Workbooks</a>
               </li>
             {% endif %}
             <li class="nav-item">
@@ -130,28 +145,37 @@
                  href="{% url 'sample_downloader:downloader_sample_select' %}"><i class="fas fa-download"></i>
                 Downloader</a>
             </li>
-          {% endif %}
-          {% if request.user.is_superuser %}
-            <li class="nav-item">
-              <a class="nav-link "
-                 href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> Uploader <span
-                      class="badge badge-danger">Admin only</span></a>
-            </li>
-          {% endif %}
+            {% if request.user.is_superuser %}
+              <div class="alert alert-danger" role="alert">
+                <li class="nav-item">
+                  <span class="badge badge-danger">Admin only</span>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link "
+                     href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> MiSeq Uploader </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link "
+                     href="{% url 'minion_uploader:minion_uploader_index' %}"><i class="fas fa-upload"></i> MinION
+                    Uploader </a>
+                </li>
+              </div>
+              <hr>
+            {% endif %}
         </ul>
       </div>
     </nav>
 
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
       <div class="container">
-        {% if messages %}
-          {% for message in messages %}
-            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
+          {% if messages %}
+              {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
+              {% endfor %}
+          {% endif %}
       </div>
-      {% block content %}
-      {% endblock content %}
+        {% block content %}
+        {% endblock content %}
       <br>
     </main>
   </div>
