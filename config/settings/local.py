@@ -14,7 +14,7 @@ DEBUG = True
 # TODO: Move everything to a .env file
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
-SECRET_KEY = env('DJANGO_SECRET_KEY', default='nzLmaOFkXcklXlRqXokowxivfd52TY4YmIJQCuLUea55r2roP73n8Ts4cJ3Ykgc6')
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = [
@@ -24,6 +24,7 @@ ALLOWED_HOSTS = [
     "192.168.1.61",
     "192.168.1.53",
     "192.168.1.25",
+    "192.168.1.231",
     "*"
 ]
 
