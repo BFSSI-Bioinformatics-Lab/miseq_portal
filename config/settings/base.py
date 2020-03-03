@@ -91,6 +91,8 @@ LOCAL_APPS = [
     'miseq_portal.sample_merge.apps.SampleMergeConfig',
     'miseq_portal.miseq_uploader.apps.MiseqUploaderConfig',
     'miseq_portal.sample_workbooks.apps.SampleWorkbooksConfig',
+    'miseq_portal.minion_uploader.apps.MinionUploaderConfig',
+    'miseq_portal.minion_viewer.apps.MinionViewerConfig',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
