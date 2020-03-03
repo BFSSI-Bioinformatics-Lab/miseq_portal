@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
+  {#  <link rel="stylesheet" href="/static/css/sample_select_table.css">#}
+
+
+{% endblock %}
+
+{% block title %}Downloader{% endblock %}
+
+{% block content %}
+
+  <div class="page-header">
+    <h1>Download Sample Selection
+      <button type="button" class="btn btn-sm btn-light" data-toggle="modal"
+              data-target="#selectionModal">
+        <i class="fas fa-question-circle fa-lg"></i>
+      </button>
+    </h1>
+
+    {# Download Sample Selection Modal #}
+    <div class="modal fade" id="selectionModal" tabindex="-1" role="dialog" aria-labelledby="selectionModalLabel"
+         aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="selectionModalLabel">Instructions</h5>
+            <div class="modal-body">
+              <ul>
+                <li><strong>Click</strong> to select samples to download</li>
+                <li>Use the <strong>Search</strong> bar to
+                  filter the Sample table
+                </li>
+                <li>Once you have created a selection, click <kbd>Download</kbd>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row">
+    <div class="col">
+      <div class="alert alert-primary" role="alert">
+        <p><strong>Currently selected samples: </strong> <span id="number_of_selected_samples"></span></p>
+        <div id="selected-samples" style="overflow-y: scroll; height: 70px"></div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="list-group">
+
+    {# Sample Table #}
+    <table id="sample-table" class="display compact" style="width:100%" data-server-side="true"
+           data-ajax="/miseq_viewer/api/samples/?format=datatables">
+      <thead>
+      <tr>
+        <th data-data="sample_id">Sample ID</th>
+        <th data-data="sample_name">Sample Name</th>
+        <th data-data="project_id.project_id">Project ID</th>
+        <th data-data="run_id.run_id">Run ID</th>
+        <th data-data="mashresult.top_hit">Top RefSeq Hit</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <br>
+  <div class="row">
+    <div class="col-sm"></div>
+    <div class="col-sm">
+      <button id="submit-button" class="btn btn-block btn-success">Download</button>
+    </div>
+    <div class="col-sm"></div>
+  </div>
+  <br>
+{% endblock content %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script src="https://cdn.datatables.net/scroller/1.5.1/js/dataTables.scroller.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+
+  <script>
+    $.ajaxSetup({
+      headers: {"X-CSRFToken": '{{csrf_token}}'}
+    });
+
+    $(document).ready(function () {
+      let currently_selected_samples = [];
+
+      let table = $('#sample-table').DataTable({
+        dom: 'Blfrtips',
+        processing: true,
+        pageLength: 30,
+        lengthMenu: [[15, 30, 45, 100], [15, 30, 45, 100]],
+        columnDefs: [
+          {
+            "targets": '_all',
+            "defaultContent": ""
+          }
+        ],
+        buttons: [
+          {
+            text: 'Select All',
+            action: function (e, dt, node, config) {
+              // Apply the the selected status to all rows
+              $('#sample-table tbody tr').removeClass("selected").toggleClass('selected');
+              let selected_samples = table.rows('.selected').data();
+
+              // Extract sample IDs and remove whitespace
+              selected_samples = filter_sample_ids(selected_samples);
+
+              // Update variable storing all currently selected samples with the new selection
+              selected_samples.map(x => currently_selected_samples.push(x));
+
+              // Update text on page
+              update_selected_samples_div();
+            }
+          },
+          {
+            text: 'Deselect All',
+            action: function (e, dt, node, config) {
+              // Remove selected status from all rows
+              $('#sample-table tbody tr').removeClass("selected");
+
+              // Grab currently displayed sample IDs
+              let table_data = table.context[0].aoData;
+              let currently_displayed_samples = [];
+              for (var x = 0; x < table_data.length; x++) {
+                currently_displayed_samples.push(table_data[x]._aData.sample_id)
+              }
+
+              // Remove all rows currently displayed on the sample from currently_selected_samples
+              remove_from_id_list(currently_displayed_samples);
+
+              // Update text on page
+              update_selected_samples_div();
+            }
+          }
+        ],
+      });
+
+      // Clicking a row will toggle the selected class and update the currently_selected_samples list accordingly
+      $('#sample-table tbody').on('click', 'tr', function () {
+        // Toggle class
+        let row = $(this).toggleClass('selected');
+
+        // Determine if the row is selected or not and store bool in selected_status
+        let classes = Array.from(row[0].classList);
+        let selected_status = classes.includes('selected');
+
+        // Extract sample_id
+        let sample_id = row[0].cells[0].textContent;
+
+        // If selected, add it to the currently_selected_samples array, otherwise remove it
+        if (selected_status === true) {
+          currently_selected_samples.push(sample_id)
+        } else if (selected_status === false) {
+          currently_selected_samples = currently_selected_samples.filter(x => x !== sample_id)
+        }
+
+        // Update text on page
+        update_selected_samples_div();
+      });
+
+      // Whenever the table is redrawn, update selected status to reflect previously selected samples
+      $(document).on('draw.dt', function (e) {
+
+        // Grab array of sample IDs that are currently displayed on the table
+        let table_data = table.context[0].aoData;
+        let currently_displayed_samples = [];
+        for (var x = 0; x < table_data.length; x++) {
+          currently_displayed_samples.push(table_data[x]._aData.sample_id)
+        }
+
+        // Get intersection between currently_selected_samples and currently_displayed_samples
+        let samples_to_highlight = currently_selected_samples.filter(x => currently_displayed_samples.includes(x));
+
+        // Iterate over table rows apply selected status if they are present in the currently_selected_samples array
+        $('#sample-table tbody tr').each(function () {
+          let current_row = $(this);
+          let sample_id = current_row[0].cells[0].textContent;
+          if (samples_to_highlight.includes(sample_id)) {
+            current_row.removeClass("selected").toggleClass("selected");
+          }
+        });
+
+        // Update text on page
+        update_selected_samples_div();
+      });
+
+      // Submit button
+      $('#submit-button').click(function () {
+        if (currently_selected_samples.length === 0) {
+          alert("Please select at least one sample to proceed.");
+          return
+        }
+
+        $.ajax({
+          url: "",
+          type: 'POST',
+          data: {'sample_id_list': currently_selected_samples},
+        }).done(function (data) {
+          if (data.success) {
+            window.location.href = data.url;
+          }
+        })
+      });
+
+      function filter_sample_ids(sample_list) {
+        // Extracts the sample_id value and removes any junk whitespace
+        return sample_list.map(x => remove_whitespace(x['sample_id']));
+      }
+
+      function remove_whitespace(_string) {
+        // Removes whitespace from a string
+        return _string.replace(/<(?:.|\n)*?>/gm, '').replace(/\s/g, '')
+      }
+
+      function remove_from_id_list(deselected_samples) {
+        currently_selected_samples = currently_selected_samples.filter(item => !deselected_samples.includes(item))
+      }
+
+      function update_selected_samples_div() {
+        // Update text on page
+        $("#number_of_selected_samples")[0].innerText = currently_selected_samples.length;
+        $("#selected-samples").empty();
+        currently_selected_samples.map(x => $("#selected-samples").append(
+                (" <button class='btn btn-outline-dark btn-sm'>" + x + "</button> ")
+        ));
+      }
+    });
+
+
+  </script>
+{% endblock %}
