@@ -30,6 +30,8 @@ urlpatterns = [
                   path("sample_merge/", include("miseq_portal.sample_merge.urls")),
                   path("sample_workbooks/", include("miseq_portal.sample_workbooks.urls")),
                   path("sample_downloader/", include("miseq_portal.sample_downloader.urls")),
+                  path("minion_viewer/", include("miseq_portal.minion_viewer.urls")),
+                  path("minion_uploader/", include("miseq_portal.minion_uploader.urls")),
               ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )

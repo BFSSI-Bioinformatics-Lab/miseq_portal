@@ -226,12 +226,15 @@ def parse_miseq_folder(miseq_dir: Path) -> dict:
     run_data_object.logfiles = log_files
 
     # NOTE: The stats file is only created when the run is uploaded to BaseSpace. It will be missing from local runs.
-    try:
-        json_stats_file = Path(list(log_folder.glob("Stats.json"))[0])
+    json_stats_file = miseq_dir / 'Stats.json'
+    json_stats_file_logs = log_folder / 'Stats.json'
+    if json_stats_file.exists():
         run_data_object.json_stats_file = json_stats_file
-    except IndexError as e:
-        logger.info("WARNING: Could not locate ./Logs/Stats.json file")
-        logger.info(f"TRACEBACK: {e}")
+    # Fall back into the log directory if it's not in the root dir
+    elif json_stats_file_logs.exists():
+        run_data_object.json_stats_file = json_stats_file_logs
+    else:
+        logger.warning(f"Could not detect Stats.json file!")
 
     # Create dict for all MiSeq data
     miseq_dict = dict()
