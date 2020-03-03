@@ -80,6 +80,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_datatables',
     'widget_tweaks',
     'django_filters',
+    'chunked_upload',
 ]
 LOCAL_APPS = [
     # Your stuff: custom apps go here
