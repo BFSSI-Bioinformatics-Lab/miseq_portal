@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css"
+        integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.5.1/css/colReorder.dataTables.min.css">
+
+{% endblock %}
+
+{% block title %}{{ sample }}{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col">
+      <h1><strong>Sample: </strong>{{ sample }}</h1>
+    </div>
+    <div class="col">
+      <h5><strong>Project: </strong>
+        <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=sample.project_id.pk %}">
+            {{ sample.project_id }}
+        </a>
+      </h5>
+      <h5><strong>Run: </strong>
+        <a href="{% url 'minion_viewer:minion_run_detail' pk=sample.run_id.pk %}">
+            {{ sample.run_id }}
+        </a>
+      </h5>
+    </div>
+  </div>
+
+  <br>
+
+  <div class="container-fluid">
+    <h4>Sample Details</h4>
+    <table id="sample_detail" class="display" style="width:100%">
+      <thead>
+      <tr>
+        <th>Sample Name</th>
+        <th>R1</th>
+        <th># Reads</th>
+        <th>Sample Yield (Mbp)</th>
+        <th>Sequencing Type</th>
+        <th>Date Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      </tbody>
+    </table>
+    <br>
+  </div>
+
+{% endblock content %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script src="https://cdn.datatables.net/colreorder/1.5.1/js/dataTables.colReorder.min.js"></script>
+
+    {# Datatables #}
+  <script>
+      $(document).ready(function () {
+      })
+
+  </script>
+
+{% endblock %}

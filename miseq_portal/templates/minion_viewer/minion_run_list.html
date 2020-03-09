@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% load miseq_viewer_extras %}
+{% block extra_css %}
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+{% endblock %}
+
+{% block title %}MinION Runs{% endblock %}
+
+{% block content %}
+  <div class="container-fluid">
+
+    <div class="page-header">
+      <h1>MinION Runs</h1>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h5><i class="fas fa-sticky-note"></i> Note</h5>
+      This page displays all <strong>MinION Runs</strong> available within the database.
+      This page is only accessible by sequencing lab staff.
+    </div>
+
+      {# Sample Table #}
+    <table id="run-table" class="display compact" style="width:100%">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Run ID</th>
+        <th>Samplesheet</th>
+        <th>Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <br>
+
+{% endblock content %}
+
+{% block extra_javascript %}
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
+  <script src="https://cdn.datatables.net/scroller/1.5.1/js/dataTables.scroller.min.js"></script>
+  <script>
+
+      $.ajaxSetup({
+          headers: {"X-CSRFToken": '{{csrf_token}}'}
+      });
+
+      $(document).ready(function () {
+          let table = $('#run-table').DataTable({
+              dom: 'Blfrtips',
+              serverSide: true,
+              processing: true,
+              pageLength: 15,
+              // order: [[4,"desc"]],
+              ajax: '/minion_viewer/api/minion_samplesheets/?format=datatables',
+              drawCallback: function (settings) {
+                  console.log(settings.json)
+              },
+              lengthMenu: [[15, 30, 45, 100], [15, 30, 45, 100]],
+              columnDefs:
+                  [
+                      {
+                          "targets": '_all',
+                          "defaultContent": "",
+                          "className": "text-center",
+                      },
+                  ],
+              columns:
+                  [
+                      {
+                          "data": "run_id.id",
+                          "title": "Link",
+                          "render": function (data, type, full, meta) {
+                              return '<a href="' + '/minion_viewer/run/' + data + '">' + '<i class="fas fa-external-link-alt fa-2x"></i>' + '</a>'
+                          }
+                      },
+                      {
+                          "data": "run_id.run_id",
+                          "title": "Run ID"
+                      },
+                      {
+                          "data": "sample_sheet",
+                          "title": "Sample Sheet",
+                          "render": function (data, type, full, meta) {
+                              return '<a download role="button" class="btn btn-primary" href="' + data + '">' + '<i class="fas fa-download"></i>' + '</a>'
+                          }
+                      },
+                      {
+                          "data": "created",
+                          "title": "Date Created",
+                          "render": function (data, type, full, meta) {
+                              let options = {year: 'numeric', month: 'numeric', weekday: 'numeric'};
+                              let formatted_date = new Date(data).toLocaleDateString("en-US");
+                              return formatted_date
+                          }
+                      }
+                  ]
+          })
+      });
+
+
+  </script>
+{% endblock %}
