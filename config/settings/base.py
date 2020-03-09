@@ -167,8 +167,16 @@ STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
+
 STATICFILES_DIRS = [
     str(APPS_DIR.path('static')),
+
+    # Node stuff
+    str(Path(ROOT_DIR) / 'node_modules' / 'jquery' / 'dist'),
+    str(Path(ROOT_DIR) / 'node_modules' / 'jqueryui'),
+    str(Path(ROOT_DIR) / 'node_modules' / 'blueimp-file-upload' / 'js'),
+    str(Path(ROOT_DIR) / 'node_modules' / 'jquery.iframe-transport'),
+    str(Path(ROOT_DIR) / 'node_modules' / 'spark-md5'),
 ]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
