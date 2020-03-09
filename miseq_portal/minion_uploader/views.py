@@ -123,10 +123,6 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         # Delete the old tmp directory
         shutil.rmtree(outdir_tmp)
 
-        # # Temporary step to clean the database of junk
-        MinIONRunSamplesheet.objects.all().delete()
-        MinIONRun.objects.all().delete()
-
         # Create run with run_id value
         run_object, created = MinIONRun.objects.get_or_create(run_id=run_id)
         if created:
