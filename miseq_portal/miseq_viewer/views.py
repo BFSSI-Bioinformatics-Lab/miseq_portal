@@ -14,6 +14,7 @@ from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
     MergedSampleComponent, SampleLogData, RunSamplesheet
+from miseq_portal.minion_viewer.models import MinIONSample
 from miseq_portal.miseq_viewer.serializers import SampleSerializer, RunSerializer, ProjectSerializer
 
 logger = logging.getLogger('django')
@@ -27,15 +28,17 @@ class ProjectListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['overview_json'] = self.get_overview_data()
-        context['sample_count_dict'] = {project.project_id: len(Sample.objects.filter(project_id_id=project)) for
-                                        project in Project.objects.all()}
+
+        context['sample_count_dict'] = {project.project_id: (len(Sample.objects.filter(project_id_id=project)) +
+                                                             len(MinIONSample.objects.filter(project_id_id=project)))
+                                        for project in Project.objects.all()}
         return context
 
     @staticmethod
     def get_overview_data():
         overview_dict = dict()
         overview_dict['number_of_projects'] = len(Project.objects.all())
-        overview_dict['number_of_samples'] = len(Sample.objects.all())
+        overview_dict['number_of_samples'] = len(Sample.objects.all()) + len(MinIONSample.objects.all())
         overview_dict['number_of_runs'] = len(Run.objects.all())
         return json.dumps(overview_dict)
 
@@ -61,6 +64,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['run_list'] = Run.objects.all()
         context['sample_list'] = Sample.objects.filter(project_id=context['project'], hide_flag=False)
+        context['minion_sample_list'] = MinIONSample.objects.filter(project_id=context['project'])
 
         # Filter out samples that are missing data for the project_detail.html template
         context['has_sample_log_data'] = context['sample_list'].filter(samplelogdata__isnull=False)
