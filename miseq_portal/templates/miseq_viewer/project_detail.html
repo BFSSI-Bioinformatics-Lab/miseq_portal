@@ -17,6 +17,7 @@
     </div>
   </div>
 
+  <h4>MiSeq Samples</h4>
   <table id="sample-table" class="display" style="width:100%">
     <thead>
     <tr>
@@ -33,38 +34,68 @@
       <tr>
         <td>
           <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample.pk %}">
-            {{ sample.sample_id }}
+              {{ sample.sample_id }}
           </a>
         </td>
         <td>
-          {{ sample.sample_name }}
+            {{ sample.sample_name }}
         </td>
         <td>
-          {% if sample.run_id != None %}
-            <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
-              {{ sample.run_id }}
-            </a>
-          {% else %}
-            N/A
-          {% endif %}
+            {% if sample.run_id != None %}
+              <a href="{% url 'miseq_viewer:miseq_viewer_run_detail' pk=sample.run_id.pk %}">
+                  {{ sample.run_id }}
+              </a>
+            {% else %}
+              N/A
+            {% endif %}
         </td>
         <td>
-          {% if sample in has_sample_log_data %}
-            {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
-          {% endif %}
+            {% if sample in has_sample_log_data %}
+                {{ sample.samplelogdata.sample_yield_mbp | floatformat:2 }}
+            {% endif %}
         </td>
         <td>
-          {% if has_mash_result %}
-            {{ sample.mashresult.top_hit }}
-          {% endif %}
+            {% if has_mash_result %}
+                {{ sample.mashresult.top_hit }}
+            {% endif %}
         </td>
         <td>
-          {{ sample.created }}
+            {{ sample.created }}
         </td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
+
+    {% if minion_sample_list|length > 0 %}
+      <br>
+      <h4>MinION Samples</h4>
+      <table id="minion-sample-table" class="display" style="width:100%">
+        <thead>
+        <tr>
+          <th>Sample ID</th>
+          <th>Sample Name</th>
+          <th>Run ID</th>
+          <th>Date Created</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sample in minion_sample_list %}
+          <tr>
+            <td><a href="{% url 'minion_viewer:minion_sample_detail' pk=sample.pk %}">
+                {{ sample.sample_id }}
+            </a></td>
+            <td>{{ sample.sample_name }}</td>
+            <td><a href="{% url 'minion_viewer:minion_run_detail' pk=sample.run_id.pk %}">
+                {{ sample.run_id }}
+            </a></td>
+            <td>{{ sample.created }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
 {% endblock content %}
 
 
@@ -73,8 +104,9 @@
   <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script>
-    $(document).ready(function () {
-      $('#sample-table').DataTable();
-    });
+      $(document).ready(function () {
+          $('#sample-table').DataTable();
+          $('#minion-sample-table').DataTable();
+      });
   </script>
 {% endblock %}
