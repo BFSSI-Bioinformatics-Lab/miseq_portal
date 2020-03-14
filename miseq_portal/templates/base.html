@@ -131,11 +131,30 @@
                 <a class="nav-link "
                    href="{% url 'sample_workbooks:sample_workbook_index' %}"><i class="fas fa-book"></i> Workbooks</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link "
-                   href="{% url 'sample_downloader:downloader_sample_select' %}"><i class="fas fa-download"></i>Downloader</a>
-              </li>
             {% endif %}
+<<<<<<<<< Temporary merge branch 1
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'analysis:my_jobs' %}"><i class="fas fa-tasks"></i> My Jobs</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'sample_workbooks:sample_workbook_index' %}"><i class="fas fa-book"></i> Workbooks</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'sample_downloader:downloader_sample_select' %}"><i class="fas fa-download"></i>
+                Downloader</a>
+            </li>
+          {% endif %}
+          {% if request.user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link "
+                 href="{% url 'miseq_uploader:miseq_uploader' %}"><i class="fas fa-upload"></i> Uploader <span
+                      class="badge badge-danger">Admin only</span></a>
+            </li>
+          {% endif %}
+=========
             {% if request.user.is_superuser %}
               <div class="alert alert-danger" role="alert">
                 <li class="nav-item">
@@ -153,6 +172,7 @@
               </div>
               <hr>
             {% endif %}
+>>>>>>>>> Temporary merge branch 2
         </ul>
       </div>
     </nav>
