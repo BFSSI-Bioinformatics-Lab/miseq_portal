@@ -220,6 +220,7 @@
           data: {'sample_id_list': currently_selected_samples},
         }).done(function (data) {
           if (data.success) {
+            document.cookie = `sample_id_list=${data.sample_id_list}`;
             window.location.href = data.url;
           }
         })

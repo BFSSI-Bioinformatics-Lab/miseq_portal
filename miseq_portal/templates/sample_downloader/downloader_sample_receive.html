@@ -1,17 +1,18 @@
 {% extends "base.html" %}
 {% load static i18n %}
-{% load crispy_forms_tags %}
 {% block extra_css %}
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.2/css/buttons.dataTables.min.css">
+  {#  <link rel="stylesheet" href="/static/css/sample_select_table.css">#}
 {% endblock %}
 
-{% block title %}Downloader Confirm{% endblock %}
+{% block title %}Downloader Receive{% endblock %}
 
 {% block content %}
 
   <div class="page-header">
-    <h1>Downloader Suite</h1>
+    <h1>Here you go Suite</h1>
   </div>
 
   <div class="card mb-3">
@@ -21,26 +22,8 @@
   </div>
   <br>
 
-  <div class="card mb-3">
-    <div class="card-header"><h4>File Type Selection</h4>Select the types of files to download</div>
 
-    <div class="card-body">
-      <form action="{% url "sample_downloader:download_sample_confirm" %}" method="post" enctype="multipart/form-data">
-        {% crispy form %}
-        <input type="submit" value="Download">
-      </form>
-    </div>
-  </div>
-  <br>
-  <div class="row">
-    <div class="col-sm"></div>
-    <div class="col-sm">
-      <button id="submit-button" class="btn btn-block btn-success">Download</button>
-    </div>
-    <a id="'downloader" name="download-file" download> </a>
-    <div class="col-sm"></div>
-  </div>
-  <br>
+
 
 {% endblock content %}
 
@@ -67,21 +50,11 @@
 
       $('#sample-list-body').html(sample_id_list);
 
-      // Submit button
-      $('#submit-button').click(function () {
-        $.ajax({
-          url: "{% url 'sample_downloader:download_sample_receive' %}",
-          type: 'GET',
-          data: {'sample_id_list': sample_id_list},
-        }).done(function (data) {
-          window.location.href = "{% url 'sample_downloader:download_sample_receive' %}";
-          console.log("after download response")
-          console.log(data)
-
-        })
-      });
-
     });
 
   </script>
+
+
 {% endblock %}
+
+
