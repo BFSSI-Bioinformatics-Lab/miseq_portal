@@ -43,11 +43,11 @@ DATABASES = {
 }
 # https://stackoverflow.com/questions/15790380/django-celery-task-newly-created-model-doesnotexist
 DATABASES['default']['ATOMIC_REQUESTS'] = False
-DATABASES['default']['NAME'] = 'miseq_portal'
-DATABASES['default']['USER'] = 'postgres'
-DATABASES['default']['PASSWORD'] = ''
+DATABASES['default']['NAME'] = env('POSTGRES_DB')
+DATABASES['default']['USER'] = env('POSTGRES_USER')
+DATABASES['default']['PASSWORD'] = env('POSTGRES_PASSWORD')
 DATABASES['default']['HOST'] = 'localhost'
-DATABASES['default']['PORT'] = ''
+DATABASES['default']['PORT'] = env('POSTGRES_PORT')
 DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
 
 # URLS
