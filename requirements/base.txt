@@ -41,3 +41,5 @@ django-chunked-upload==2.0.0
 # prokka
 # rgi
 # mash
+# pilon
+# skesa
