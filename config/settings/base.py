@@ -346,9 +346,7 @@ REST_FRAMEWORK = {
 }
 
 # ASSEMBLY PIPELINE SETTINGS
-MOB_SUITE_PATH = Path("/home/forest/miniconda3/envs/mob_suite/bin/")
-ABRICATE_PATH = Path("/home/forest/miniconda3/envs/abricate/bin/")
-STAR_AMR_PATH = Path("/home/forest/miniconda3/envs/staramr/bin/")
+MOB_SUITE_PATH = Path("home/forest/miniconda3/envs/mob_suite/bin/")
 CONFINDR_PATH = Path("/home/forest/miniconda3/envs/confindr/bin/")
 
 # Databases
