@@ -50,6 +50,7 @@ def validate_minion_7zip(uploaded_file):
         if archived_file in expected_file_check.keys():
             expected_file_check[archived_file] = True
     if False in expected_file_check.values():
+        logger.warning(f'ERROR in expected files:\n{expected_file_check}')
         return False
     return True
 
@@ -98,6 +99,7 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         if not contents_valid:
             Path(str(complete_upload_path)).unlink()
             logger.info(f"Contents of file {complete_upload_path} are NOT VALID. Deleted!!!")
+            logger.info(f"Invalid reason: ")
             return
         else:
             logger.info(f"Contents of file are valid! Saved to {complete_upload_path}")
