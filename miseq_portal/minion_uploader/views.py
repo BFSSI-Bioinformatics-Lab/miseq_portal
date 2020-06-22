@@ -13,6 +13,7 @@ import shutil
 from miseq_portal.minion_viewer.models import MinIONSample, MinIONRun, MinIONRunSamplesheet
 from miseq_portal.miseq_viewer.models import Project
 from django.conf import settings
+from django.http import HttpResponse
 
 logger = logging.getLogger('django')
 
@@ -117,6 +118,8 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
 
         # Copy the extracted files to the new, proper destination
         outdir = Path(settings.MEDIA_ROOT) / 'uploads' / 'minion_runs' / run_id
+        if outdir.exists():
+            return HttpResponse(f'<html><h3>Error: Run {run_id} already exists in the database</h3></html>')
         shutil.copytree(src=outdir_tmp, dst=outdir)
         sample_sheet = outdir / 'SampleSheet.xlsx'
 
