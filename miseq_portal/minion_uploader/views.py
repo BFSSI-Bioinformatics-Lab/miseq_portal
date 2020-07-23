@@ -12,6 +12,7 @@ from django.core.files.storage import default_storage
 import shutil
 from miseq_portal.minion_viewer.models import MinIONSample, MinIONRun, MinIONRunSamplesheet
 from miseq_portal.miseq_viewer.models import Project
+from miseq_portal.users.models import User
 from django.conf import settings
 from django.http import HttpResponse
 
@@ -146,9 +147,14 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
             long_reads = outdir / 'qcat_demultiplexing' / f'{row["Barcode"]}.fastq.gz'
             assert long_reads.exists()
 
-            project_object, created = Project.objects.get_or_create(project_id=row['Project_ID'])
+            project_object, created = Project.objects.get_or_create(project_id=row['Project_ID'], defaults={
+                # Default to admin ownership
+                'project_owner': User.objects.get(
+                    username="admin")
+            })
             if created:
                 logger.info(f'Created new Project "{project_object.project_id}"')
+                project_object.save()
 
             MinIONSample.objects.create(
                 sample_id=row['Sample_ID'],
