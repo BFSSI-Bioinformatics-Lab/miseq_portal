@@ -115,6 +115,7 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         extract_7z_archive(f=Path(str(complete_upload_path)), outdir=outdir_tmp)
         sample_sheet = outdir_tmp / 'SampleSheet.xlsx'
         assert sample_sheet.exists()
+        logger.info(f'Saved samplesheet to {str(complete_upload_path)}')
 
         # Get the actual Run ID from the samplesheet
         run_id = get_run_id(sample_sheet)
@@ -122,6 +123,7 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         # Copy the extracted files to the new, proper destination
         outdir = Path(settings.MEDIA_ROOT) / 'uploads' / 'minion_runs' / run_id
         if outdir.exists():
+            logger.error(f'Output directory {outdir} already exists for some reason - error!')
             return HttpResponse(f'<html><h3>Error: Run {run_id} already exists in the database</h3></html>')
         shutil.copytree(src=outdir_tmp, dst=outdir)
         sample_sheet = outdir / 'SampleSheet.xlsx'
@@ -131,15 +133,14 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
 
         # Create run with run_id value
         run_object, created = MinIONRun.objects.get_or_create(run_id=run_id)
-        if created:
-            run_object.save()
+        logger.info(f'Created run {run_object}')
+        run_object.save()
 
         # Create samplesheet object
         samplesheet_object, created = MinIONRunSamplesheet.objects.get_or_create(
             sample_sheet=str(sample_sheet).replace(f"{settings.MEDIA_ROOT}/", ""),
             run_id=run_object)
-        if created:
-            samplesheet_object.save()
+        samplesheet_object.save()
 
         # Create samples from samplesheet
         df = pd.read_excel(sample_sheet, index=None)
@@ -176,7 +177,7 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
                 user=row['User']
             )
             sample.save()
-            print(sample)
+            logger.info(f'Created {sample.sample_id}!')
 
     def get_response_data(self, chunked_upload, request):
         return f"You successfully uploaded '{chunked_upload.filename}' ({chunked_upload.offset / 1000} kb)! "
