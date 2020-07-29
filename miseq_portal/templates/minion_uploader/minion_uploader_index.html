@@ -48,6 +48,8 @@
   <script src="{% static 'spark-md5.js' %}"></script>
 
   <script>
+    const MAX_CHUNK_SIZE = 10000000;
+
     let md5 = "",
             csrf = $("input[name='csrfmiddlewaretoken']")[0].value,
             form_data = [{"name": "csrfmiddlewaretoken", "value": csrf}];
@@ -82,7 +84,7 @@
     $("#chunked_upload").fileupload({
       url: "{% url 'minion_uploader:api_chunked_upload' %}",
       dataType: "json",
-      maxChunkSize: 1000000, // Chunks of 1000 kB
+      maxChunkSize: MAX_CHUNK_SIZE,
       formData: form_data,
       progressall: function (e, data) {
         let progress = parseInt(data.loaded / data.total * 100, 10);
@@ -100,7 +102,7 @@
           // If this is the second file you're uploading we need to remove the
           // old upload_id and just keep the csrftoken (which is always first).
           form_data.splice(1);
-          calculate_md5(data.files[0], 1000000);  // Again, chunks of 1000 kB
+          calculate_md5(data.files[0], MAX_CHUNK_SIZE);  // Again, chunks of 5000 kB
           data.submit();
         }
       },
@@ -139,7 +141,6 @@
           error: function (e) {
             console.log(e)
             window.location.href = "404/";
-
           }
         });
 
