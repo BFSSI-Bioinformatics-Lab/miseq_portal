@@ -144,6 +144,7 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         # Create samples from samplesheet
         df = pd.read_excel(sample_sheet, index=None)
         if len(df) < 1:
+            logger.error(f'Empty samplesheet for {sample_sheet}')
             samplesheet_object.delete()
             run_object.delete()
             return HttpResponse(f'<html><h3>Error: Samplesheet did not have number of expected rows!</h3></html>')
