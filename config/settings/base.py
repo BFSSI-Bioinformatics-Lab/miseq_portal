@@ -345,6 +345,9 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100,
 }
 
+# Might help with huge uploads
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880 * 2  # 10 MB
+
 # ASSEMBLY PIPELINE SETTINGS
 MOB_SUITE_PATH = Path("home/forest/miniconda3/envs/mob_suite/bin/")
 CONFINDR_PATH = Path("/home/forest/miniconda3/envs/confindr/bin/")
