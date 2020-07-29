@@ -143,6 +143,9 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
 
         # Create samples from samplesheet
         df = pd.read_excel(sample_sheet, index=None)
+        if len(df) < 1:
+            return HttpResponse(f'<html><h3>Error: Samplesheet did not have number of expected rows!</h3></html>')
+
         for i, row in df.iterrows():
             long_reads = outdir / 'qcat_demultiplexing' / f'{row["Barcode"]}.fastq.gz'
             assert long_reads.exists()
