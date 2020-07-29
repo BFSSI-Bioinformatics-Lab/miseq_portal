@@ -156,7 +156,7 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
                 logger.info(f'Created new Project "{project_object.project_id}"')
                 project_object.save()
 
-            MinIONSample.objects.create(
+            sample = MinIONSample.objects.create(
                 sample_id=row['Sample_ID'],
                 sample_name=row['Sample_Name'],
                 long_reads=str(long_reads).replace(f"{settings.MEDIA_ROOT}/", ""),
@@ -169,6 +169,8 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
                 read_type=row['Read_Type'],
                 user=row['User']
             )
+            sample.save()
+            print(sample)
 
     def get_response_data(self, chunked_upload, request):
         return f"You successfully uploaded '{chunked_upload.filename}' ({chunked_upload.offset / 1000} kb)! "
