@@ -123,8 +123,8 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         # Copy the extracted files to the new, proper destination
         outdir = Path(settings.MEDIA_ROOT) / 'uploads' / 'minion_runs' / run_id
         if outdir.exists():
-            logger.error(f'Output directory {outdir} already exists for some reason - error!')
-            return HttpResponse(f'<html><h3>Error: Run {run_id} already exists in the database</h3></html>')
+            logger.info(f'{outdir} already exists, deleting previous!')
+            shutil.rmtree(outdir)
         shutil.copytree(src=outdir_tmp, dst=outdir)
         sample_sheet = outdir / 'SampleSheet.xlsx'
 
@@ -145,10 +145,10 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         # Create samples from samplesheet
         df = pd.read_excel(sample_sheet, index=None)
         if len(df) < 1:
-            logger.error(f'Empty samplesheet for {sample_sheet}')
+            logger.error(f'Empty samplesheet for {sample_sheet}! Quitting!')
             samplesheet_object.delete()
             run_object.delete()
-            return HttpResponse(f'<html><h3>Error: Samplesheet did not have number of expected rows!</h3></html>')
+            return
 
         for i, row in df.iterrows():
             long_reads = outdir / 'qcat_demultiplexing' / f'{row["Barcode"]}.fastq.gz'
