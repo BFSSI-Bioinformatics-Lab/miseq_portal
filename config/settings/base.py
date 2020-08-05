@@ -350,7 +350,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880 * 2  # 10 MB
 
 # ASSEMBLY PIPELINE SETTINGS
 MOB_SUITE_PATH = Path("home/forest/miniconda3/envs/mob_suite/bin/")
-CONFINDR_PATH = Path("/home/forest/miniconda3/envs/confindr/bin/")
+CONFINDR_EXE = Path("/home/forest/miniconda3/bin/confindr")
 
 # Databases
 MASH_REFSEQ_DATABASE = Path(MEDIA_ROOT) / 'resources' / 'refseq.genomes.k21s1000.msh'

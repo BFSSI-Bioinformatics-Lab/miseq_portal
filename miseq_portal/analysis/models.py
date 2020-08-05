@@ -13,7 +13,7 @@ from miseq_portal.users.models import User
 MEDIA_ROOT = settings.MEDIA_ROOT
 MASH_REFSEQ_DATABASE = settings.MASH_REFSEQ_DATABASE
 CONFINDR_DB = settings.CONFINDR_DB
-CONFINDR_PATH = settings.CONFINDR_PATH
+CONFINDR_EXE = settings.CONFINDR_EXE
 MEDIA_ROOT = Path(MEDIA_ROOT)
 
 
@@ -167,16 +167,14 @@ class ConfindrGroupResult(TimeStampedModel):
         System call to confindr.py. Uses a Conda environment specifically for Confindr.
         This takes ~3 minutes to run per sample.
 
-        NOTE: Versions of confindr above 0.7.0 appear to be broken - stick with 0.7.0
-
         :param reads_dir: Path to directory containing paired-end reads (.fastq.gz)
         :param outdir: Desired path to output directory
         :param forward_id: ID for forwards reads. Uses sensible default for Portal .fastq.gz files.
         :param reverse_id: ID for reverse reads. Uses sensible default for Portal .fastq.gz files.
         :return: Path to output file
         """
-        cmd = f"{CONFINDR_PATH}/python {CONFINDR_PATH}/confindr.py -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
-              f"-fid {forward_id} -rid {reverse_id}"
+        cmd = f"{CONFINDR_EXE} -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
+              f"-fid {forward_id} -rid {reverse_id} -Xmx 20g -t 16"
         run_subprocess(cmd, get_stdout=False)
 
         report = outdir / 'confindr_report.csv'

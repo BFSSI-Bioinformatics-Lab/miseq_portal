@@ -2,14 +2,19 @@ import datetime
 import logging
 from subprocess import Popen
 
-from miseq_portal.config.settings.base import CONFINDR_DB, CONFINDR_SECRET, CONFINDR_PATH
+from django.conf import settings
+
+CONFINDR_EXE = settings.CONFINDR_EXE
+CONFINDR_DB_SETUP = CONFINDR_EXE.parent / 'confindr_database_setup'
+CONFINDR_SECRET = settings.CONFINDR_SECRET
+CONFINDR_DB = settings.CONFINDR_DB
 
 logger = logging.getLogger('django')
 
 
 # TODO: Implement this, not actually called by anything yet
 def update_confindr_db() -> datetime.datetime:
-    cmd = f"{CONFINDR_PATH}/confindr_database_setup -s {CONFINDR_SECRET} -o {CONFINDR_DB}"
+    cmd = f"{CONFINDR_DB_SETUP} -s {CONFINDR_SECRET} -o {CONFINDR_DB}"
     logger.info(f"Updating confindr database with the following command: {cmd}")
     p = Popen(cmd, shell=True)
     p.wait()
