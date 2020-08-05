@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static i18n %}
+{% load miseq_viewer_extras %}
 {% block extra_css %}
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.jqueryui.min.css">
@@ -12,7 +13,7 @@
     <div class="page-header">
       <h1>{{ run }}</h1>
       <a class="btn btn-primary" href="{{ run.sample_sheet.url }}" role="button"><i
-        class="fas fa-download"></i> Download SampleSheet.csv
+              class="fas fa-download"></i> Download SampleSheet.csv
       </a>
     </div>
 
