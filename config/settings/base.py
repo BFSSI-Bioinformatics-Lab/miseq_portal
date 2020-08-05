@@ -233,11 +233,7 @@ TEMPLATES = [
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
-            ],
-            'libraries': {
-                'analysis_extras': 'analysis.templatetags.analysis_extras',
-                'miseq_viewer_extras': 'miseq_viewer.templatetags.miseq_viewer_extras',
-            }
+            ]
         },
     },
 ]
