@@ -15,9 +15,9 @@ app_name = "minion_viewer"
 
 # Django-rest-framework (https://django-rest-framework-datatables.readthedocs.io/en/latest/tutorial.html)
 router = routers.DefaultRouter()
-router.register(r'minion_runs', MinIONRunViewSet, base_name='minion-run')
-router.register(r'minion_samples', MinIONSampleViewSet, base_name='minion-sample')
-router.register(r'minion_samplesheets', MinIONRunSamplesheetViewSet, base_name='minion-samplesheet')
+router.register(r'minion_runs', MinIONRunViewSet, basename='minion-run')
+router.register(r'minion_samples', MinIONSampleViewSet, basename='minion-sample')
+router.register(r'minion_samplesheets', MinIONRunSamplesheetViewSet, basename='minion-samplesheet')
 
 urlpatterns = [
     path("", view=minion_viewer_index_view, name="minion_viewer_index"),
