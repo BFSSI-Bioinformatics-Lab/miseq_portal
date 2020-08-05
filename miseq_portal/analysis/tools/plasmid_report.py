@@ -13,9 +13,10 @@ from pathlib import Path
 
 from dataclasses import dataclass
 
+from django.conf import settings
 from miseq_portal.analysis.tools.helpers import run_subprocess
 
-MOB_RECON = "/home/brock/miniconda3/envs/mobsuite/bin/mob_recon"
+MOB_RECON = settings.MOB_RECON_EXE
 
 
 @dataclass
