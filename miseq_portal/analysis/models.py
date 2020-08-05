@@ -173,7 +173,7 @@ class ConfindrGroupResult(TimeStampedModel):
         :param reverse_id: ID for reverse reads. Uses sensible default for Portal .fastq.gz files.
         :return: Path to output file
         """
-        cmd = f"{CONFINDR_EXE} -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
+        cmd = f"{CONFINDR_EXE.parent / 'python'} {CONFINDR_EXE} -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
               f"-fid {forward_id} -rid {reverse_id} -Xmx 20g -t 16"
         run_subprocess(cmd, get_stdout=False)
 
