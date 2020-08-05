@@ -14,8 +14,8 @@ app_name = "sample_workbooks"
 
 # Django-rest-framework (https://django-rest-framework-datatables.readthedocs.io/en/latest/tutorial.html)
 router = routers.DefaultRouter()
-router.register(r'workbooks', WorkbookViewSet, base_name='workbooks-detail')
-router.register(r'workbooksamples', WorkbookSampleViewset, base_name='workbook-samples-detail')
+router.register(r'workbooks', WorkbookViewSet, basename='workbooks-detail')
+router.register(r'workbooksamples', WorkbookSampleViewset, basename='workbook-samples-detail')
 
 urlpatterns = [
     path("", view=sample_workbook_index_view, name="sample_workbook_index"),
