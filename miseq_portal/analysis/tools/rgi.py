@@ -4,13 +4,13 @@ from typing import Optional
 
 import pandas as pd
 
+from django.conf import settings
 from miseq_portal.analysis.models import AnalysisGroup
 from miseq_portal.analysis.tools.helpers import run_subprocess
 
 logger = logging.getLogger('django')
 
-# TODO: Don't use hard coded path... get this guy into $PATH
-RGI = "/home/brock/Desktop/BioInfo/rgi-5.1.0/rgi"
+RGI = settings.RGI_EXE
 
 
 # TODO: Had to manually modify the !# line in /home/brock/Desktop/BioInfo/rgi-5.1.0/rgi to call the correct interpreter

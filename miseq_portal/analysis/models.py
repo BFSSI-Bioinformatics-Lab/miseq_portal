@@ -10,11 +10,11 @@ from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
 
-MEDIA_ROOT = settings.MEDIA_ROOT
+MEDIA_ROOT = Path(settings.MEDIA_ROOT)
 MASH_REFSEQ_DATABASE = settings.MASH_REFSEQ_DATABASE
 CONFINDR_DB = settings.CONFINDR_DB
 CONFINDR_EXE = settings.CONFINDR_EXE
-MEDIA_ROOT = Path(MEDIA_ROOT)
+PROKKA_EXE = settings.PROKKA_EXE
 
 
 def upload_analysis_file(instance: Sample, filename: str, analysis_folder: str = 'analysis') -> str:
@@ -140,7 +140,7 @@ class ProkkaResult(TimeStampedModel):
 
     @staticmethod
     def call_prokka(fasta_path: Path, sample_id: str, outdir: Path, n_cpu: int) -> Path:
-        cmd = f"prokka --centre PORTAL --compliant --kingdom Bacteria " \
+        cmd = f"{PROKKA_EXE} --centre PORTAL --compliant --kingdom Bacteria " \
               f"--cpus {n_cpu} --prefix {sample_id} --locustag {sample_id} --force --outdir {outdir} {fasta_path}"
         run_subprocess(cmd, get_stdout=False)
         return outdir
