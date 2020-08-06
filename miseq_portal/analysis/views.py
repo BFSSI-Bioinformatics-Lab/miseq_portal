@@ -122,12 +122,18 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
         if context['analysis_group'].job_type == 'SendSketch':
             context['sendsketch_results'] = SendsketchResult.objects.filter(
                 sample_id__analysissample__group_id=context['analysis_group']).order_by('-sample_id')
+
         # Mob Suite
         elif context['analysis_group'].job_type == 'MobRecon':
+
+            # Add analysis samples to context
             context['mob_suite_analysis_samples'] = MobSuiteAnalysisGroup.objects.filter(
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
+
+            # Add plasmids to context
             context['mob_suite_analysis_plasmids'] = MobSuiteAnalysisPlasmid.objects.filter(
-                sample_id__analysissample__group_id=context['analysis_group'])
+                group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
+
         # RGI
         elif context['analysis_group'].job_type == 'RGI':
             context['rgi_results'] = RGIResult.objects.filter(
