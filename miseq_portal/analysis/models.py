@@ -419,6 +419,9 @@ class RGIGroupResult(TimeStampedModel):
     rgi_json_results_zip = models.FileField(upload_to=upload_group_analysis_file, blank=True)  # .zip of all .json
     rgi_txt_results_zip = models.FileField(upload_to=upload_group_analysis_file, blank=True)  # .zip of all .txt
 
+    def __str__(self):
+        return str(f"RGI Group {self.analysis_group}")
+
     class Meta:
         verbose_name = 'RGI Group Result'
         verbose_name_plural = 'RGI Group Results'
