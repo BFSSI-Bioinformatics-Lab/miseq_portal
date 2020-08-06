@@ -132,7 +132,7 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
 
             # Add plasmids to context
             context['mob_suite_analysis_plasmids'] = MobSuiteAnalysisPlasmid.objects.filter(
-                group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
+                group_id=context['analysis_group']).order_by('-sample_id')
 
         # RGI
         elif context['analysis_group'].job_type == 'RGI':
