@@ -127,7 +127,7 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
             context['mob_suite_analysis_samples'] = MobSuiteAnalysisGroup.objects.filter(
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
             context['mob_suite_analysis_plasmids'] = MobSuiteAnalysisPlasmid.objects.filter(
-                sample_id__analysissample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
+                sample_id__analysissample__group_id=context['analysis_group'])
         # RGI
         elif context['analysis_group'].job_type == 'RGI':
             context['rgi_results'] = RGIResult.objects.filter(
