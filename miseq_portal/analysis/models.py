@@ -1,4 +1,5 @@
 import re
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -15,6 +16,8 @@ MASH_REFSEQ_DATABASE = settings.MASH_REFSEQ_DATABASE
 CONFINDR_DB = settings.CONFINDR_DB
 CONFINDR_EXE = settings.CONFINDR_EXE
 PROKKA_EXE = settings.PROKKA_EXE
+
+logger = logging.getLogger('django')
 
 
 def upload_analysis_file(instance: Sample, filename: str, analysis_folder: str = 'analysis') -> str:
@@ -176,6 +179,7 @@ class ConfindrGroupResult(TimeStampedModel):
         cmd = f"{CONFINDR_EXE.parent / 'python'} {CONFINDR_EXE} -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
               f"-fid {forward_id} -rid {reverse_id} -Xmx 20g -t 16"
         run_subprocess(cmd, get_stdout=False)
+        logger.info(f"Calling confindr with following command:\n{cmd}")
 
         report = outdir / 'confindr_report.csv'
         logfile = outdir / 'confindr_log.txt'

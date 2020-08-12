@@ -136,9 +136,14 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
 
         # RGI
         elif context['analysis_group'].job_type == 'RGI':
+
+            # RGI Result
             context['rgi_results'] = RGIResult.objects.filter(
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
+
+            # Group Result
             context['rgi_group_result'] = RGIGroupResult.objects.get(analysis_group=context['analysis_group'])
+
         # Confindr
         elif context['analysis_group'].job_type == 'Confindr':
             context['confindr_group_result'] = ConfindrGroupResult.objects.get(analysis_group=context['analysis_group'])

@@ -128,6 +128,15 @@ def submit_confindr_job(analysis_group: AnalysisGroup) -> ConfindrGroupResult:
             except BaseException as e:
                 logger.warning(f"Something is wrong with the Confindr report for {analysis_sample.sample_id}")
                 logger.warning(e)
+
+                confindr_result.genus = None
+                confindr_result.num_contam_snvs = None
+                confindr_result.contam_status = None
+                confindr_result.percent_contam = None
+                confindr_result.percent_contam_std_dev = None
+                confindr_result.bases_examined = None
+                confindr_result.database_download_date = None
+
             confindr_result.save()
 
     return confindr_group_result
@@ -348,7 +357,7 @@ def assemble_sample_instance(sample_object_id: str):
     sample_assembly_instance, sa_created = SampleAssemblyData.objects.get_or_create(sample_id=sample_instance)
     if sa_created or str(sample_assembly_instance.assembly) == '' or sample_assembly_instance.assembly is None:
         """
-        Check if it's even worth attempting the assembly by quickly checking the # of reads available. 
+        Check if it's even worth attempting the assembly by quickly checking the # of reads available.
         Note that this is contingent on there being # reads data available, which is not always the case.
         """
         try:
