@@ -26,7 +26,7 @@ def extract_7z_archive(f: Path, outdir: Path):
 
 
 def get_run_id(f: Path):
-    df = pd.read_excel(f, index=None)
+    df = pd.read_excel(f, index_col=None)
     run_id = df['Run_ID'][0].strip()
     return run_id
 
@@ -143,7 +143,7 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         samplesheet_object.save()
 
         # Create samples from samplesheet
-        df = pd.read_excel(sample_sheet, index=None)
+        df = pd.read_excel(sample_sheet, index_col=None)
         if len(df) < 1:
             logger.error(f'Empty samplesheet for {sample_sheet}! Quitting!')
             samplesheet_object.delete()
