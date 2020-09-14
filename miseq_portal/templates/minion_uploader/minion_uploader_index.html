@@ -134,6 +134,8 @@
           },
           dataType: "json",
           success: function (data) {
+            console.log("Success!")
+            console.log(data)
             $("#messages").append($('<p>').text(JSON.stringify(data)));
             // Redirect to success page
             window.location.href = "upload_success/";
