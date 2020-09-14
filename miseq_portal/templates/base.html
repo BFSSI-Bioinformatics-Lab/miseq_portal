@@ -113,10 +113,10 @@
                  href="{% url 'analysis:sample_select' %}"><i class="fas fa-flask"></i> Analysis</a>
             </li>
             {% if request.user.is_staff %}
-              <li class="nav-item">
-                <a class="nav-link "
-                   href="{% url 'sample_merge:sample_merge_queue' %}"><i class="fas fa-clone"></i> Merge Queue</a>
-              </li>
+{#              <li class="nav-item">#}
+{#                <a class="nav-link "#}
+{#                   href="{% url 'sample_merge:sample_merge_queue' %}"><i class="fas fa-clone"></i> Merge Queue</a>#}
+{#              </li>#}
               <li class="nav-item">
                 <a class="nav-link "
                    href="{% url 'sample_merge:sample_merge_index' %}"><i class="fas fa-plus-square"></i> Manual
