@@ -31,7 +31,6 @@ raven==6.9.0
 django-celery-results==1.0.1
 flower==0.9.2
 model_mommy==1.6.0
-dataclasses==0.6
 interop==1.1.5
 
 environ==1.0
@@ -43,3 +42,4 @@ django-chunked-upload==2.0.0
 # mash
 # pilon
 # skesa
+# prodigal
