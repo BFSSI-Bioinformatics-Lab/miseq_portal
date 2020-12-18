@@ -76,6 +76,7 @@ def assembly_pipeline(fwd_reads: Path, rev_reads: Path, outdir: Path, sample_id:
     :param sample_id: Sample ID (e.g. BMH-2017-000001) corresponding to miseq_viewer.models.Sample
     :return: Path to .bam from BBmap and .fasta assembly from Pilon
     """
+    fwd_reads, rev_reads = call_repair(fwd_reads=fwd_reads, rev_reads=rev_reads, outdir=outdir)
     fwd_reads, rev_reads = call_bbduk(fwd_reads=fwd_reads, rev_reads=rev_reads, outdir=outdir)
     fwd_reads, rev_reads = call_tadpole(fwd_reads=fwd_reads, rev_reads=rev_reads, outdir=outdir)
     assembly = call_skesa(fwd_reads=fwd_reads, rev_reads=rev_reads, outdir=outdir, sample_id=sample_id)
@@ -424,3 +425,12 @@ def call_bbduk(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
     fwd_reads_filtered, rev_reads_filtered = bbduk_qc_filtering(fwd_reads=fwd_reads_trimmed,
                                                                 rev_reads=rev_reads_trimmed, outdir=outdir)
     return fwd_reads_filtered, rev_reads_filtered
+
+
+def call_repair(fwd_reads: Path, rev_reads: Path, outdir: Path) -> tuple:
+    fwd_out = outdir / fwd_reads.name
+    rev_out = outdir / rev_reads.name
+
+    cmd = f"repair.sh in={fwd_reads} in2={rev_reads} out={fwd_out} out2={rev_out} overwrite=t"
+    run_subprocess(cmd)
+    return fwd_out, rev_out
