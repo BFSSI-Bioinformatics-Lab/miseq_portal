@@ -195,7 +195,7 @@ def generate_sample_objects(samplesheet: Path) -> [SampleDataObject]:
     # Check all Sample IDs - if they are valid, assign sample_type BMH to each. Otherwise, assign EXT.
     valid_list = []
     for sample_id in sample_id_list:
-        valid_list.append(check_sample_id(value=sample_id))
+        valid_list.append(check_sample_id(value=str(sample_id)))
     if False not in valid_list:
         sample_type = "BMH"
     else:
