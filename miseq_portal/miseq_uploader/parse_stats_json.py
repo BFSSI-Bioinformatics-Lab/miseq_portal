@@ -27,9 +27,6 @@ def read_stats_json(stats_json: Path) -> dict:
         tmp_stats_dict['SampleName'] = sample['SampleName']
         tmp_stats_dict['NumberReads'] = sample['NumberReads']
         tmp_stats_dict['Yield'] = sample['Yield']
-        tmp_stats_dict['TrimmedBases'] = sample['TrimmedBases']
-        tmp_stats_dict['YieldQ30'] = sample['YieldQ30']
-        tmp_stats_dict['QualityScoreSum'] = sample['QualityScoreSum']
 
         # ReadMetrics per read (R1, R2)
         tmp_stats_dict['R1_QualityScoreSum'] = sample['ReadMetrics'][0]['QualityScoreSum']
