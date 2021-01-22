@@ -133,12 +133,8 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
         stats_df = stats_json_to_df(stats_json=json_stats_file)
         for attribute, value in attribute_dict.items():
             if value in list(stats_df.columns):
-                try:
-                    set_value = int(stats_df[stats_df['sample_id'] == sample_object.sample_id][value])
-                    setattr(sample_object, attribute, set_value)
-                except TypeError as e:
-                    logging.info(stats_df[stats_df['sample_id'] == sample_object.sample_id][value])
-                    raise e
+                set_value = stats_df[stats_df['sample_id'] == sample_object.sample_id][value].astype(float)
+                setattr(sample_object, attribute, set_value)
         sample_object_list_stats.append(sample_object)
     return sample_object_list_stats
 
