@@ -124,10 +124,10 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
         'r2_yield': 'R2_Yield',
         'r1_yieldq30': 'R1_YieldQ30',
         'r2_yieldq30': 'R2_YieldQ30',
-        'qualityscoresum': 'QualityScoreSum',  # added to Stats.json by BaseSpace as of January 2021
-        'yield': 'Yield',  # added to Stats.json by BaseSpace as of January 2021
-        'yieldq30': 'YieldQ30',  # added to Stats.json by BaseSpace as of January 2021
-        'trimmedbases': 'TrimmedBases'  # added to Stats.json by BaseSpace as of January 2021
+        # 'qualityscoresum': 'QualityScoreSum',  # added to Stats.json by BaseSpace as of January 2021
+        # '_yield': 'Yield',  # added to Stats.json by BaseSpace as of January 2021
+        # 'yieldq30': 'YieldQ30',  # added to Stats.json by BaseSpace as of January 2021
+        # 'trimmedbases': 'TrimmedBases'  # added to Stats.json by BaseSpace as of January 2021
     }
     for sample_object in sample_object_list:
         stats_df = stats_json_to_df(stats_json=json_stats_file)
