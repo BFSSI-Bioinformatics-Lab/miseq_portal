@@ -116,6 +116,10 @@ class SampleDataObject:
     r2_yield: int = None
     r1_yieldq30: int = None
     r2_yieldq30: int = None
+    qualityscoresum: int = None
+    yield_: int = None  # note appended _ to avoid reserved keyword conflict
+    yieldq30: int = None
+    trimmedbases: int = None
 
 
 @dataclass
@@ -523,6 +527,12 @@ class SampleLogData(TimeStampedModel):
     r2_trimmedbases = models.BigIntegerField(blank=True, null=True)
     r2_yield = models.BigIntegerField(blank=True, null=True)
     r2_yieldq30 = models.BigIntegerField(blank=True, null=True)
+
+    # Combined (added to Stats.json as of January 2021)
+    qualityscoresum = models.BigIntegerField(blank=True, null=True)
+    trimmedbases = models.BigIntegerField(blank=True, null=True)
+    yield_ = models.BigIntegerField(blank=True, null=True)  # note appended _ to prevent conflict with reversed keyword
+    yieldq30 = models.BigIntegerField(blank=True, null=True)
 
     @property
     def sample_yield_mbp(self):
