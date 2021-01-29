@@ -131,9 +131,11 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
     }
     for sample_object in sample_object_list:
         stats_df = stats_json_to_df(stats_json=json_stats_file)
+        logger.info(stats_df)
         for attribute, value in attribute_dict.items():
             if value in list(stats_df.columns):
                 set_value = stats_df[stats_df['sample_id'] == sample_object.sample_id][value].astype(float)
+                logger.info(f'attempting to set {attribute}={set_value}')
                 setattr(sample_object, attribute, set_value)
         sample_object_list_stats.append(sample_object)
     return sample_object_list_stats
@@ -211,6 +213,7 @@ def db_create_run(sample_object: SampleDataObject, run_data_object: RunDataObjec
         # Upload XML files + SampleSheet
         xml_field_list = ['runinfoxml', 'runparametersxml', 'sample_sheet']
         for field in xml_field_list:
+            logger.info(f'Trying to upload: {field}')
             run_instance = upload_run_data(run_instance=run_instance,
                                            run_data_object=run_data_object,
                                            run_model_fieldname=field,
@@ -318,7 +321,9 @@ def db_create_sample_log(sample_object: SampleDataObject, sample_instance: Sampl
             'r2_yieldq30'
         ]
         for attribute in sample_log_attribute_list:
-            setattr(sample_log_instance, attribute, getattr(sample_object, attribute))
+            attribute_value = getattr(sample_object, attribute)
+            logger.info(f'attribute {attribute}: {attribute_value} ({type(attribute_value)})')
+            setattr(sample_log_instance, attribute, attribute_value)
         sample_log_instance.save()
     return sample_log_instance
 
