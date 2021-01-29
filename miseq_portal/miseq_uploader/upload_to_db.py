@@ -321,7 +321,6 @@ def db_create_sample_log(sample_object: SampleDataObject, sample_instance: Sampl
         ]
         for attribute in sample_log_attribute_list:
             attribute_value = getattr(sample_object, attribute)
-            logger.info(f'attribute {attribute}: {attribute_value} ({type(attribute_value)})')
             setattr(sample_log_instance, attribute, attribute_value)
         sample_log_instance.save()
     return sample_log_instance
