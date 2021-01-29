@@ -100,14 +100,9 @@ class RunDetailView(LoginRequiredMixin, DetailView):
         except KeyError:
             run = context['object']
 
-        try:
-            interop_folder = run.interop_directory_path
-        except KeyError:
-            interop_folder = run.interop_directory_path
+        interop_folder = run.get_interop_directory()
 
-        if interop_folder is not None:
-            interop_folder = Path(interop_folder)
-        else:
+        if interop_folder is None:
             logger.info("WARNING: The InterOp directory for this run is not stored in the database")
             context['interop_data_avaiable'] = False
 
