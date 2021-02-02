@@ -19,12 +19,12 @@
     <div class="col">
       <h5><strong>Project: </strong>
         <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=sample.project_id.pk %}">
-            {{ sample.project_id }}
+          {{ sample.project_id }}
         </a>
       </h5>
       <h5><strong>Run: </strong>
         <a href="{% url 'minion_viewer:minion_run_detail' pk=sample.run_id.pk %}">
-            {{ sample.run_id }}
+          {{ sample.run_id }}
         </a>
       </h5>
     </div>
@@ -35,7 +35,33 @@
   <div class="container-fluid">
     <h4>Sample Details</h4>
 
-    <div class="alert alert-warning">Under construction :(</div>
+    <table id="sample_detail" class="display" style="width:100%">
+      <thead>
+      <tr>
+        <th>Sample Name</th>
+        <th>Reads</th>
+        <th>Run Protocol</th>
+        <th>Instrument ID</th>
+        <th>Sequencing Kit</th>
+        <th>Flowcell Type</th>
+        <th>Read Type</th>
+        <th>Date Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>{{ sample.sample_name }}</td>
+        <td><a class="btn btn-success" href="{{ sample.long_reads.url }}">Download</a></td>
+        <td>{{ sample.run_protocol }}</td>
+        <td>{{ sample.instrument_id }}</td>
+        <td>{{ sample.sequencing_kit }}</td>
+        <td>{{ sample.flowcell_type }}</td>
+        <td>{{ sample.read_type }}</td>
+        <td>{{ sample.created }}</td>
+      </tr>
+      </tbody>
+    </table>
+
 
   </div>
 
@@ -47,10 +73,20 @@
   <script src="https://cdn.datatables.net/1.10.19/js/dataTables.jqueryui.min.js"></script>
   <script src="https://cdn.datatables.net/colreorder/1.5.1/js/dataTables.colReorder.min.js"></script>
 
-    {# Datatables #}
+  {# Datatables #}
   <script>
-      $(document).ready(function () {
-      })
+    $(document).ready(function () {
+      $('#sample_detail').DataTable({
+        "paging": false,
+        "searching": false,
+        "info": false,
+        "ordering": false,
+        "colReorder": {
+          enable: true,
+        },
+      });
+
+    })
   </script>
 
 {% endblock %}
