@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.views.generic import ListView, View
 
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
+from miseq_portal.minion_viewer.models import MinIONSample
 
 
 class SampleSearchViewAsJSON(LoginRequiredMixin, View):
@@ -61,11 +62,18 @@ class SampleSearchView(LoginRequiredMixin, ListView):
             Q(mashresult__top_hit__icontains=search_term)
         )
 
+        minion_sample_list = MinIONSample.objects.filter(
+            Q(sample_id__icontains=search_term) |
+            Q(project_id__project_id__icontains=search_term) |
+            Q(sample_name__icontains=search_term) |
+            Q(run_id__run_id__icontains=search_term)
+        )
+
         # Filter out hidden samples
         sample_list = sample_list.filter(hide_flag=False)
 
         context['search_term'] = search_term
-        context['sample_list'] = sample_list
+        context['sample_list'] = sample_list + minion_sample_list
         context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user).order_by('id')
         return context
 
