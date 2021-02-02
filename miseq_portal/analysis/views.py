@@ -142,7 +142,12 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
 
             # Group Result
-            context['rgi_group_result'] = RGIGroupResult.objects.get(analysis_group=context['analysis_group'])
+            try:
+                context['rgi_group_result'] = RGIGroupResult.objects.get(analysis_group=context['analysis_group'])
+            except Exception as e:
+                logger.info(f'Could not find group result for analysis; probably only executed on 1 sample')
+                logger.info(e)
+                context['rgi_group_result'] = None
 
         # Confindr
         elif context['analysis_group'].job_type == 'Confindr':

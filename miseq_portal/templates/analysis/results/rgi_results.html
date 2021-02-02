@@ -21,7 +21,7 @@
 </div>
 
 {# Display the heatmap if RGI was run on > 1 sample #}
-{% if rgi_results|length > 1 %}
+{% if rgi_results|length > 1 and rgi_group_result != None %}
   {% if rgi_group_result.rgi_heatmap_result.url != None %}
     <h3>Heatmap <a class="btn btn-success" data-toggle="collapse" href="#heatmapCollapse" role="button"
                    aria-expanded="false"
