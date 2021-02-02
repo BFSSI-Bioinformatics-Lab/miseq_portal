@@ -100,7 +100,6 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
         if not contents_valid:
             Path(str(complete_upload_path)).unlink()
             logger.info(f"Contents of file {complete_upload_path} are NOT VALID. Deleted!!!")
-            logger.info(f"Invalid reason: ")
             return
         else:
             logger.info(f"Contents of file are valid! Saved to {complete_upload_path}")
