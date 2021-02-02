@@ -66,7 +66,7 @@
         if (current_chunk < chunks) {
           read_next_chunk();
         } else {
-          md5 = spark.end();
+          md5 = spark.end(false);
         }
       }
 
@@ -142,7 +142,6 @@
           },
           error: function (e) {
             console.log(e)
-            {#window.location.href = "404/";#}
           }
         });
 
