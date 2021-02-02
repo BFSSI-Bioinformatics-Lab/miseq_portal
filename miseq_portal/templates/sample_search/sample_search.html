@@ -13,7 +13,7 @@
 
     {% if sample_list.count == 0 %}
       <div class="alert alert-warning" role="alert">
-        <h4>No samples found matching search term <strong>"{{ search_term }}"</strong></h4>
+        <h4>No MiSeq samples found matching search term <strong>"{{ search_term }}"</strong></h4>
       </div>
     {% endif %}
 
@@ -116,6 +116,107 @@
       </tbody>
     </table>
   </div>
+  <hr>
+
+  <div class="container-fluid">
+
+
+    {% if minion_sample_list.count == 0 %}
+      <div class="alert alert-warning" role="alert">
+        <h4>No MinION samples found matching search term <strong>"{{ search_term }}"</strong></h4>
+      </div>
+    {% endif %}
+
+    <table id="sample_table" class="display compact">
+      <thead>
+      <tr>
+        <th>Sample ID</th>
+        <th>Sample Name</th>
+        <th>Run ID</th>
+        <th>Project ID</th>
+        <th>Date Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for min_sample in minion_sample_list %}
+        {% if user.is_staff %}
+          <tr>
+            <td>
+              <a href="#">
+                {{ min_sample.sample_id }}
+              </a>
+            </td>
+            <td>
+              {{ min_sample.sample_name|default:"N/A" }}
+            </td>
+            <td>
+              {% if min_sample.run_id != None %}
+                <a href="{% url 'minion_viewer:minion_run_detail' pk=min_sample.run_id.pk %}">
+                  {{ min_sample.run_id }}
+                </a>
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            <td>
+              {% if min_sample.project_id != None %}
+                <a href="#">
+                  {{ min_sample.project_id }}
+                </a>
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
+            {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
+            <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
+              {{ sample.created|date:"d N Y" }}
+            </td>
+          </tr>
+        {% else %}
+          {% for approved_user in approved_users %}
+            {% if min_sample.project_id == approved_user.project_id %}
+              <tr>
+                <td>
+                  <a href="#">
+                    {{ min_sample.sample_id }}
+                  </a>
+                </td>
+                <td>
+                  {{ min_sample.sample_name|default:"N/A" }}
+                </td>
+                <td>
+                  {% if min_sample.run_id != None %}
+                    <a href="#">
+                      {{ min_sample.run_id }}
+                    </a>
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
+                <td>
+                  {% if min_sample.project_id != None %}
+                    <a href="#">
+                      {{ min_sample.project_id }}
+                    </a>
+                  {% else %}
+                    N/A
+                  {% endif %}
+                </td>
+                {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
+                <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
+                  {{ sample.created|date:"d N Y" }}
+                </td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+
+      </tbody>
+    </table>
+
+  </div>
+
   <br>
 
 {% endblock content %}
@@ -128,17 +229,17 @@
     window.CSRF_TOKEN = "{{ csrf_token }}";
 
     {# If there is only one sample returned, just redirect to the relevant sample detail page #}
-    {% if sample_list.count == 1 %}
-      sample_count = Number("{{ sample_list.count }}");
-      window.location.replace("{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample_list.0.pk %}");
-    {% else %}
-      $(document).ready(function () {
-        $('#sample_table').DataTable({
-          "paging": true,
-          "searching": false
-        });
+    {#    {% if sample_list.count == 1 %}#}
+    {#      sample_count = Number("{{ sample_list.count }}");#}
+    {#      window.location.replace("{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=sample_list.0.pk %}");#}
+    {#    {% else %}#}
+    $(document).ready(function () {
+      $('#sample_table').DataTable({
+        "paging": true,
+        "searching": false
       });
-    {% endif %}
+    });
+    {#    {% endif %}#}
 
 
   </script>
