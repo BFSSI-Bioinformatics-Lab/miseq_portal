@@ -120,14 +120,13 @@
 
   <div class="container-fluid">
 
-
     {% if minion_sample_list.count == 0 %}
       <div class="alert alert-warning" role="alert">
         <h4>No MinION samples found matching search term <strong>"{{ search_term }}"</strong></h4>
       </div>
     {% endif %}
 
-    <table id="sample_table" class="display compact">
+    <table id="minion_sample_table" class="display compact">
       <thead>
       <tr>
         <th>Sample ID</th>
@@ -168,8 +167,8 @@
               {% endif %}
             </td>
             {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
-            <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
-              {{ sample.created|date:"d N Y" }}
+            <td data-order="{{ min_sample.created|date:"Y-m-d H:i" }}">
+              {{ min_sample.created|date:"d N Y" }}
             </td>
           </tr>
         {% else %}
@@ -203,8 +202,8 @@
                   {% endif %}
                 </td>
                 {# DATE FORMATTING: https://docs.djangoproject.com/en/2.1/ref/templates/builtins/ #}
-                <td data-order="{{ sample.created|date:"Y-m-d H:i" }}">
-                  {{ sample.created|date:"d N Y" }}
+                <td data-order="{{ min_sample.created|date:"Y-m-d H:i" }}">
+                  {{ min_sample.created|date:"d N Y" }}
                 </td>
               </tr>
             {% endif %}
@@ -235,6 +234,11 @@
     {#    {% else %}#}
     $(document).ready(function () {
       $('#sample_table').DataTable({
+        "paging": true,
+        "searching": false
+      });
+
+      $('#minion_sample_table').DataTable({
         "paging": true,
         "searching": false
       });
