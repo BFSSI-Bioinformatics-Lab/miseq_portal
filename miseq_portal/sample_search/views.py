@@ -73,7 +73,8 @@ class SampleSearchView(LoginRequiredMixin, ListView):
         sample_list = sample_list.filter(hide_flag=False)
 
         context['search_term'] = search_term
-        context['sample_list'] = sample_list + minion_sample_list
+        context['sample_list'] = sample_list
+        context['minion_sample_list'] = minion_sample_list
         context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user).order_by('id')
         return context
 
