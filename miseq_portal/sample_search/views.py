@@ -55,18 +55,18 @@ class SampleSearchView(LoginRequiredMixin, ListView):
         # Queries various fields from Sample as well as the top_hit from MashResult
         # prefetch_related joins Sample and MashResult on the OneToOne field sample_id
         sample_list = self.model.objects.prefetch_related('mashresult').filter(
-            Q(sample_id__search=search_term) |
-            Q(project_id__project_id__search=search_term) |
-            Q(sample_name__search=search_term) |
-            Q(run_id__run_id__search=search_term) |
-            Q(mashresult__top_hit__search=search_term)
+            Q(sample_id__icontains=search_term) |
+            Q(project_id__project_id__icontains=search_term) |
+            Q(sample_name__icontains=search_term) |
+            Q(run_id__run_id__icontains=search_term) |
+            Q(mashresult__top_hit__icontains=search_term)
         )
 
         minion_sample_list = MinIONSample.objects.filter(
-            Q(sample_id__search=search_term) |
-            Q(sample_name__search=search_term) |
-            Q(project_id__project_id__search=search_term) |
-            Q(run_id__run_id__search=search_term)
+            Q(sample_id__icontains=search_term) |
+            Q(sample_name__icontains=search_term) |
+            Q(project_id__project_id__icontains=search_term) |
+            Q(run_id__run_id__icontains=search_term)
         )
 
         # Filter out hidden samples
