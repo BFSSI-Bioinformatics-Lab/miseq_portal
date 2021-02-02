@@ -141,7 +141,7 @@
         {% if user.is_staff %}
           <tr>
             <td>
-              <a href="#">
+              <a href="{% url 'minion_viewer:minion_sample_detail' pk=min_sample.pk %}">
                 {{ min_sample.sample_id }}
               </a>
             </td>
@@ -159,7 +159,7 @@
             </td>
             <td>
               {% if min_sample.project_id != None %}
-                <a href="#">
+                <a href="{% url 'miseq_viewer:miseq_viewer_project_detail' pk=min_sample.project_id.pk %}">
                   {{ min_sample.project_id }}
                 </a>
               {% else %}
