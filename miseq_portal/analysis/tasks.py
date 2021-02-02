@@ -166,7 +166,7 @@ def submit_rgi_heatmap_job(analysis_group: AnalysisGroup, rgi_sample_list: [RGIR
 
     png_out = call_rgi_heatmap(rgi_json_dir=rgi_json_dir, outdir=outdir, analysis_group=analysis_group)
     if png_out is None:
-        logger.error(f"ERROR: Could not generate heatmap for {analysis_group}")
+        logger.info(f"ERROR: Could not generate heatmap for {analysis_group}")
     else:
         rgi_group_result.rgi_heatmap_result = upload_group_analysis_file(analysis_group=analysis_group,
                                                                          filename=png_out.name)
@@ -192,7 +192,7 @@ def submit_rgi_job(sample_instance: AnalysisSample) -> RGIResult:
     outdir = MEDIA_ROOT / Path(str(sample_instance.sample_id.fwd_reads)).parent / rgi_dir_name
 
     if not assembly_instance.assembly_exists():
-        logger.error(f"Could not find assembly for {assembly_instance} - cannot proceed with job")
+        logger.warning(f"Could not find assembly for {assembly_instance} - cannot proceed with job")
         return
     else:
         assembly_path = assembly_instance.get_assembly_path()
@@ -232,7 +232,7 @@ def submit_mob_recon_job(sample_instance: AnalysisSample) -> MobSuiteAnalysisGro
     root_sample_instance = Sample.objects.get(sample_id=sample_instance.sample_id)
 
     if not assembly_instance.assembly_exists():
-        logger.error(f"Could not find assembly for {assembly_instance} - cannot proceed with job")
+        logger.warning(f"Could not find assembly for {assembly_instance} - cannot proceed with job")
         return
     else:
         assembly_path = assembly_instance.get_assembly_path()
@@ -350,7 +350,7 @@ def assemble_sample_instance(sample_object_id: str):
     try:
         sample_instance = Sample.objects.get(sample_id=sample_object_id)
     except Sample.DoesNotExist:
-        logger.error(f"Could not retrieve {sample_object_id} - does not exist. Skipping assembly.")
+        logger.warning(f"Could not retrieve {sample_object_id} - does not exist. Skipping assembly.")
         return
 
     # Get/create SampleAssemblyData instance
