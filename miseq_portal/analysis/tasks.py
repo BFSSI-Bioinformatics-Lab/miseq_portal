@@ -367,8 +367,7 @@ def assemble_sample_instance(sample_object_id: str):
                     f"(number_reads={sample_instance.samplelogdata.number_reads}). "
                     f"Skipping assembly step.")
                 return
-        except ObjectDoesNotExist:
-            # Continue on like usual if samplelogdata doesn't exist yet
+        except Exception as e:
             pass
 
         logger.info(f"Running assembly pipeline on {sample_instance}...")
