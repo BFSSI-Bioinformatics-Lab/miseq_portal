@@ -61,8 +61,10 @@ def receive_miseq_run_dir(miseq_dir: Path):
     # Update SampleObjects with stats and reads
     sample_object_list = append_sample_object_reads(sample_dict=miseq_dict['sample_dict'],
                                                     sample_object_list=sample_object_list)
-    sample_object_list = append_sample_object_stats(json_stats_file=run_data_object.json_stats_file,
-                                                    sample_object_list=sample_object_list)
+
+    if run_data_object.json_stats_file is not None:
+        sample_object_list = append_sample_object_stats(json_stats_file=run_data_object.json_stats_file,
+                                                        sample_object_list=sample_object_list)
 
     # Assign run_type to run_data_object
     run_type = determine_run_type(sample_object_list)
