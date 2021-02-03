@@ -73,7 +73,7 @@ def retrieve_sampleids(fastq_file_list: [Path]) -> list:
     # Iterate through all of the fastq files and grab the sampleID, append to list
     sample_id_list = list()
     for f in fastq_file_list:
-        sample_id = f.name.rsplit('_', 1)[0]  # TODO: This line is potentially problematic for detecting a non-standard sample ID
+        sample_id = f.name.rsplit('_', 1)[0]  # TODO: only works for BMH-YYYY-XXXXXX ids
         sample_id_list.append(sample_id)
 
     # Get unique sample IDs
@@ -234,6 +234,7 @@ def parse_miseq_folder(miseq_dir: Path) -> dict:
     elif json_stats_file_logs.exists():
         run_data_object.json_stats_file = json_stats_file_logs
     else:
+        run_data_object.json_stats_file = None
         logger.warning(f"Could not detect Stats.json file!")
 
     # Create dict for all MiSeq data
