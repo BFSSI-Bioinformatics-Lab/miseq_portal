@@ -73,7 +73,7 @@ def retrieve_sampleids(fastq_file_list: [Path]) -> list:
     # Iterate through all of the fastq files and grab the sampleID, append to list
     sample_id_list = list()
     for f in fastq_file_list:
-        sample_id = f.name.rsplit('_', 1)[0]  # TODO: only works for BMH-YYYY-XXXXXX ids
+        sample_id = f.name.split('_', 1)[0]  # TODO: only works for BMH-YYYY-XXXXXX ids
         sample_id_list.append(sample_id)
 
     # Get unique sample IDs
