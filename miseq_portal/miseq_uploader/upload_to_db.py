@@ -135,9 +135,8 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
                 setattr(sample_object, attribute, None)
         else:
             for attribute, value in attribute_dict.items():
-                if value in list(stats_df.columns):
-                    set_value = stats_df[stats_df['sample_id'] == sample_object.sample_id][value].astype(float)
-                    setattr(sample_object, attribute, set_value)
+                set_value = int(stats_df[stats_df['sample_id'] == sample_object.sample_id][value])
+                setattr(sample_object, attribute, set_value)
         sample_object_list_stats.append(sample_object)
     return sample_object_list_stats
 
