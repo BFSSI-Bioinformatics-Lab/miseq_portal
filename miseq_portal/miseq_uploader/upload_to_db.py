@@ -129,7 +129,7 @@ def append_sample_object_stats(json_stats_file: Path, sample_object_list: [Sampl
     }
     for sample_object in sample_object_list:
         stats_df = stats_json_to_df(stats_json=json_stats_file)
-        if sample_object.sample_id not in stats_df['sample_id']:
+        if sample_object.sample_id not in list(stats_df['sample_id']):
             logger.info(f'WARNING: Could not find Stats entry for {sample_object.sample_id}')
             for attribute, value in attribute_dict.items():
                 setattr(sample_object, attribute, None)

@@ -15,7 +15,7 @@ def read_stats_json(stats_json: Path) -> dict:
     :return: dictionary containing stats on each sample: key is sample_id
     """
     with open(str(stats_json)) as f:
-        data = json.load(f)
+        data = json.loads(f.read())
 
     sample_json = data['ConversionResults'][0]['DemuxResults']
     sample_stats_dict = dict()
