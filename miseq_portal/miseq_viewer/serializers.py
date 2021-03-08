@@ -18,7 +18,7 @@ class RunSerializer(serializers.ModelSerializer):
     class Meta:
         model = Run
         fields = ['id', 'run_id', 'sample_sheet', 'runinfoxml', 'runparametersxml', 'interop_directory_path',
-                  'run_type', 'num_samples', 'sample_sheet_url']
+                  'run_type', 'num_samples', 'sample_sheet_url', 'created', 'modified']
 
     @staticmethod
     def get_sample_sheet_url(obj):
