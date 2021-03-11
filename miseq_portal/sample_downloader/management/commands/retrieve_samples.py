@@ -1,6 +1,7 @@
 from pathlib import Path
 from django.core.management.base import BaseCommand
 from miseq_portal.miseq_viewer.models import Sample
+from miseq_portal.minion_viewer.models import MinIONSample
 
 
 class Command(BaseCommand):
@@ -32,9 +33,13 @@ class Command(BaseCommand):
             samples = [s.strip() for s in f.readlines()]
 
         sample_objects = []
+        minion_sample_objects = []
         for s in samples:
             try:
-                sample_objects.append(Sample.objects.get(sample_id=s))
+                if s.startswith("MIN-"):
+                    minion_sample_objects.append(MinIONSample.objects.get(sample_id=s))
+                else:
+                    sample_objects.append(Sample.objects.get(sample_id=s))
             except BaseException as e:
                 self.stdout.write(self.style.ERROR(f'Could not retrieve {s}'))
                 print(e)
@@ -53,5 +58,11 @@ class Command(BaseCommand):
                 rev_reads_dst = outdir / f'{s}_R2.fastq.gz'
                 fwd_reads_dst.symlink_to(fwd_reads_src)
                 rev_reads_dst.symlink_to(rev_reads_src)
+
+        for s in minion_sample_objects:
+            if options['reads']:
+                reads = s.long_reads.path
+                reads_dst = outdir / f'{s}.fastq.gz'
+                reads_dst.symlink_to(reads)
 
         self.stdout.write(self.style.SUCCESS(f'DONE! Successfully wrote data to {outdir}'))
