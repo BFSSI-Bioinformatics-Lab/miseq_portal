@@ -210,7 +210,7 @@ class Run(TimeStampedModel):
     Stores information relating to a single sequencing run
     """
     run_id = models.CharField(max_length=256, unique=True)
-    sample_sheet_url = models.FileField(upload_to=upload_run_file, blank=True, max_length=1000)
+    sample_sheet = models.FileField(upload_to=upload_run_file, blank=True, max_length=1000)
     runinfoxml = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=1000)
     runparametersxml = models.FileField(upload_to=upload_run_file, blank=True, null=True, max_length=1000)
     interop_directory_path = models.CharField(unique=True, blank=True, null=True, max_length=1000)
