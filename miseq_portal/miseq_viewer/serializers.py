@@ -13,15 +13,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RunSerializer(serializers.ModelSerializer):
     num_samples = serializers.ReadOnlyField()
-    sample_sheet_url = serializers.SerializerMethodField()
+    #sample_sheet_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Run
         fields = ['id', 'run_id', 'sample_sheet', 'runinfoxml', 'runparametersxml', 'interop_directory_path',
-                  'run_type', 'num_samples', 'sample_sheet_url', 'created', 'modified']
+                  'run_type', 'num_samples', 'created', 'modified']
 
     @staticmethod
-    def get_sample_sheet_url(obj):
+    def get_sample_sheet(obj):
         return obj.sample_sheet.url
 
 
