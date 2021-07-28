@@ -33,7 +33,7 @@ def upload_analysis_file(instance: Sample, filename: str, analysis_folder: str =
     elif instance.sample_type == "MER":
         return f'merged_samples/{instance.sample_id}/{analysis_folder}/{filename}'
     elif instance.sample_type == "EXT":
-        return f'external_samples/{instance.sample_id}/{analysis_folder}/{filename}'
+        return f'external_samples/runs/{instance.run_id}/{instance.sample_id}/{analysis_folder}/{filename}'
 
 
 def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str) -> str:
@@ -50,7 +50,7 @@ def upload_mobsuite_file(instance: Sample, filename: str, mobsuite_dir_name: str
     elif instance.sample_type == "MER":
         return f'merged_samples/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
     elif instance.sample_type == "EXT":
-        return f'external_samples/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
+        return f'external_samples/runs/{instance.run_id}/{instance.sample_id}/{mobsuite_dir_name}/{filename}'
 
 
 class AnalysisGroup(models.Model):
