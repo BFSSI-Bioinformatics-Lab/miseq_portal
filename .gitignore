@@ -337,3 +337,14 @@ miseq_portal/media/
 
 .pytest_cache/
 .env
+
+## idea files
+.idea/.gitignore
+.idea/deployment.xml 
+.idea/inspectionProfiles/profiles_settings.xml 
+.idea/misc.xml
+.idea/miseq_portal.iml 
+.idea/modules.xml
+.idea/sshConfigs.xml 
+.idea/vcs.xml 
+.idea/webServers.xml
