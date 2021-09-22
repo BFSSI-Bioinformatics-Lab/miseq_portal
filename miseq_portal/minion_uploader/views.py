@@ -47,7 +47,7 @@ def validate_minion_7zip(uploaded_file):
     out, err = p.communicate()
     lines = str(out).strip().split('\n')
     for line in lines:
-        archived_file = line.rstrip().split(None, 5)[-1]
+        archived_file = line.rstrip().split(None, 5)[-1].strip("/")
         if archived_file in expected_file_check.keys():
             expected_file_check[archived_file] = True
     if False in expected_file_check.values():
