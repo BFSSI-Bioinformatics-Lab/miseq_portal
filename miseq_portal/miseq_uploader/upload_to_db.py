@@ -363,7 +363,8 @@ def upload_to_db(sample_object_list: [SampleDataObject], run_data_object: RunDat
     for sample_object in sample_object_list:
         # PROJECT
         # Accomodate EXT samples -> project_instance is None if the sample is EXT
-        if sample_object.sample_type == "BMH":
+        #if sample_object.sample_type == "BMH": # Original
+        if sample_object.sample_type == "BMH" or sample_object.sample_type == "EXT":
             project_instance = db_create_project(sample_object=sample_object)
         else:
             project_instance = None

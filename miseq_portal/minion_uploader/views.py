@@ -47,7 +47,7 @@ def validate_minion_7zip(uploaded_file):
     out, err = p.communicate()
     lines = str(out).strip().split('\n')
     for line in lines:
-        archived_file = line.rstrip().split(None, 5)[-1]
+        archived_file = line.rstrip().split(None, 5)[-1]    # .strip("/")
         if archived_file in expected_file_check.keys():
             expected_file_check[archived_file] = True
     if False in expected_file_check.values():
@@ -159,6 +159,9 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
                     username="admin")
             })
             if created:
+                # Create admin relationship to project immediately
+            #    UserProjectRelationship.objects.create(project_id=project_object,
+            #                                           user_id=User.objects.get(username="admin"))
                 logger.info(f'Created new Project "{project_object.project_id}"')
                 project_object.save()
 
