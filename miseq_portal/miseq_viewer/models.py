@@ -438,6 +438,9 @@ class SampleSheetSampleData(TimeStampedModel):
         df['Sample_Project'] = df['Sample_Project'].replace(r"\s+", "MISSING_PROJECT", regex=True)
         df['Sample_Project'] = df['Sample_Project'].fillna(value="MISSING_PROJECT")
 
+        # rename the Index_Plate columns so they match the old SampleSheet version
+        df.rename(columns={"Index_Plate": "Sample_Plate", "Index_Plate_Well": "Sample_Well"}, inplace=True)
+
         return df
 
     def extract_sample_row_from_samplesheet(self, samplesheet: Path) -> Optional[pd.DataFrame]:
