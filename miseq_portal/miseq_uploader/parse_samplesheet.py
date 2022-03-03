@@ -16,7 +16,12 @@ def validate_samplesheet_header(header: list) -> bool:
     :return: True if header meets all expected values, else False
     """
     header = sorted(header)
-    expected_miseq_header = sorted(['Sample_ID', 'Sample_Name',
+    expected_miseq_header = sorted(['Sample_ID', 'Sample_Name', 'Description',
+                                    'Index_Plate', 'Index_Plate_Well',
+                                    'I7_Index_ID', 'index',
+                                    'I5_Index_ID', 'index2', 'Sample_Project'])
+
+    expected_miseq_header_legacy = sorted(['Sample_ID', 'Sample_Name',
                                     'Sample_Plate', 'Sample_Well',
                                     'I7_Index_ID', 'index',
                                     'I5_Index_ID', 'index2',
@@ -29,7 +34,7 @@ def validate_samplesheet_header(header: list) -> bool:
                                    'Sample_Project'
                                    ])
 
-    if not set(header) == set(expected_miseq_header) and not set(header) == set(expected_iseq_header):
+    if not set(header) == set(expected_miseq_header) and not set(header) == set(expected_iseq_header) and not set(header) == set(expected_miseq_header_legacy):
         raise Exception(
             f"Provided header {header} does not match expected header.\nExpected:\n"
             f"MiSeq:\t{expected_miseq_header} or \n"
@@ -59,6 +64,9 @@ def read_samplesheet(samplesheet: Path) -> pd.DataFrame:
     df['Sample_Project'] = df['Sample_Project'].astype(str)
 
     sample_project_col = df['Sample_Project']
+
+    # rename the Index_Plate columns so they match the old SampleSheet version
+    df.rename(columns={"Index_Plate": "Sample_Plate", "Index_Plate_Well": "Sample_Well"}, inplace=True)
 
     # Checking for space character in Sample Project
     for item in sample_project_col.iteritems():

@@ -63,8 +63,9 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['run_list'] = Run.objects.all()
-        context['sample_list'] = Sample.objects.filter(project_id=context['project'], hide_flag=False)
-        context['minion_sample_list'] = MinIONSample.objects.filter(project_id=context['project'])
+        # for some reason, projects with no MiSeq samples do not have a context['project'], but everything seems to work with context['object']
+        context['sample_list'] = Sample.objects.filter(project_id=context['object'], hide_flag=False)
+        context['minion_sample_list'] = MinIONSample.objects.filter(project_id=context['object'])
 
         # Filter out samples that are missing data for the project_detail.html template
         context['has_sample_log_data'] = context['sample_list'].filter(samplelogdata__isnull=False)

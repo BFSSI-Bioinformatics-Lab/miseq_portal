@@ -163,7 +163,8 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
             #    UserProjectRelationship.objects.create(project_id=project_object,
             #                                           user_id=User.objects.get(username="admin"))
                 logger.info(f'Created new Project "{project_object.project_id}"')
-                project_object.save()
+
+            project_object.save() # I think this will make last_updated work better
 
             sample = MinIONSample.objects.create(
                 sample_id=row['Sample_ID'],
