@@ -228,6 +228,71 @@ class ConfindrResult(TimeStampedModel):
         verbose_name = 'Confindr Result'
         verbose_name_plural = 'Confindr Results'
 
+class ConfindrResultAssembly(TimeStampedModel):
+    """
+    Model for storing individual sample output files and results produced by Confindr
+    """
+    # Must be instantiated with these values
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+    contamination_csv = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
+    # rmlst_csv = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=1000)
+    #
+    # # Fields parsed from confindr_report.csv
+    # genus = models.CharField(max_length=256, blank=True, null=True)
+    # num_contam_snvs = models.IntegerField(blank=True, null=True)
+    # contam_status = models.CharField(max_length=32, blank=True, null=True)
+    # percent_contam = models.FloatField(blank=True, null=True)
+    # percent_contam_std_dev = models.FloatField(blank=True, null=True)
+    # bases_examined = models.IntegerField(blank=True, null=True)
+    # database_download_date = models.DateField(blank=True, null=True)
+
+    def call_confindr(self) -> tuple:
+        """
+        System call to confindr.py. Uses a Conda environment specifically for Confindr.
+        This takes ~3 minutes to run per sample.
+
+        :param reads_dir: Path to directory containing paired-end reads (.fastq.gz)
+        :param outdir: Desired path to output directory
+        :param forward_id: ID for forwards reads. Uses sensible default for Portal .fastq.gz files.
+        :param reverse_id: ID for reverse reads. Uses sensible default for Portal .fastq.gz files.
+        :return: Path to output file
+        """
+        assembly_path = self.sample_id.sampleassemblydata.get_assembly_path().parent
+        reads_dir = assembly_path.parent
+        outdir = assembly_path / "confindr"
+        forward_id = "_R1"
+        reverse_id = "_R2"
+        cmd = f"{CONFINDR_EXE.parent / 'python'} {CONFINDR_EXE} -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
+              f"-fid {forward_id} -rid {reverse_id} -Xmx 20g -t 16 --verbosity debug"
+        run_subprocess(cmd, get_stdout=False)
+        logger.info(f"Calling confindr with following command:\n{cmd}")
+
+        contamination_csv = outdir / 'confindr_report.csv'
+        logfile = outdir / 'confindr_log.txt'
+
+        return contamination_csv, logfile
+
+
+
+    # def get_contamination_df(self):
+    #     df = pd.read_csv(self.contamination_csv)
+    #     return df
+    #
+    # def get_rmlst_df(self):
+    #     df = pd.read_csv(self.rmlst_csv)
+    #     return df
+    #
+    # @property
+    # def sample_id(self):
+    #     return self.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id}")
+
+    class Meta:
+        verbose_name = 'Confindr Result for a Sample'
+        verbose_name_plural = 'Confindr Results for Samples'
+
 
 class MashResult(TimeStampedModel):
     """
