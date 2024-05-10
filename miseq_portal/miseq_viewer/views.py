@@ -162,6 +162,12 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
             except:
                 context['top_refseq_hit'] = None
 
+        # Get confindr results
+        try:
+            context['confindr_result'] = sample_object.confindrresultassembly
+        except:
+            context['confindr_result'] = None
+
         # Set to None if the FileField for the assembly is empty
         try:
             if str(context['assembly_data'].assembly) == '':
