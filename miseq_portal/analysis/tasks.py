@@ -437,7 +437,17 @@ def assemble_sample_instance(sample_object_id: str):
 
 def dotheconfindr(assembly_instance: SampleAssemblyData, sample: Sample) -> ConfindrResultAssembly:
     confindr_result_object, cr_created = ConfindrResultAssembly.objects.get_or_create(sample_id=sample)
-    report, logfile = confindr_result_object.call_confindr()
+    result, result_file = confindr_result_object.get_confindr_result()
+    confindr_result_object.contamination_csv = upload_analysis_file(sample, filename=result_file.name, analysis_folder='assembly/confindr')
+
+    if result is not None:
+        confindr_result_object.genus = result['genus']
+        confindr_result_object.num_contam_snvs = result['num_contam_snvs']
+        confindr_result_object.contam_status = result['contam_status']
+        confindr_result_object.percent_contam = result['percent_contam']
+        confindr_result_object.percent_contam_std_dev = result['percent_contam_std_dev']
+        confindr_result_object.bases_examined = result['bases_examined']
+        confindr_result_object.database_download_date = result['database_download_date']
     logger.info(f"Confindr complete for {assembly_instance}")
     return confindr_result_object
 
