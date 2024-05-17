@@ -253,6 +253,88 @@
       </div>
     {% endif %}
   </div>
+  
+  <div class="container-fluid">
+    <h4>Confindr Results
+      <!-- Button trigger for assembly pipeline modal -->
+      <button type="button" class="btn btn-sm btn-light" data-toggle="modal" data-target="#confindrModal">
+        <i class="fas fa-question-circle fa-lg"></i>
+      </button>
+    </h4>
+    
+    {% if confindr_result != None %}
+      <div class="modal fade" id="confindrModal" tabindex="-1" role="dialog"
+           aria-labelledby="confindrModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="confindrModalTitle">Confindr Description</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <span class="text">
+              ConFindr works by looking at conserved core genes - either using rMLST genes (53 genes are known to be single copy and
+  conserved across all bacteria with some known exceptions, which ConFindr handles), or custom sets of genes derived
+  from core-genome schemes. As the genes ConFindr looks at are single copy, any sample that has multiple alleles of one
+                or more gene is likely to be contaminated.<br><br></span>
+              <ul>
+                <li>Tool URL: <a href="https://olc-bioinformatics.github.io/ConFindr/">ConFindr</a></li>
+                <li>Version: ConFindr Version 0.7.0 {# TODO: Automatically pull version and pass context here #}</li>
+                <li><strong>Script:</strong> confindr.py</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <table id="confindr_table" class="display" style="width:100%">
+        <thead>
+        <tr>
+          <th>Genus</th>
+          <th># Contam. SNVs</th>
+          <th>Contam. Status</th>
+          <th>% Contam.</th>
+          <th>% Contam. (std dev)</th>
+          <th>Bases Examined</th>
+          <th>Database Download Date</th>
+          <th>Report</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>{{ confindr_result.genus }}</td>
+          <td>{{ confindr_result.num_contam_snvs }}</td>
+          {% if confindr_result.contam_status == 'False' %}
+            <td class="table-success">{{ confindr_result.contam_status }}</td>
+          {% else %}
+            <td class="table-danger">{{ confindr_result.contam_status }}</td>
+          {% endif %}
+          <td>{{ confindr_result.percent_contam }}</td>
+          <td>{{ confindr_result.percent_contam_std_dev }}</td>
+          <td>{{ confindr_result.bases_examined }}</td>
+          <td>{{ confindr_result.database_download_date }}</td>
+          <td>
+            <a class="btn btn-outline-primary btn-block" id="confindr-button"
+               href="{{ confindr_result.contamination_csv.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+      <br>
+    {% else %}
+      <div class="alert alert-info" role="alert">
+      <span class="text">
+        There is no Confindr report associated with the assembly for this sample.
+        You can still run Confindr on this sample using the analysis tool.
+      </span>
+      </div>
+    {% endif %}
+  </div>
 
   {% if analysis_samples != None %}
     <div class="container-fluid">
@@ -350,6 +432,16 @@
       });
 
       $('#assembly_table').DataTable({
+        "paging": false,
+        "searching": false,
+        "info": false,
+        "ordering": false,
+        "colReorder": {
+          enable: true,
+        },
+      });
+
+      $('#confindr_table').DataTable({
         "paging": false,
         "searching": false,
         "info": false,

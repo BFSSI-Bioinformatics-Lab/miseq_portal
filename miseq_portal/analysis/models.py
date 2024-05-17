@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 from django.db import models
+from django.utils.dateparse import parse_date
 
 from django.conf import settings
 from miseq_portal.analysis.tools.helpers import run_subprocess
@@ -227,6 +228,75 @@ class ConfindrResult(TimeStampedModel):
     class Meta:
         verbose_name = 'Confindr Result'
         verbose_name_plural = 'Confindr Results'
+
+class ConfindrResultAssembly(TimeStampedModel):
+    """
+    Model for storing individual sample output files and results produced by Confindr
+    """
+    # Must be instantiated with these values
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+
+    #output file
+    contamination_csv = models.FileField(blank=True, max_length=1000)
+    #
+    # # Fields parsed from confindr_report.csv
+    genus = models.CharField(max_length=256, blank=True, null=True)
+    num_contam_snvs = models.IntegerField(blank=True, null=True)
+    contam_status = models.CharField(max_length=32, blank=True, null=True)
+    percent_contam = models.FloatField(blank=True, null=True)
+    percent_contam_std_dev = models.FloatField(blank=True, null=True)
+    bases_examined = models.IntegerField(blank=True, null=True)
+    database_download_date = models.DateField(blank=True, null=True)
+
+    def get_confindr_result(self) -> tuple:
+        assembly_path = self.sample_id.sampleassemblydata.get_assembly_path().parent
+        reads_dir = assembly_path.parent
+        outdir = assembly_path / "confindr"
+
+        confindr_result = None
+        csvfile, logfile = ConfindrGroupResult.call_confindr(reads_dir=reads_dir, outdir=outdir)
+        # Populate ConfindrResultAssembly object
+        if csvfile.exists():
+            df = pd.read_csv(csvfile)
+            if not df.empty:
+                try:
+                    confindr_result = {
+                        'genus': str(df['Genus'][0]),
+                        'num_contam_snvs': int(df['NumContamSNVs'][0]),
+                        'contam_status': str(df['ContamStatus'][0]),
+                        'percent_contam': float(df['PercentContam'][0]),
+                        'percent_contam_std_dev': float(df['PercentContamStandardDeviation'][0]),
+                        'bases_examined': int(df['BasesExamined'][0]),
+                        'database_download_date': parse_date(df['DatabaseDownloadDate'][0])
+                    }
+                except BaseException as e:
+                    logger.warning(f"Something is wrong with the Confindr report for {self.sample_id}")
+                    logger.warning(e)
+            else:
+                logger.warning(f"It looks like the Confindr report for {self.sample_id} is empty.")
+        else:
+            logger.warning(f"Something has gone wrong. The Confindr report for {self.sample_id} does not exist.")
+
+        return confindr_result, csvfile
+
+    # def get_contamination_df(self):
+    #     df = pd.read_csv(self.contamination_csv)
+    #     return df
+    #
+    # def get_rmlst_df(self):
+    #     df = pd.read_csv(self.rmlst_csv)
+    #     return df
+    #
+    # @property
+    # def sample_id(self):
+    #     return self.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id}")
+
+    class Meta:
+        verbose_name = 'Confindr Result for a Sample'
+        verbose_name_plural = 'Confindr Results for Samples'
 
 
 class MashResult(TimeStampedModel):

@@ -13,7 +13,7 @@ from django.utils.dateparse import parse_date
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
-    ConfindrGroupResult, ConfindrResult, upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file
+    ConfindrGroupResult, ConfindrResult, ConfindrResultAssembly, upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file
 from miseq_portal.analysis.tools.assemble_run import assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data, \
     prodigal_pipeline
@@ -417,6 +417,11 @@ def assemble_sample_instance(sample_object_id: str):
         sample_assembly_instance.save()
         logger.info(f"Saved assembly data for {sample_instance}")
 
+        # Run confindr to get contamination info
+        logger.info(f"Running Confindr on {sample_instance}...")
+        confindr_instance = dotheconfindr(assembly_instance=assemble_sample_instance, sample=sample_instance)
+        confindr_instance.save()
+
         # Run Mash and save the results to a MashResult model instance
         if sample_assembly_instance.get_assembly_path().stat().st_size > 800:
             print(sample_assembly_instance.get_assembly_path().stat().st_size)
@@ -428,6 +433,24 @@ def assemble_sample_instance(sample_object_id: str):
             logger.warning(f"The input assembly for {sample_instance} is too small to pass to Mash. Skipping.")
     else:
         logger.info(f"Assembly for {sample_assembly_instance.sample_id} already exists. Skipping.")
+
+
+def dotheconfindr(assembly_instance: SampleAssemblyData, sample: Sample) -> ConfindrResultAssembly:
+    confindr_result_object, cr_created = ConfindrResultAssembly.objects.get_or_create(sample_id=sample)
+    result, result_file = confindr_result_object.get_confindr_result()
+    confindr_result_object.contamination_csv = upload_analysis_file(sample, filename=result_file.name, analysis_folder='assembly/confindr')
+
+    if result is not None:
+        confindr_result_object.genus = result['genus']
+        confindr_result_object.num_contam_snvs = result['num_contam_snvs']
+        confindr_result_object.contam_status = result['contam_status']
+        confindr_result_object.percent_contam = result['percent_contam']
+        confindr_result_object.percent_contam_std_dev = result['percent_contam_std_dev']
+        confindr_result_object.bases_examined = result['bases_examined']
+        confindr_result_object.database_download_date = result['database_download_date']
+    logger.info(f"Confindr complete for {assembly_instance}")
+    return confindr_result_object
+
 
 
 def create_mash_result_object(assembly_instance: SampleAssemblyData, sample: Sample) -> MashResult:
