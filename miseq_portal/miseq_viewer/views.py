@@ -1,12 +1,16 @@
 import json
 import logging
 from pathlib import Path
+import xlsxwriter
+import io
+import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.views.generic import DetailView, ListView
 from rest_framework import viewsets
+from django.http import HttpResponse
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisSample
@@ -126,6 +130,64 @@ class RunDetailView(LoginRequiredMixin, DetailView):
 
 
 run_detail_view = RunDetailView.as_view()
+
+
+def confindr_table(request):
+    # I am building off of this: https://xlsxwriter.readthedocs.io/example_django_simple.html
+    if request.method == 'POST':
+        sample_list = request.POST.get('sample_list')[:-1].split(",")
+        columns = ["sample_id", "sample_name", "project_id", "run_id", "contam_status",  "percent_contam", "percent_contam_std_dev",
+                   "num_contam_snvs", "genus", "bases_examined"]
+
+        # Create an in-memory output file for the new workbook.
+        output = io.BytesIO()
+
+        workbook = xlsxwriter.Workbook(output)
+        worksheet = workbook.add_worksheet("Confindr")
+        for colnum, column in enumerate(columns):
+            worksheet.write(0, colnum, column)
+
+        rowcount = 0
+        for sample in sample_list:
+            rowcount += 1
+            sample_object = Sample.objects.get(id=sample)
+            for i in range(0, 2):
+                worksheet.write(rowcount, i, getattr(sample_object, columns[i]))
+            try:
+                worksheet.write(rowcount, 2, Project.objects.get(id=sample_object.project_id_id).project_id)
+            except:
+                worksheet.write(rowcount, 2, "NA")
+            try:
+                worksheet.write(rowcount, 3, Run.objects.get(id=sample_object.run_id_id).run_id)
+            except:
+                worksheet.write(rowcount, 3, "NA")
+            try:
+                confindr_object = sample_object.confindrresultassembly
+                for i in range(4, len(columns)):
+                     worksheet.write(rowcount, i, getattr(confindr_object, columns[i]))
+            except:
+                for i in range(4, len(columns)):
+                    worksheet.write(rowcount, i, "NA")
+
+
+        # Close the workbook before sending the data.
+        workbook.close()
+
+        # Rewind the buffer.
+        output.seek(0)
+
+        # Set up the Http response.
+        response = HttpResponse(
+            output,
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = "attachment; filename=confindr_report.xlsx"
+        if rowcount > 0:
+            return response
+        else:
+            return None
+    else:
+        return None
 
 
 class SampleDetailView(LoginRequiredMixin, DetailView):
