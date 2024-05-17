@@ -17,7 +17,7 @@ from miseq_portal.analysis.models import AnalysisSample
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
-    MergedSampleComponent, SampleLogData, RunSamplesheet
+    MergedSampleComponent, SampleLogData, RunSamplesheet, SampleSheetSampleData
 from miseq_portal.minion_viewer.models import MinIONSample
 from miseq_portal.miseq_viewer.serializers import SampleSerializer, RunSerializer, ProjectSerializer
 
@@ -132,42 +132,115 @@ class RunDetailView(LoginRequiredMixin, DetailView):
 run_detail_view = RunDetailView.as_view()
 
 
-def confindr_table(request):
+def qaqc_excel(request):
     # I am building off of this: https://xlsxwriter.readthedocs.io/example_django_simple.html
     if request.method == 'POST':
         sample_list = request.POST.get('sample_list')[:-1].split(",")
-        columns = ["sample_id", "sample_name", "project_id", "run_id", "contam_status",  "percent_contam", "percent_contam_std_dev",
-                   "num_contam_snvs", "genus", "bases_examined"]
+        columns = ["sample_id", "sample_name", "project_id", "run_id"]
+        assemblycolumns = [["i5_index_id", "samplesheet", "str"], ["i7_index_id", "samplesheet", "str"],
+                           ["index", "samplesheet", "str"], ["index2", "samplesheet", "str"],
+                           ["sample_plate", "samplesheet", "str"], ["sample_well", "samplesheet", "str"],
+                           ["total_length", "assembly", "str"], ["mean_coverage", "assembly", "str"],
+                           ["num_contigs", "assembly", "str"], ["n50", "assembly", "str"],
+                           ["num_predicted_genes", "assembly", "str"], ["description", "samplesheet", "str"],
+                           ["top_hit", "mash", "str"], ["fwd_reads", "sample", "path"], ["rev_reads", "sample", "path"],
+                           ["assembly", "assembly", "path"], ["created", "sample", "date"]]
+        confindrcolumns = ["contam_status",  "percent_contam", "percent_contam_std_dev",
+                           "num_contam_snvs", "genus", "bases_examined"]
 
         # Create an in-memory output file for the new workbook.
         output = io.BytesIO()
 
         workbook = xlsxwriter.Workbook(output)
-        worksheet = workbook.add_worksheet("Confindr")
-        for colnum, column in enumerate(columns):
-            worksheet.write(0, colnum, column)
-
+        assemblysheet = workbook.add_worksheet("Portal Report")
+        confindrsheet = workbook.add_worksheet("Confindr Report")
+        combinedsheet = workbook.add_worksheet("Combined")
+        # write headers
+        for s in (assemblysheet, confindrsheet, combinedsheet):
+            for colnum, column in enumerate(columns):
+                s.write(0, colnum, column)
+        for s in (assemblysheet, combinedsheet):
+            for colnum, column in enumerate(assemblycolumns):
+                s.write(0, colnum + len(columns), column[0])
+        for colnum, column in enumerate(confindrcolumns):
+            confindrsheet.write(0, colnum + len(columns), column)
+            combinedsheet.write(0, colnum + len(columns) + len(assemblycolumns), column)
         rowcount = 0
         for sample in sample_list:
             rowcount += 1
             sample_object = Sample.objects.get(id=sample)
-            for i in range(0, 2):
-                worksheet.write(rowcount, i, getattr(sample_object, columns[i]))
+            # fields common to all 3 tables
+            # grab run_id and project_id once
             try:
-                worksheet.write(rowcount, 2, Project.objects.get(id=sample_object.project_id_id).project_id)
+                run_id = Run.objects.get(id=sample_object.run_id_id).run_id
             except:
-                worksheet.write(rowcount, 2, "NA")
+                run_id = "NA"
             try:
-                worksheet.write(rowcount, 3, Run.objects.get(id=sample_object.run_id_id).run_id)
+                project_id = Project.objects.get(id=sample_object.project_id_id).project_id
             except:
-                worksheet.write(rowcount, 3, "NA")
+                project_id = "NA"
+            for s in (assemblysheet, confindrsheet, combinedsheet):
+                for i in range(0, 2):
+                    s.write(rowcount, i, getattr(sample_object, columns[i]))
+                s.write(rowcount, 2, project_id)
+                s.write(rowcount, 3, run_id)
+            # fields in assembly sheet
+            # first, try to get all the necessary objects
+            try:
+                samplesheet_object = SampleSheetSampleData.objects.get(sample_id_id=sample_object.id)
+            except:
+                samplesheet_object = None
+            try:
+                assembly_object = SampleAssemblyData.objects.get(sample_id=sample_object.id)
+            except:
+                assembly_object = None
+            try:
+                mashresult = sample_object.mashresult.top_hit
+            except:
+                # Get top Sendsketch hit if it exists
+                try:
+                    mashresult = sample_object.sendsketchresult.top_taxName
+                except:
+                    mashresult = "NA"
+            # once you have all the necessary objects, iterate through the fields
+            for colnum, column in enumerate(assemblycolumns):
+                if column[1] == "sample":
+                    towrite = getattr(sample_object, column[0])
+                elif column[1] == "samplesheet":
+                    if samplesheet_object != None:
+                        towrite = getattr(samplesheet_object, column[0])
+                    else:
+                        towrite = "NA"
+                elif column[1] == "assembly":
+                    if assembly_object != None:
+                        towrite = getattr(assembly_object, column[0])
+                    else:
+                        towrite = "NA"
+                elif column[1] == "mash":
+                    towrite = mashresult
+                else:
+                    towrite = "Something went wrong"
+                if towrite != "NA":
+                    if column[2] == "path":
+                        towrite = towrite.path
+                    elif column[2] == "date":
+                        towrite = towrite.strftime('%Y-%m-%d')
+                assemblysheet.write(rowcount, colnum + len(columns), towrite)
+                combinedsheet.write(rowcount, colnum + len(columns), towrite)
+
+            # confindr fields
+            for colnum, column in enumerate(confindrcolumns):
+                confindrsheet.write(0, colnum + len(columns), column)
+                combinedsheet.write(0, colnum + len(columns) + len(assemblycolumns), column)
             try:
                 confindr_object = sample_object.confindrresultassembly
-                for i in range(4, len(columns)):
-                     worksheet.write(rowcount, i, getattr(confindr_object, columns[i]))
+                for i in range(0, len(confindrcolumns)):
+                    confindrsheet.write(rowcount, i + len(columns), getattr(confindr_object, confindrcolumns[i]))
+                    combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), getattr(confindr_object, confindrcolumns[i]))
             except:
-                for i in range(4, len(columns)):
-                    worksheet.write(rowcount, i, "NA")
+                for i in range(0, len(confindrcolumns)):
+                    confindrsheet.write(rowcount, i + len(columns), "NA")
+                    combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), "NA")
 
 
         # Close the workbook before sending the data.
@@ -181,11 +254,8 @@ def confindr_table(request):
             output,
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
-        response["Content-Disposition"] = "attachment; filename=confindr_report.xlsx"
-        if rowcount > 0:
-            return response
-        else:
-            return None
+        response["Content-Disposition"] = "attachment; filename=qaqc_report.xlsx"
+        return response
     else:
         return None
 
