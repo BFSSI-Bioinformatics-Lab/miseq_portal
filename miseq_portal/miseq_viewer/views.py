@@ -222,9 +222,15 @@ def qaqc_excel(request):
                     towrite = "Something went wrong"
                 if towrite != "NA":
                     if column[2] == "path":
-                        towrite = towrite.path
+                        try:
+                            towrite = towrite.path
+                        except:
+                            towrite = "NA"
                     elif column[2] == "date":
-                        towrite = towrite.strftime('%Y-%m-%d')
+                        try:
+                            towrite = towrite.strftime('%Y-%m-%d')
+                        except:
+                            towrite = "NA"
                 assemblysheet.write(rowcount, colnum + len(columns), towrite)
                 combinedsheet.write(rowcount, colnum + len(columns), towrite)
 
