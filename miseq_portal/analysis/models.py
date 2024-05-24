@@ -260,6 +260,9 @@ class ConfindrResultAssembly(TimeStampedModel):
             df = pd.read_csv(csvfile)
             if not df.empty:
                 try:
+                    if df['PercentContam'][0] == "ND":
+                        df['PercentContam'][0] = "nan"
+                        df['PercentContamStandardDeviation'][0] = "nan"
                     confindr_result = {
                         'genus': str(df['Genus'][0]),
                         'num_contam_snvs': int(df['NumContamSNVs'][0]),
@@ -279,17 +282,6 @@ class ConfindrResultAssembly(TimeStampedModel):
 
         return confindr_result, csvfile
 
-    # def get_contamination_df(self):
-    #     df = pd.read_csv(self.contamination_csv)
-    #     return df
-    #
-    # def get_rmlst_df(self):
-    #     df = pd.read_csv(self.rmlst_csv)
-    #     return df
-    #
-    # @property
-    # def sample_id(self):
-    #     return self.sample_id
 
     def __str__(self):
         return str(f"{self.pk} - {self.sample_id}")
