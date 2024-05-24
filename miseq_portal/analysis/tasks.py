@@ -118,6 +118,9 @@ def submit_confindr_job(analysis_group: AnalysisGroup) -> ConfindrGroupResult:
         # Populate ConfindrResult object
         if not df.empty:
             try:
+                if df['PercentContam'][0] == "ND":
+                    df['PercentContam'][0] = "nan"
+                    df['PercentContamStandardDeviation'][0] = "nan"
                 confindr_result.genus = str(df['Genus'][0])
                 confindr_result.num_contam_snvs = int(df['NumContamSNVs'][0])
                 confindr_result.contam_status = str(df['ContamStatus'][0])

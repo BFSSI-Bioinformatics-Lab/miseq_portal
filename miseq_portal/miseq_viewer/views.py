@@ -241,8 +241,11 @@ def qaqc_excel(request):
             try:
                 confindr_object = sample_object.confindrresultassembly
                 for i in range(0, len(confindrcolumns)):
-                    confindrsheet.write(rowcount, i + len(columns), getattr(confindr_object, confindrcolumns[i]))
-                    combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), getattr(confindr_object, confindrcolumns[i]))
+                    towrite = getattr(confindr_object, confindrcolumns[i])
+                    if towrite != towrite:  # this is a check for NaN
+                        towrite = "ND"
+                    confindrsheet.write(rowcount, i + len(columns), towrite)
+                    combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), towrite)
             except:
                 for i in range(0, len(confindrcolumns)):
                     confindrsheet.write(rowcount, i + len(columns), "NA")
