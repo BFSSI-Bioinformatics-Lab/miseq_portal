@@ -144,6 +144,7 @@ def qaqc_excel(request):
                            ["num_contigs", "assembly", "str"], ["n50", "assembly", "str"],
                            ["num_predicted_genes", "assembly", "str"], ["description", "samplesheet", "str"],
                            ["top_hit", "mash", "str"], ["fwd_reads", "sample", "path"], ["rev_reads", "sample", "path"],
+                           ["number_reads", "log", "str"], ["sample_yield", "log", "str"],
                            ["assembly", "assembly", "path"], ["created", "sample", "date"]]
         confindrcolumns = ["contam_status",  "percent_contam", "percent_contam_std_dev",
                            "num_contam_snvs", "genus", "bases_examined"]
@@ -195,6 +196,10 @@ def qaqc_excel(request):
             except:
                 assembly_object = None
             try:
+                samplelogdata = SampleLogData.objects.get(sample_id=sample_object.id)
+            except ObjectDoesNotExist:
+                samplelogdata = None
+            try:
                 mashresult = sample_object.mashresult.top_hit
             except:
                 # Get top Sendsketch hit if it exists
@@ -214,6 +219,14 @@ def qaqc_excel(request):
                 elif column[1] == "assembly":
                     if assembly_object != None:
                         towrite = getattr(assembly_object, column[0])
+                        # Kelly wants to get rid of the X at the end of the mean_coverage
+                        if column[0] == "mean_coverage" and towrite:
+                            towrite = towrite[:-1]
+                    else:
+                        towrite = "NA"
+                elif column[1] == "log":
+                    if samplelogdata != None:
+                        towrite = getattr(samplelogdata, column[0])
                     else:
                         towrite = "NA"
                 elif column[1] == "mash":
