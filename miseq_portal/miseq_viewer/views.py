@@ -221,7 +221,7 @@ def qaqc_excel(request):
                         towrite = getattr(assembly_object, column[0])
                         # Kelly wants to get rid of the X at the end of the mean_coverage
                         if column[0] == "mean_coverage" and towrite:
-                            towrite = towrite[:-1]
+                            towrite = float(towrite[:-1].replace(",", ""))
                     else:
                         towrite = "NA"
                 elif column[1] == "log":
