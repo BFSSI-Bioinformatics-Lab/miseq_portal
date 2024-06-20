@@ -170,6 +170,7 @@ def qaqc_excel(request):
         for sample in sample_list:
             rowcount += 1
             sample_object = Sample.objects.get(id=sample)
+            towrite = ["NA"] * len(assemblycolumns)
             # fields common to all 3 tables
             # grab run_id and project_id once
             try:
@@ -210,55 +211,47 @@ def qaqc_excel(request):
             # once you have all the necessary objects, iterate through the fields
             for colnum, column in enumerate(assemblycolumns):
                 if column[1] == "sample":
-                    towrite = getattr(sample_object, column[0])
-                elif column[1] == "samplesheet":
-                    if samplesheet_object != None:
-                        towrite = getattr(samplesheet_object, column[0])
-                    else:
-                        towrite = "NA"
-                elif column[1] == "assembly":
-                    if assembly_object != None:
-                        towrite = getattr(assembly_object, column[0])
-                        # Kelly wants to get rid of the X at the end of the mean_coverage
-                        if column[0] == "mean_coverage" and towrite:
-                            towrite = float(towrite[:-1].replace(",", ""))
-                    else:
-                        towrite = "NA"
-                elif column[1] == "log":
-                    if samplelogdata != None:
-                        towrite = getattr(samplelogdata, column[0])
-                    else:
-                        towrite = "NA"
+                    towrite[colnum] = getattr(sample_object, column[0])
+                elif column[1] == "samplesheet" and samplesheet_object != None:
+                    towrite[colnum] = getattr(samplesheet_object, column[0])
+                elif column[1] == "assembly" and assembly_object != None:
+                    towrite[colnum] = getattr(assembly_object, column[0])
+                    # Kelly wants to get rid of the X at the end of the mean_coverage
+                    if column[0] == "mean_coverage" and towrite[colnum]:
+                        towrite[colnum] = float(towrite[colnum][:-1].replace(",", ""))
+                elif column[1] == "log" and samplelogdata != None:
+                    towrite[colnum] = getattr(samplelogdata, column[0])
                 elif column[1] == "mash":
-                    towrite = mashresult
+                    towrite[colnum] = mashresult
                 else:
-                    towrite = "Something went wrong"
-                if towrite != "NA":
+                    towrite[colnum] = "Something went wrong"
+                if towrite[colnum] != "NA":
                     if column[2] == "path":
                         try:
-                            towrite = towrite.path
+                            towrite[colnum] = towrite[colnum].path
                         except:
-                            towrite = "NA"
+                            towrite[colnum] = "NA"
                     elif column[2] == "date":
                         try:
-                            towrite = towrite.strftime('%Y-%m-%d')
+                            towrite[colnum] = towrite[colnum].strftime('%Y-%m-%d')
                         except:
-                            towrite = "NA"
-                assemblysheet.write(rowcount, colnum + len(columns), towrite)
-                combinedsheet.write(rowcount, colnum + len(columns), towrite)
+                            towrite[colnum] = "NA"
+                assemblysheet.write(rowcount, colnum + len(columns), towrite[colnum])
+                combinedsheet.write(rowcount, colnum + len(columns), towrite[colnum])
 
             # confindr fields
+            towrite = ["NA"] * len(confindrcolumns)
             for colnum, column in enumerate(confindrcolumns):
                 confindrsheet.write(0, colnum + len(columns), column)
                 combinedsheet.write(0, colnum + len(columns) + len(assemblycolumns), column)
             try:
                 confindr_object = sample_object.confindrresultassembly
                 for i in range(0, len(confindrcolumns)):
-                    towrite = getattr(confindr_object, confindrcolumns[i])
-                    if towrite != towrite:  # this is a check for NaN
-                        towrite = "ND"
-                    confindrsheet.write(rowcount, i + len(columns), towrite)
-                    combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), towrite)
+                    towrite[colnum] = getattr(confindr_object, confindrcolumns[i])
+                    if towrite[colnum] != towrite[colnum]:  # this is a check for NaN
+                        towrite[colnum] = "ND"
+                    confindrsheet.write(rowcount, i + len(columns), towrite[colnum])
+                    combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), towrite[colnum])
             except:
                 for i in range(0, len(confindrcolumns)):
                     confindrsheet.write(rowcount, i + len(columns), "NA")
