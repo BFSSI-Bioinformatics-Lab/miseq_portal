@@ -143,7 +143,7 @@ def qaqc_excel(request):
                            ["total_length", "assembly", "str"], ["mean_coverage", "assembly", "str"],
                            ["num_contigs", "assembly", "str"], ["n50", "assembly", "str"],
                            ["num_predicted_genes", "assembly", "str"], ["description", "samplesheet", "str"],
-                           ["top_hit", "mash", "str"], ["fwd_reads", "sample", "path"], ["rev_reads", "sample", "path"],
+                           ["top_hit", "mash", "str"],  ["fwd_reads", "sample", "path"], ["rev_reads", "sample", "path"],
                            ["number_reads", "log", "str"], ["sample_yield", "log", "str"],
                            ["assembly", "assembly", "path"], ["created", "sample", "date"]]
         confindrcolumns = ["contam_status",  "percent_contam", "percent_contam_std_dev",
@@ -169,6 +169,7 @@ def qaqc_excel(request):
         for colnum, column in enumerate(confindrcolumns):
             confindrsheet.write(0, colnum + len(columns), column)
             combinedsheet.write(0, colnum + len(columns) + len(assemblycolumns), column)
+        combinedsheet.write(0, len(columns) + len(assemblycolumns) + len(confindrcolumns), "comments")
         rowcount = 0
         for sample in sample_list:
             rowcount += 1
@@ -244,6 +245,43 @@ def qaqc_excel(request):
                     towrite[colnum] = getattr(samplelogdata, column[0])
                 elif column[1] == "mash":
                     towrite[colnum] = mashresult
+                    if towrite[assemblycolumns.index(["description", "samplesheet", "str"])].startswith("WGS_"):
+                        if mashresult == "NA" or not mashresult:
+                            comment.append("genus ND")
+                            style[colnum] = orangecell
+                        else:
+                            sampledesclist = towrite[assemblycolumns.index(["description", "samplesheet", "str"])].lower().split("_")
+                            mashlist = mashresult.lower().split(" ")
+                            if mashlist[0] != sampledesclist[1]:
+                                comment.append("genus conflict")
+                                style[colnum] = redcell
+                            else:
+                                comment.append("genus match")
+                                if len(sampledesclist) >= 3:
+                                    if len(mashlist) < 2:
+                                        comment.append("species ND")
+                                        style[colnum] = orangecell
+                                    elif mashlist[1] != sampledesclist[2]:
+                                        if mashlist[1] == "sp.":
+                                            comment.append("species ND")
+                                            style[colnum] = orangecell
+                                        else:
+                                            comment.append("species conflict")
+                                            style[colnum] = redcell
+                                    else:
+                                        comment.append("species match")
+                                        if len(sampledesclist) >= 4:
+                                            if len(mashlist) < 3:
+                                                comment.append("subtype/serovar ND")
+                                                style[colnum] = orangecell
+                                            elif sampledesclist[3] in mashlist[2:]:
+                                                comment.append("subtype/serovar match")
+                                            else:
+                                                comment.append("subtype/serovar conflict")
+                                                style[colnum] = redcell
+
+
+
                 else:
                     towrite[colnum] = "Something went wrong"
                 if towrite[colnum] != "NA":
