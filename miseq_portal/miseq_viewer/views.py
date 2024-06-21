@@ -156,6 +156,10 @@ def qaqc_excel(request):
         assemblysheet = workbook.add_worksheet("Portal Report")
         confindrsheet = workbook.add_worksheet("Confindr Report")
         combinedsheet = workbook.add_worksheet("Combined")
+        plain = workbook.add_format()
+        yellowcell = workbook.add_format({'bg_color': '#FFFF00'})
+        orangecell = workbook.add_format({'bg_color': '#FFB66C'})
+        redcell = workbook.add_format({'bg_color': '#FF3838'})
         # write headers
         for s in (assemblysheet, confindrsheet, combinedsheet):
             for colnum, column in enumerate(columns):
@@ -171,6 +175,8 @@ def qaqc_excel(request):
             rowcount += 1
             sample_object = Sample.objects.get(id=sample)
             towrite = ["NA"] * len(assemblycolumns)
+            style = [plain] * len(assemblycolumns)
+            comment = []
             # fields common to all 3 tables
             # grab run_id and project_id once
             try:
@@ -217,8 +223,24 @@ def qaqc_excel(request):
                 elif column[1] == "assembly" and assembly_object != None:
                     towrite[colnum] = getattr(assembly_object, column[0])
                     # Kelly wants to get rid of the X at the end of the mean_coverage
-                    if column[0] == "mean_coverage" and towrite[colnum]:
-                        towrite[colnum] = float(towrite[colnum][:-1].replace(",", ""))
+                    if towrite[colnum]:
+                        if column[0] == "mean_coverage":
+                            towrite[colnum] = float(towrite[colnum][:-1].replace(",", ""))
+                            if towrite[colnum] < 30:
+                                comment.append("caution: <30x coverage")
+                                style[colnum] = orangecell
+                            else:
+                                comment.append("min 30x coverage")
+                        elif column[0] == "num_contigs":
+                            if towrite[colnum] > 500:
+                                comment.append("caution: >500 contigs")
+                                style[colnum] = redcell
+                            elif towrite[colnum] >= 200:
+                                comment.append("caution: 200-500 contigs")
+                                style[colnum] = orangecell
+                            else:
+                                comment.append("<200 contigs")
+
                 elif column[1] == "log" and samplelogdata != None:
                     towrite[colnum] = getattr(samplelogdata, column[0])
                 elif column[1] == "mash":
@@ -236,8 +258,9 @@ def qaqc_excel(request):
                             towrite[colnum] = towrite[colnum].strftime('%Y-%m-%d')
                         except:
                             towrite[colnum] = "NA"
-                assemblysheet.write(rowcount, colnum + len(columns), towrite[colnum])
-                combinedsheet.write(rowcount, colnum + len(columns), towrite[colnum])
+                assemblysheet.write(rowcount, colnum + len(columns), towrite[colnum], style[colnum])
+                combinedsheet.write(rowcount, colnum + len(columns), towrite[colnum], style[colnum])
+            # markup according to Kelly's guidelines that depends on more than one column
 
             # confindr fields
             towrite = ["NA"] * len(confindrcolumns)
@@ -256,6 +279,17 @@ def qaqc_excel(request):
                 for i in range(0, len(confindrcolumns)):
                     confindrsheet.write(rowcount, i + len(columns), "NA")
                     combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), "NA")
+
+            if redcell in style:
+                commentcolour = redcell
+            elif orangecell in style:
+                commentcolour = orangecell
+            elif yellowcell in style:
+                commentcolour = yellowcell
+            else:
+                commentcolour = plain
+            combinedsheet.write(rowcount, 0, getattr(sample_object, "sample_id"), commentcolour) # for now I'll just overwrite it in the combined sheet
+            combinedsheet.write(rowcount, len(confindrcolumns) + len(assemblycolumns) + len(columns), "; ".join(comment), commentcolour)
 
 
         # Close the workbook before sending the data.
