@@ -157,7 +157,6 @@ def qaqc_excel(request):
         confindrsheet = workbook.add_worksheet("Confindr Report")
         combinedsheet = workbook.add_worksheet("Combined")
         plain = workbook.add_format()
-        yellowcell = workbook.add_format({'bg_color': '#FFFF00'})
         orangecell = workbook.add_format({'bg_color': '#FFB66C'})
         redcell = workbook.add_format({'bg_color': '#FF3838'})
         # write headers
@@ -175,7 +174,7 @@ def qaqc_excel(request):
             rowcount += 1
             sample_object = Sample.objects.get(id=sample)
             towrite = ["NA"] * len(assemblycolumns)
-            style = [plain] * len(assemblycolumns)
+            style = [plain] * (len(assemblycolumns) + len(confindrcolumns))
             comment = []
             # fields common to all 3 tables
             # grab run_id and project_id once
@@ -258,34 +257,44 @@ def qaqc_excel(request):
                             towrite[colnum] = towrite[colnum].strftime('%Y-%m-%d')
                         except:
                             towrite[colnum] = "NA"
-                assemblysheet.write(rowcount, colnum + len(columns), towrite[colnum], style[colnum])
+                assemblysheet.write(rowcount, colnum + len(columns), towrite[colnum])
                 combinedsheet.write(rowcount, colnum + len(columns), towrite[colnum], style[colnum])
             # markup according to Kelly's guidelines that depends on more than one column
 
             # confindr fields
             towrite = ["NA"] * len(confindrcolumns)
-            for colnum, column in enumerate(confindrcolumns):
-                confindrsheet.write(0, colnum + len(columns), column)
-                combinedsheet.write(0, colnum + len(columns) + len(assemblycolumns), column)
             try:
                 confindr_object = sample_object.confindrresultassembly
-                for i in range(0, len(confindrcolumns)):
-                    towrite[colnum] = getattr(confindr_object, confindrcolumns[i])
+                for colnum in range(0, len(confindrcolumns)):
+                    towrite[colnum] = getattr(confindr_object, confindrcolumns[colnum])
                     if towrite[colnum] != towrite[colnum]:  # this is a check for NaN
                         towrite[colnum] = "ND"
-                    confindrsheet.write(rowcount, i + len(columns), towrite[colnum])
-                    combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), towrite[colnum])
             except:
-                for i in range(0, len(confindrcolumns)):
-                    confindrsheet.write(rowcount, i + len(columns), "NA")
-                    combinedsheet.write(rowcount, i + len(columns) + len(assemblycolumns), "NA")
+                pass
+            # check for highlight colour
+            if ":" in towrite[confindrcolumns.index('genus')]:
+                comment.append("gross contamination: multiple organisms")
+                style[confindrcolumns.index('genus') + len(assemblycolumns)] = redcell
+            elif isinstance(towrite[confindrcolumns.index('num_contam_snvs')], int) and not isinstance(towrite[confindrcolumns.index('percent_contam')], str):
+                if towrite[confindrcolumns.index('percent_contam')] == 0 and towrite[confindrcolumns.index('num_contam_snvs')] < 20:
+                    comment.append("no contamination detected")
+                elif towrite[confindrcolumns.index('percent_contam')] >= 15:
+                    comment.append("contamination suspected: >=15%")
+                    style[confindrcolumns.index('num_contam_snvs') + len(assemblycolumns)] = redcell
+                    style[confindrcolumns.index('percent_contam') + len(assemblycolumns)] = redcell
+                elif towrite[confindrcolumns.index('num_contam_snvs')] < 20:
+                    comment.append("possible low level contamination or unresolved repeats")
+                else:
+                    comment.append("possible contamination: >= 20 SNVs")
+                    style[confindrcolumns.index('num_contam_snvs') + len(assemblycolumns)] = orangecell
+            for colnum in range(0, len(confindrcolumns)):
+                confindrsheet.write(rowcount, colnum + len(columns), towrite[colnum])
+                combinedsheet.write(rowcount, colnum + len(columns) + len(assemblycolumns), towrite[colnum], style[colnum + len(assemblycolumns)])
 
             if redcell in style:
                 commentcolour = redcell
             elif orangecell in style:
                 commentcolour = orangecell
-            elif yellowcell in style:
-                commentcolour = yellowcell
             else:
                 commentcolour = plain
             combinedsheet.write(rowcount, 0, getattr(sample_object, "sample_id"), commentcolour) # for now I'll just overwrite it in the combined sheet
