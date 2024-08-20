@@ -142,6 +142,7 @@ def qaqc_excel(request):
                            ["sample_plate", "samplesheet", "str"], ["sample_well", "samplesheet", "str"],
                            ["total_length", "assembly", "str"], ["mean_coverage", "assembly", "str"],
                            ["num_contigs", "assembly", "str"], ["n50", "assembly", "str"],
+                           ["gc_percent", "assembly", "str"], ["largest_contig", "assembly", "str"],
                            ["num_predicted_genes", "assembly", "str"], ["description", "samplesheet", "str"],
                            ["top_hit", "mash", "str"],  ["fwd_reads", "sample", "path"], ["rev_reads", "sample", "path"],
                            ["number_reads", "log", "str"], ["sample_yield", "log", "str"],
