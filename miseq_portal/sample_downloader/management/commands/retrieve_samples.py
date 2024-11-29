@@ -36,7 +36,7 @@ class Command(BaseCommand):
         minion_sample_objects = []
         for s in samples:
             try:
-                if s.startswith("MIN-"):
+                if s.startswith("MIN-") or s.startswith("RDL-"):
                     minion_sample_objects.append(MinIONSample.objects.get(sample_id=s))
                 else:
                     sample_objects.append(Sample.objects.get(sample_id=s))
