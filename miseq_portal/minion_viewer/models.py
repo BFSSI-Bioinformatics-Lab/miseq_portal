@@ -61,7 +61,7 @@ def validate_minion_sample_id(value: str, length: int = 15):
     if len(components) != 3:
         raise ValidationError(f"MinION Sample ID '{value}' does not appear to meet expected format. "
                               f"MinION Sample ID must be in the following format: 'BMH-2018-000001'")
-    elif components[0] != 'MIN':
+    elif components[0] != 'MIN' and components[0] != 'RDL':
         raise ValidationError(
             f"TEXT component of MinION Sample ID ('{components[0]}') does not equal expected 'MIN'")
     elif not components[1].isdigit() or len(components[1]) != 4:
