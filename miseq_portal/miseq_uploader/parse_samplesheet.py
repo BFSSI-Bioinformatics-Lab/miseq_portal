@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from miseq_portal.miseq_viewer.models import SampleDataObject
+from miseq_portal.miseq_viewer.models import Sample, SampleDataObject
 
 logger = logging.getLogger('django')
 
@@ -15,26 +15,26 @@ def validate_samplesheet_header(header: list) -> bool:
     :param header: List of column names
     :return: True if header meets all expected values, else False
     """
-    header = sorted(header)
-    expected_miseq_header = sorted(['Sample_ID', 'Sample_Name', 'Description',
+    header = set(header)
+    expected_miseq_header = {'Sample_ID', 'Sample_Name', 'Description',
                                     'Index_Plate', 'Index_Plate_Well',
                                     'I7_Index_ID', 'index',
-                                    'I5_Index_ID', 'index2', 'Sample_Project'])
+                                    'I5_Index_ID', 'index2', 'Sample_Project'}
 
-    expected_miseq_header_legacy = sorted(['Sample_ID', 'Sample_Name',
+    expected_miseq_header_legacy = {'Sample_ID', 'Sample_Name',
                                     'Sample_Plate', 'Sample_Well',
                                     'I7_Index_ID', 'index',
                                     'I5_Index_ID', 'index2',
                                     'Sample_Project', 'Description'
-                                    ])
+                                    }
 
-    expected_iseq_header = sorted(['Sample_ID', 'Sample_Name', 'Description',
+    expected_iseq_header = {'Sample_ID', 'Sample_Name', 'Description',
                                    'I7_Index_ID', 'index',
                                    'I5_Index_ID', 'index2',
                                    'Sample_Project'
-                                   ])
+                            }
 
-    if not set(header) == set(expected_miseq_header) and not set(header) == set(expected_iseq_header) and not set(header) == set(expected_miseq_header_legacy):
+    if not expected_miseq_header.issubset(header) and not expected_iseq_header.issubset(header) and not expected_miseq_header_legacy.issubset(header):
         raise Exception(
             f"Provided header {header} does not match expected header.\nExpected:\n"
             f"MiSeq:\t{expected_miseq_header} or \n"
@@ -180,6 +180,16 @@ def validate_sample_id(value: str, length: int = 15) -> bool:
         return True
 
 
+def is_sample_id_unique(value: str) -> bool:
+    """
+    check that sample ID does not already exist
+    """
+    if value in Sample.objects.values_list('sample_id', flat=True):
+        raise Exception(f"Sample ID '{value}' already exists!")
+    else:
+        return True
+
+
 def generate_sample_objects(samplesheet: Path) -> [SampleDataObject]:
     df = read_samplesheet(samplesheet=samplesheet)
 
@@ -203,6 +213,7 @@ def generate_sample_objects(samplesheet: Path) -> [SampleDataObject]:
     # Check all Sample IDs - if they are valid, assign sample_type BMH to each. Otherwise, assign EXT.
     valid_list = []
     for sample_id in sample_id_list:
+        is_sample_id_unique(value=str(sample_id))
         valid_list.append(check_sample_id(value=str(sample_id)))
     if False not in valid_list:
         sample_type = "BMH"
@@ -263,6 +274,11 @@ def extract_sample_sequencing_types(df: pd.DataFrame) -> dict:
             sample_sequencing_type_dict[sample_id] = sequencing_type
         else:
             sample_sequencing_type_dict[sample_id] = default_value
+            # so many improperly formatted descriptions...
+            for valid_type in valid_sequencing_types:
+                if description.upper().startswith(valid_type):
+                    sample_sequencing_type_dict[sample_id] = valid_type
+                    break
     return sample_sequencing_type_dict
 
 
