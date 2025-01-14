@@ -13,13 +13,14 @@ from django.utils.dateparse import parse_date
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
-    ConfindrGroupResult, ConfindrResult, ConfindrResultAssembly, upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file
+    ConfindrGroupResult, ConfindrResult, ConfindrResultAssembly, rMLSTResult, upload_mobsuite_file, upload_group_analysis_file
 from miseq_portal.analysis.tools.assemble_run import assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data, \
     prodigal_pipeline
 from miseq_portal.analysis.tools.plasmid_report import call_mob_recon
 from miseq_portal.analysis.tools.rgi import call_rgi_main, call_rgi_heatmap
 from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
+from miseq_portal.analysis.tools.rmlst import query_rmlst
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
 
 MEDIA_ROOT = Path(MEDIA_ROOT)
@@ -53,6 +54,8 @@ def submit_analysis_job(analysis_group: AnalysisGroup):
         [submit_sendsketch_job(sample_instance) for sample_instance in analysis_samples]
     elif job_type == 'MobRecon':
         [submit_mob_recon_job(sample_instance) for sample_instance in analysis_samples]
+    elif job_type == 'rMLST':
+        [submit_rmlst_job(sample_instance) for sample_instance in analysis_samples]
     elif job_type == 'Confindr':
         submit_confindr_job(analysis_group=analysis_group)
     elif job_type == 'RGI':
@@ -341,6 +344,31 @@ def submit_sendsketch_job(sample_instance: AnalysisSample) -> SendsketchResult:
     sendsketch_object.save()
     logger.info(f"Saved {sendsketch_object} successfully")
     return sendsketch_object
+
+
+def submit_rmlst_job(sample_instance: AnalysisSample) -> rMLSTResult:
+    # for now I am just copying the mobsuite function
+    logger.info(f"Submitting {sample_instance} for rMLST analysis")
+    assembly_instance = SampleAssemblyData.objects.get(sample_id=sample_instance.sample_id)
+    rmlst_dir_name = f'rmlst_{sample_instance.user}_{sample_instance.pk}'
+    outdir = MEDIA_ROOT / Path(str(sample_instance.sample_id.fwd_reads)).parent / rmlst_dir_name
+
+    if not assembly_instance.assembly_exists():
+        logger.warning(f"Could not find assembly for {assembly_instance} - cannot proceed with job")
+        return
+    else:
+        assembly_path = assembly_instance.get_assembly_path()
+
+    # Remove previous analysis if it exists
+    if outdir.exists():
+        shutil.rmtree(outdir, ignore_errors=True)
+    outdir.mkdir(exist_ok=True)
+
+    rmlst_report = query_rmlst(assembly=assembly_path, outdir=outdir)
+
+    # We now create a new MobSuiteAnalysisGroup entry in the db for the AnalysisSample instance
+    rmlst_analysis_group = rMLSTResult.objects.create(analysis_sample=sample_instance, rmlst_json=rmlst_report)
+    return rmlst_analysis_group
 
 
 @shared_task()
