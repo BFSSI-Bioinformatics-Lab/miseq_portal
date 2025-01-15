@@ -13,7 +13,7 @@ from django.utils.dateparse import parse_date
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
-    ConfindrGroupResult, ConfindrResult, ConfindrResultAssembly, rMLSTResult, upload_mobsuite_file, upload_group_analysis_file
+    ConfindrGroupResult, ConfindrResult, ConfindrResultAssembly, upload_analysis_file, rMLSTResult, upload_mobsuite_file, upload_group_analysis_file
 from miseq_portal.analysis.tools.assemble_run import assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data, \
     prodigal_pipeline
@@ -364,10 +364,10 @@ def submit_rmlst_job(sample_instance: AnalysisSample) -> rMLSTResult:
         shutil.rmtree(outdir, ignore_errors=True)
     outdir.mkdir(exist_ok=True)
 
-    rmlst_report = query_rmlst(assembly=assembly_path, outdir=outdir)
+    rmlst_results = query_rmlst(assembly=assembly_path, outdir=outdir)
 
     # We now create a new MobSuiteAnalysisGroup entry in the db for the AnalysisSample instance
-    rmlst_analysis_group = rMLSTResult.objects.create(analysis_sample=sample_instance, rmlst_json=rmlst_report)
+    rmlst_analysis_group = rMLSTResult.objects.create(analysis_sample=sample_instance, rmlst_json=rmlst_results['json'], support=rmlst_results['support'], taxon=rmlst_results['taxon'], rST=rmlst_results['rST'])
     return rmlst_analysis_group
 
 

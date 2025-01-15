@@ -10,7 +10,7 @@ from pathlib import Path
 logger = logging.getLogger('raven')
 
 
-def query_rmlst(assembly: Path, outdir: Path) -> Path:
+def query_rmlst(assembly: Path, outdir: Path):
     uri = 'http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence'
     logger.info(f"Submitting rMLST query for {assembly}")
     with open(assembly, 'r') as x:
@@ -22,18 +22,17 @@ def query_rmlst(assembly: Path, outdir: Path) -> Path:
         jout = outdir / 'rmlst.json'
         with open(jout , 'w') as w:
             json.dump(data, w)
-        return jout
-        # try:
-        #     data['taxon_prediction']
-        # except KeyError:
-        #     print("No match")
-        #     sys.exit(0)
-        # for match in data['taxon_prediction']:
-        #     print("Rank: " + match['rank'])
-        #     print("Taxon:" + match['taxon'])
-        #     print("Support:" + str(match['support']) + "%")
-        #     print("Taxonomy" + match['taxonomy'] + "\n")
+        try:
+            support = data['taxon_prediction'][0]['support']
+            taxon = data['taxon_prediction'][0]['taxon']
+        except KeyError:
+            support = None
+            taxon = None
+        try:
+            rST = data['fields']['rST']
+        except KeyError:
+            rST = None
+        return {'json': str(jout), 'support': support, 'taxon': taxon, 'rST': rST}
 
     else:
-        logging.info("Could not perform rMLST analysis: {response.text}")
-
+        logging.info(f"Could not perform rMLST analysis: {response.text}")

@@ -499,6 +499,9 @@ class rMLSTResult(TimeStampedModel):
     """
     analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
     rmlst_json = models.FileField(upload_to=upload_analysis_file, blank=True)
+    support = models.IntegerField(blank=True, null=True)
+    taxon = models.CharField(max_length=128, blank=True, null=True)
+    rST = models.IntegerField(blank=True, null=True)
 
     def sample_id(self):
         return self.analysis_sample.sample_id

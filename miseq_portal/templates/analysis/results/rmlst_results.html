@@ -17,6 +17,9 @@
   <tr>
     <th>Sample ID</th>
     <th>Sample Name</th>
+    <th>Taxon</th>
+    <th>Support</th>
+    <th>rST</th>
     <th>Result File</th>
     <th>Date</th>
   </tr>
@@ -30,6 +33,9 @@
         </a>
       </td>
     <td>{{ rmlst_result.sample_id.sample_name }}</td>
+    <td>{{ rmlst_result.taxon }}</td>
+    <td>{{ rmlst_result.support }}</td>
+    <td>{{ rmlst_result.rST }}</td>
       {% if rmlst_result.rmlst_json.url == None %}
         <td>N/A</td>
       {% else %}
