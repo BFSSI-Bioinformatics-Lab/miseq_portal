@@ -1,0 +1,53 @@
+<div class="alert alert-info" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  <h4>Tool Description</h4>
+  Ribosomal Multilocus Sequence Typing (rMLST) is an approach that indexes variation of the 53 genes encoding the bacterial ribosome protein subunits (rps genes) as a means of integrating microbial taxonomy and typing.
+  <hr>
+  <ul>
+    <li>
+      <strong>Tool URL:</strong> <a href="https://pubmlst.org/species-id">rMLST</a>
+    </li>
+
+  </ul>
+</div>
+<table class="analysis_table display compact" style="width: 100%">
+  <thead>
+  <tr>
+    <th>Sample ID</th>
+    <th>Sample Name</th>
+    <th>Taxon</th>
+    <th>Support</th>
+    <th>rST</th>
+    <th>Result File</th>
+    <th>Date</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for rmlst_result in rmlst_results %}
+    <tr>
+      <td>
+        <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=rmlst_result.sample_id.pk %}">
+          {{ rmlst_result.sample_id }}
+        </a>
+      </td>
+    <td>{{ rmlst_result.sample_id.sample_name }}</td>
+    <td>{{ rmlst_result.taxon }}</td>
+    <td>{{ rmlst_result.support }}</td>
+    <td>{{ rmlst_result.rST }}</td>
+      {% if rmlst_result.rmlst_json.url == None %}
+        <td>N/A</td>
+      {% else %}
+        <td>
+          <a class="btn btn-primary btn-block" href="{{ rmlst_result.rmlst_json.url }}" download
+             role="button"><i
+            class="fas fa-download"></i> Download
+          </a>
+        </td>
+      {% endif %}
+    <td>{{ rmlst_result.modified }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

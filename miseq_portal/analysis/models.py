@@ -64,6 +64,7 @@ class AnalysisGroup(models.Model):
         ('MobRecon', 'MobRecon'),
         ('RGI', 'RGI'),
         ('Confindr', 'Confindr'),
+        ('rMLST', 'rMLST'),
         # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
@@ -491,3 +492,25 @@ class RGIGroupResult(TimeStampedModel):
     class Meta:
         verbose_name = 'RGI Group Result'
         verbose_name_plural = 'RGI Group Results'
+
+class rMLSTResult(TimeStampedModel):
+    """
+    Model for storing output from rMLST analysis of a single assembly
+    """
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    rmlst_json = models.FileField(upload_to=upload_analysis_file, blank=True)
+    support = models.IntegerField(blank=True, null=True)
+    taxon = models.CharField(max_length=128, blank=True, null=True)
+    rST = models.IntegerField(blank=True, null=True)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'rMLST Result'
+        verbose_name_plural = 'rMLST Results'
+
+

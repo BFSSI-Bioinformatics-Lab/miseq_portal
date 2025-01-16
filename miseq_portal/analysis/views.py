@@ -8,7 +8,7 @@ from django.views.generic import View, TemplateView, DetailView, DeleteView
 
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
-    MobSuiteAnalysisGroup, RGIResult, RGIGroupResult, ConfindrGroupResult, ConfindrResult
+    MobSuiteAnalysisGroup, RGIResult, RGIGroupResult, ConfindrGroupResult, ConfindrResult, rMLSTResult
 from miseq_portal.analysis.tasks import submit_analysis_job
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
@@ -154,6 +154,11 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
             context['confindr_group_result'] = ConfindrGroupResult.objects.get(analysis_group=context['analysis_group'])
             context['confindr_results'] = ConfindrResult.objects.filter(
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
+        # rMLST
+        elif context['analysis_group'].job_type == 'rMLST':
+            context['rmlst_results'] = rMLSTResult.objects.filter(
+                analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
+
         else:
             return context
         return context
