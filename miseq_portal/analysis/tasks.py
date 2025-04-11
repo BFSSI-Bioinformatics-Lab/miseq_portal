@@ -367,7 +367,7 @@ def submit_rmlst_job(sample_instance: AnalysisSample) -> rMLSTResult:
     rmlst_results = query_rmlst(assembly=assembly_path, outdir=outdir)
 
     # We now create a new MobSuiteAnalysisGroup entry in the db for the AnalysisSample instance
-    rmlst_analysis_group = rMLSTResult.objects.create(analysis_sample=sample_instance, rmlst_json=rmlst_results['json'], support=rmlst_results['support'], taxon=rmlst_results['taxon'], rST=rmlst_results['rST'])
+    rmlst_analysis_group = rMLSTResult.objects.create(analysis_sample=sample_instance, rmlst_json=rmlst_results['json'], rmlst_csv=rmlst_results['csv'], support=rmlst_results['support'], taxon=rmlst_results['taxon'], rST=rmlst_results['rST'])
     return rmlst_analysis_group
 
 

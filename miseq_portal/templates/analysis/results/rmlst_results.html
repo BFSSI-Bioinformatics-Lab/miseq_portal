@@ -20,7 +20,8 @@
     <th>Taxon</th>
     <th>Support</th>
     <th>rST</th>
-    <th>Result File</th>
+    <th>Result JSON</th>
+    <th>Result CSV</th>
     <th>Date</th>
   </tr>
   </thead>
@@ -41,6 +42,16 @@
       {% else %}
         <td>
           <a class="btn btn-primary btn-block" href="{{ rmlst_result.rmlst_json.url }}" download
+             role="button"><i
+            class="fas fa-download"></i> Download
+          </a>
+        </td>
+      {% endif %}
+      {% if rmlst_result.rmlst_csv.url == None %}
+        <td>N/A</td>
+      {% else %}
+        <td>
+          <a class="btn btn-primary btn-block" href="{{ rmlst_result.rmlst_csv.url }}" download
              role="button"><i
             class="fas fa-download"></i> Download
           </a>

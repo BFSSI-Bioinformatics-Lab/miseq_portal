@@ -11,7 +11,7 @@ logger = logging.getLogger('raven')
 
 
 def query_rmlst(assembly: Path, outdir: Path):
-    uri = 'http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence'
+    uri = 'https://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence'
     logger.info(f"Submitting rMLST query for {assembly}")
     with open(assembly, 'r') as x:
         fasta = x.read()
@@ -32,7 +32,18 @@ def query_rmlst(assembly: Path, outdir: Path):
             rST = data['fields']['rST']
         except KeyError:
             rST = None
-        return {'json': str(jout), 'support': support, 'taxon': taxon, 'rST': rST}
+
+        csvout = outdir / 'rmlst.csv'
+        with open(csvout, 'w') as w:
+            w.write("Locus,Allele,Length,Contig,Start,End")
+            try:
+                for exact_match in data['exact_matches']:
+                    em = data['exact_matches'][exact_match][0]
+                    w.write(",".join(str(item) for item in [exact_match, em['allele_id'], em['length'], em['contig'], em['start'], em['end']]))
+            except KeyError:
+                csvout = None
+
+        return {'json': str(jout), 'csv': str(csvout), 'support': support, 'taxon': taxon, 'rST': rST}
 
     else:
         logging.info(f"Could not perform rMLST analysis: {response.text}")
