@@ -351,8 +351,8 @@ def submit_rmlst_job(sample_instance: AnalysisSample) -> rMLSTResult:
     logger.info(f"Submitting {sample_instance} for rMLST analysis")
     assembly_instance = SampleAssemblyData.objects.get(sample_id=sample_instance.sample_id)
     rmlst_dir_name = f'rmlst_{sample_instance.user}_{sample_instance.pk}'
-    outdir = MEDIA_ROOT / Path(str(sample_instance.sample_id.fwd_reads)).parent / rmlst_dir_name
-
+    outdir = Path(str(sample_instance.sample_id.fwd_reads)).parent / rmlst_dir_name
+    fulloutdir = MEDIA_ROOT / outdir
     if not assembly_instance.assembly_exists():
         logger.warning(f"Could not find assembly for {assembly_instance} - cannot proceed with job")
         return
@@ -360,11 +360,11 @@ def submit_rmlst_job(sample_instance: AnalysisSample) -> rMLSTResult:
         assembly_path = assembly_instance.get_assembly_path()
 
     # Remove previous analysis if it exists
-    if outdir.exists():
-        shutil.rmtree(outdir, ignore_errors=True)
-    outdir.mkdir(exist_ok=True)
+    if fulloutdir.exists():
+        shutil.rmtree(fulloutdir, ignore_errors=True)
+    fulloutdir.mkdir(exist_ok=True)
 
-    rmlst_results = query_rmlst(assembly=assembly_path, outdir=outdir)
+    rmlst_results = query_rmlst(assembly=assembly_path, outdir=outdir, root=MEDIA_ROOT)
 
     # We now create a new MobSuiteAnalysisGroup entry in the db for the AnalysisSample instance
     rmlst_analysis_group = rMLSTResult.objects.create(analysis_sample=sample_instance, rmlst_json=rmlst_results['json'], rmlst_csv=rmlst_results['csv'], support=rmlst_results['support'], taxon=rmlst_results['taxon'], rST=rmlst_results['rST'])

@@ -10,7 +10,7 @@ from pathlib import Path
 logger = logging.getLogger('raven')
 
 
-def query_rmlst(assembly: Path, outdir: Path):
+def query_rmlst(assembly: Path, outdir: Path, root: Path):
     uri = 'https://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence'
     logger.info(f"Submitting rMLST query for {assembly}")
     with open(assembly, 'r') as x:
@@ -20,7 +20,7 @@ def query_rmlst(assembly: Path, outdir: Path):
     if response.status_code == requests.codes.ok:
         data = response.json()
         jout = outdir / 'rmlst.json'
-        with open(jout , 'w') as w:
+        with open(root / jout , 'w') as w:
             json.dump(data, w)
         try:
             support = data['taxon_prediction'][0]['support']
@@ -34,12 +34,13 @@ def query_rmlst(assembly: Path, outdir: Path):
             rST = None
 
         csvout = outdir / 'rmlst.csv'
-        with open(csvout, 'w') as w:
-            w.write("Locus,Allele,Length,Contig,Start,End")
+        with open(root / csvout, 'w') as w:
+            w.write("Locus,Allele,Length,Contig,Start,End\n")
             try:
                 for exact_match in data['exact_matches']:
                     em = data['exact_matches'][exact_match][0]
                     w.write(",".join(str(item) for item in [exact_match, em['allele_id'], em['length'], em['contig'], em['start'], em['end']]))
+                    w.write("\n")
             except KeyError:
                 csvout = None
 
