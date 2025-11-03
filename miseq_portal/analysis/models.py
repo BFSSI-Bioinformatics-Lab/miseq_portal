@@ -65,6 +65,7 @@ class AnalysisGroup(models.Model):
         ('RGI', 'RGI'),
         ('Confindr', 'Confindr'),
         ('rMLST', 'rMLST'),
+        ('Stx', 'Stx')
         # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
@@ -515,3 +516,19 @@ class rMLSTResult(TimeStampedModel):
         verbose_name_plural = 'rMLST Results'
 
 
+class StxResult(TimeStampedModel):
+    """
+    Model for storing output from stx analysis of a single sample
+    """
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    report_pdf = models.FileField(upload_to=upload_analysis_file, blank=True)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'Stx Result'
+        verbose_name_plural = 'Stx Results'
