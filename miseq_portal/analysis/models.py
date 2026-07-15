@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 from django.db import models
+from django.utils.dateparse import parse_date
 
 from django.conf import settings
 from miseq_portal.analysis.tools.helpers import run_subprocess
@@ -63,6 +64,8 @@ class AnalysisGroup(models.Model):
         ('MobRecon', 'MobRecon'),
         ('RGI', 'RGI'),
         ('Confindr', 'Confindr'),
+        ('rMLST', 'rMLST'),
+        ('Stx', 'Stx')
         # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
@@ -227,6 +230,68 @@ class ConfindrResult(TimeStampedModel):
     class Meta:
         verbose_name = 'Confindr Result'
         verbose_name_plural = 'Confindr Results'
+
+
+class ConfindrResultAssembly(TimeStampedModel):
+    """
+    Model for storing individual sample output files and results produced by Confindr
+    """
+    # Must be instantiated with these values
+    sample_id = models.OneToOneField(Sample, on_delete=models.CASCADE, primary_key=True)
+
+    #output file
+    contamination_csv = models.FileField(blank=True, max_length=1000)
+    #
+    # # Fields parsed from confindr_report.csv
+    genus = models.CharField(max_length=256, blank=True, null=True)
+    num_contam_snvs = models.IntegerField(blank=True, null=True)
+    contam_status = models.CharField(max_length=32, blank=True, null=True)
+    percent_contam = models.FloatField(blank=True, null=True)
+    percent_contam_std_dev = models.FloatField(blank=True, null=True)
+    bases_examined = models.IntegerField(blank=True, null=True)
+    database_download_date = models.DateField(blank=True, null=True)
+
+    def get_confindr_result(self) -> tuple:
+        assembly_path = self.sample_id.sampleassemblydata.get_assembly_path().parent
+        reads_dir = assembly_path.parent
+        outdir = assembly_path / "confindr"
+
+        confindr_result = None
+        csvfile, logfile = ConfindrGroupResult.call_confindr(reads_dir=reads_dir, outdir=outdir)
+        # Populate ConfindrResultAssembly object
+        if csvfile.exists():
+            df = pd.read_csv(csvfile)
+            if not df.empty:
+                try:
+                    if df['PercentContam'][0] == "ND":
+                        df['PercentContam'][0] = "nan"
+                        df['PercentContamStandardDeviation'][0] = "nan"
+                    confindr_result = {
+                        'genus': str(df['Genus'][0]),
+                        'num_contam_snvs': int(df['NumContamSNVs'][0]),
+                        'contam_status': str(df['ContamStatus'][0]),
+                        'percent_contam': float(df['PercentContam'][0]),
+                        'percent_contam_std_dev': float(df['PercentContamStandardDeviation'][0]),
+                        'bases_examined': int(df['BasesExamined'][0]),
+                        'database_download_date': parse_date(df['DatabaseDownloadDate'][0])
+                    }
+                except BaseException as e:
+                    logger.warning(f"Something is wrong with the Confindr report for {self.sample_id}")
+                    logger.warning(e)
+            else:
+                logger.warning(f"It looks like the Confindr report for {self.sample_id} is empty.")
+        else:
+            logger.warning(f"Something has gone wrong. The Confindr report for {self.sample_id} does not exist.")
+
+        return confindr_result, csvfile
+
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id}")
+
+    class Meta:
+        verbose_name = 'Confindr Result for a Sample'
+        verbose_name_plural = 'Confindr Results for Samples'
 
 
 class MashResult(TimeStampedModel):
@@ -429,3 +494,82 @@ class RGIGroupResult(TimeStampedModel):
     class Meta:
         verbose_name = 'RGI Group Result'
         verbose_name_plural = 'RGI Group Results'
+
+class rMLSTResult(TimeStampedModel):
+    """
+    Model for storing output from rMLST analysis of a single assembly
+    """
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    rmlst_json = models.FileField(upload_to=upload_analysis_file, blank=True)
+    rmlst_csv = models.FileField(upload_to=upload_analysis_file, blank=True)
+    support = models.IntegerField(blank=True, null=True)
+    taxon = models.CharField(max_length=128, blank=True, null=True)
+    rST = models.IntegerField(blank=True, null=True)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'rMLST Result'
+        verbose_name_plural = 'rMLST Results'
+
+
+class StxGroupResult(TimeStampedModel):
+    """
+    Model for storing overall stx analysis of entire AnalysisGroup e.g. the stx heatmap
+    """
+    analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
+    stx_report = models.FileField(upload_to=upload_group_analysis_file, blank=True)
+
+    def __str__(self):
+        return str(f"Stx Group {self.analysis_group}")
+
+    class Meta:
+        verbose_name = 'Stx Group Result'
+        verbose_name_plural = 'Stx Group Results'
+
+
+class StxSampleResult(TimeStampedModel):
+    """
+    Model for storing output from stx analysis of a single sample
+    """
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    kma_report = models.FileField(upload_to=upload_analysis_file, blank=True)
+    stxtyper_report = models.FileField(upload_to=upload_analysis_file, blank=True)
+    blast_processed_stx1 = models.FileField(upload_to=upload_analysis_file, blank=True)
+    blast_processed_stx2 = models.FileField(upload_to=upload_analysis_file, blank=True)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'Stx Sample Result'
+        verbose_name_plural = 'Stx Sample Results'
+
+class StxGeneResult(TimeStampedModel):
+    """
+    Model for storing output from stx analysis of a single hit
+    """
+    analysis_sample = models.ForeignKey(AnalysisSample, on_delete=models.CASCADE)
+    gene = models.CharField(max_length=10, blank=True)
+    contig = models.CharField(max_length=128, blank=True)
+    loc = models.CharField(max_length=128, blank=True)
+    motif = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=200)
+    tree = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=200)
+    alignment = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=200)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'Stx Gene Result'
+        verbose_name_plural = 'Stx Gene Results'

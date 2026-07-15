@@ -1,0 +1,148 @@
+<div class="alert alert-info" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  <h4>Tool Description</h4>
+  A nextflow pipeline to run multiple stx analyses on a genome and/or reads, and to generate a summary report.
+  <hr>
+  <ul>
+    <li>
+      <strong>Tool URL:</strong> <a href="https://github.com/jashay90/nf-stxsubtyper">HC-stx-subtyper</a>
+    </li>
+
+  </ul>
+</div>
+<h3>Retrieve Excel Report</h3>
+<a class="btn btn-primary btn-sm" href="{{ stx_group_result.stx_report.url }}" download
+   role="button"><i
+  class="fas fa-download"></i> Report (.xlsx)
+</a><br><br>
+<h3>Per-Sample Results</h3>
+<table class="analysis_table display compact" style="width: 100%">
+  <thead>
+  <tr>
+    <th>Sample ID</th>
+    <th>Sample Name</th>
+    <th>KMA Report</th>
+    <th>STXTyper Report</th>
+    <th>stx1 Blast Summary</th>
+    <th>stx2 Blast Summary</th>
+    <th>Date</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for stx_sample_result in stx_sample_results %}
+    <tr>
+      <td>
+        <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=stx_sample_result.sample_id.pk %}">
+          {{ stx_sample_result.sample_id }}
+        </a>
+      </td>
+      <td>{{ stx_sample_result.sample_id.sample_name }}</td>
+        {% if not stx_sample_result.kma_report %}
+          <td>N/A</td>
+        {% else %}
+          <td>
+            <a class="btn btn-primary btn-block" href="{{ stx_sample_result.kma_report.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        {% endif %}
+        {% if not stx_sample_result.stxtyper_report %}
+          <td>N/A</td>
+        {% else %}
+          <td>
+            <a class="btn btn-primary btn-block" href="{{ stx_sample_result.stxtyper_report.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        {% endif %}
+        {% if not stx_sample_result.blast_processed_stx1 %}
+          <td>N/A</td>
+        {% else %}
+          <td>
+            <a class="btn btn-primary btn-block" href="{{ stx_sample_result.blast_processed_stx1.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        {% endif %}
+        {% if not stx_sample_result.blast_processed_stx2 %}
+          <td>N/A</td>
+        {% else %}
+          <td>
+            <a class="btn btn-primary btn-block" href="{{ stx_sample_result.blast_processed_stx2.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        {% endif %}
+
+      <td>{{ stx_sample_result.modified }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<br><br>
+<h3>Per-Gene Results</h3>
+<table class="analysis_table display compact" style="width: 100%">
+  <thead>
+  <tr>
+    <th>Sample ID</th>
+    <th>Sample Name</th>
+    <th>Gene</th>
+    <th>Contig</th>
+    <th>Location</th>
+    <th>Alignment</th>
+    <th>Tree</th>
+    <th>Motif</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for stx_gene_result in stx_gene_results %}
+    <tr>
+      <td>
+        <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=stx_gene_result.sample_id.pk %}">
+          {{ stx_gene_result.sample_id }}
+        </a>
+      </td>
+      <td>{{ stx_gene_result.sample_id.sample_name }}</td>
+      <td>{{ stx_gene_result.gene }}</td>
+      <td>{{ stx_gene_result.contig }}</td>
+      <td>{{ stx_gene_result.loc }}</td>
+      {% if not stx_gene_result.alignment %}
+          <td>N/A</td>
+        {% else %}
+          <td>
+            <a class="btn btn-primary btn-block" href="{{ stx_gene_result.alignment.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        {% endif %}
+        {% if not stx_gene_result.tree %}
+          <td>N/A</td>
+        {% else %}
+          <td>
+            <a class="btn btn-primary btn-block" href="{{ stx_gene_result.tree.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        {% endif %}
+        {% if not stx_gene_result.motif %}
+          <td>N/A</td>
+        {% else %}
+          <td>
+            <a class="btn btn-primary btn-block" href="{{ stx_gene_result.motif.url }}" download
+               role="button"><i
+              class="fas fa-download"></i> Download
+            </a>
+          </td>
+        {% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
