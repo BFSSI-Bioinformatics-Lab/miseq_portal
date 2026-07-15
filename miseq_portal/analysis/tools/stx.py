@@ -22,13 +22,13 @@ perstx_result_schema = {"motif": ["motifs", "_aligned_motif.txt"], "alignment": 
 
 def query_stx(read_dir: Path, outdir: Path, assembly_dir: Path = None, samples_str: str = None, coverage_str: str = None):
     logger.info(f"Submitting stx query for {read_dir}")
-    read_input = read_dir / "*_R{1,2}.fastq.gz"
-    assembly_input = assembly_dir / "*.fasta"
-    cmd = f'nextflow run {nfdir}/main.nf -c {nfdir}/main.config --basedir {basedir} --reads {read_input} --genomes {assembly_input} --outdir {outdir} -w {workdir}'
+    read_input = str(read_dir) + "/*_R{1,2}.fastq.gz"
+    assembly_input = str(assembly_dir) + "/*.fasta"
+    cmd = f"nextflow run {nfdir}/main.nf -c {nfdir}/main.config --basedir {basedir} --reads '{read_input}' --genomes '{assembly_input}' --outdir {outdir} -w {workdir}"
     if samples_str:
-        cmd += f' --samplenames {samples_str}'
+        cmd += f" --samplenames '{samples_str}'"
     if coverage_str:
-        cmd += f' --coverage {coverage_str}'
+        cmd += f" --coverage '{coverage_str}'"
     outlog = run_subprocess(cmd, get_stdout=True)
     logger.info(cmd)
     logger.info(outlog)
