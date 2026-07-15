@@ -1,7 +1,7 @@
 ### Installation/Getting Started Instructions
 ```bash
 # Clone project
-git clone https://github.com/BFSSI-Bioinformatics-Lab/miseq_portal.git
+git clone https://github.com/bfssi-forest-dussault/miseq_portal.git
 
 # Create new conda environment
 conda create -n miseq_portal python=3.6

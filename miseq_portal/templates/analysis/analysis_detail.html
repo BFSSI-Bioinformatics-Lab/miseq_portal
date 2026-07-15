@@ -45,6 +45,10 @@
     <div id="rmlst-results">
       {% include "analysis/results/rmlst_results.html" %}
     </div>
+  {% elif analysis_group.job_type == "Stx" %}
+    <div id="stx-results">
+      {% include "analysis/results/stx_results.html" %}
+    </div>
   {% endif %}
 
   <hr>

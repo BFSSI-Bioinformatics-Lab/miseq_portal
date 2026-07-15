@@ -4,7 +4,7 @@ from .models import AnalysisSample, AnalysisGroup, \
     SendsketchResult, MobSuiteAnalysisGroup, \
     MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
     ConfindrGroupResult, ConfindrResult, ConfindrResultAssembly, \
-    rMLSTResult, StxResult
+    rMLSTResult, StxGroupResult, StxSampleResult, StxGeneResult
 
 # Register your models here.
 admin.site.register(AnalysisSample)
@@ -19,4 +19,7 @@ admin.site.register(ConfindrResult)
 admin.site.register(ConfindrGroupResult)
 admin.site.register(ConfindrResultAssembly)
 admin.site.register(rMLSTResult)
-admin.site.register(StxResult)
+admin.site.register(StxGroupResult)
+admin.site.register(StxSampleResult)
+admin.site.register(StxGeneResult)
+
