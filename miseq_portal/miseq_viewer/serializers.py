@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from miseq_portal.analysis.models import SendsketchResult, MashResult
+from miseq_portal.analysis.models import SendsketchResult, MashResult, ConfindrResultAssembly
 from miseq_portal.miseq_viewer.models import Sample, Project, Run
 from miseq_portal.users.models import User
 
@@ -45,14 +45,20 @@ class MashResultSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ConfindrResultAssemblySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConfindrResultAssembly
+        fields = '__all__'
+
 class SampleSerializer(serializers.ModelSerializer):
     run_id = RunSerializer()
     project_id = ProjectSerializer()
     sendsketchresult = SendsketchResultSerializer()
     mashresult = MashResultSerializer()
+    confindrresultassembly = ConfindrResultAssemblySerializer()
 
     class Meta:
         model = Sample
         fields = ['id', 'sample_id', 'sample_name', 'project_id', 'run_id',
-                  'sample_type', 'fwd_reads', 'rev_reads', 'sendsketchresult', 'mashresult'
+                  'sample_type', 'fwd_reads', 'rev_reads', 'sendsketchresult', 'mashresult', 'confindrresultassembly'
                   ]

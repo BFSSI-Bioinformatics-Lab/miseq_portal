@@ -12,9 +12,15 @@
 
     <div class="page-header">
       <h1>{{ run }}</h1>
-      <a class="btn btn-primary" href="{{ run.sample_sheet.url }}" role="button"><i
-              class="fas fa-download"></i> Download SampleSheet.csv
-      </a>
+      <form method="post" action="{% url 'miseq_viewer:miseq_viewer_qaqc_excel' %}">
+        {% csrf_token %}
+        <a class="btn btn-primary" href="{{ run.sample_sheet.url }}" role="button"><i
+          class="fas fa-download"></i> Download SampleSheet.csv
+        </a>
+        <input type="hidden" name="sample_list" value="{% for sample in sample_list %}{{ sample.id }},{% endfor %}">
+        <button type="submit" class="btn btn-primary"><i
+              class="fas fa-download"></i> Download QA/QC Results</button>
+      </form>
     </div>
 
     <hr>

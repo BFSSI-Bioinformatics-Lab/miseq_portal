@@ -1,19 +1,23 @@
 import json
 import logging
 from pathlib import Path
+import xlsxwriter
+import io
+import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.views.generic import DetailView, ListView
 from rest_framework import viewsets
+from django.http import HttpResponse
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisSample
 from miseq_portal.miseq_uploader import parse_samplesheet
 from miseq_portal.miseq_uploader.parse_interop import get_qscore_json
 from miseq_portal.miseq_viewer.models import Project, Run, Sample, UserProjectRelationship, SampleAssemblyData, \
-    MergedSampleComponent, SampleLogData, RunSamplesheet
+    MergedSampleComponent, SampleLogData, RunSamplesheet, SampleSheetSampleData
 from miseq_portal.minion_viewer.models import MinIONSample
 from miseq_portal.miseq_viewer.serializers import SampleSerializer, RunSerializer, ProjectSerializer
 
@@ -63,8 +67,9 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['run_list'] = Run.objects.all()
-        context['sample_list'] = Sample.objects.filter(project_id=context['project'], hide_flag=False)
-        context['minion_sample_list'] = MinIONSample.objects.filter(project_id=context['project'])
+        # for some reason, projects with no MiSeq samples do not have a context['project'], but everything seems to work with context['object']
+        context['sample_list'] = Sample.objects.filter(project_id=context['object'], hide_flag=False)
+        context['minion_sample_list'] = MinIONSample.objects.filter(project_id=context['object'])
 
         # Filter out samples that are missing data for the project_detail.html template
         context['has_sample_log_data'] = context['sample_list'].filter(samplelogdata__isnull=False)
@@ -127,6 +132,231 @@ class RunDetailView(LoginRequiredMixin, DetailView):
 run_detail_view = RunDetailView.as_view()
 
 
+def qaqc_excel(request):
+    # I am building off of this: https://xlsxwriter.readthedocs.io/example_django_simple.html
+    if request.method == 'POST':
+        sample_list = request.POST.get('sample_list')[:-1].split(",")
+        columns = ["sample_id", "sample_name", "project_id", "run_id"]
+        assemblycolumns = [["i5_index_id", "samplesheet", "str"], ["i7_index_id", "samplesheet", "str"],
+                           ["index", "samplesheet", "str"], ["index2", "samplesheet", "str"],
+                           ["sample_plate", "samplesheet", "str"], ["sample_well", "samplesheet", "str"],
+                           ["total_length", "assembly", "str"], ["mean_coverage", "assembly", "str"],
+                           ["num_contigs", "assembly", "str"], ["n50", "assembly", "str"],
+                           ["gc_percent", "assembly", "str"], ["largest_contig", "assembly", "str"],
+                           ["num_predicted_genes", "assembly", "str"], ["description", "samplesheet", "str"],
+                           ["top_hit", "mash", "str"],  ["fwd_reads", "sample", "path"], ["rev_reads", "sample", "path"],
+                           ["number_reads", "log", "str"], ["sample_yield", "log", "str"],
+                           ["assembly", "assembly", "path"], ["created", "sample", "date"]]
+        confindrcolumns = ["contam_status",  "percent_contam", "percent_contam_std_dev",
+                           "num_contam_snvs", "genus", "bases_examined"]
+
+        # Create an in-memory output file for the new workbook.
+        output = io.BytesIO()
+
+        workbook = xlsxwriter.Workbook(output)
+        assemblysheet = workbook.add_worksheet("Portal Report")
+        confindrsheet = workbook.add_worksheet("Confindr Report")
+        combinedsheet = workbook.add_worksheet("Combined")
+        plain = workbook.add_format()
+        orangecell = workbook.add_format({'bg_color': '#FFB66C'})
+        redcell = workbook.add_format({'bg_color': '#FF3838'})
+        # write headers
+        for s in (assemblysheet, confindrsheet, combinedsheet):
+            for colnum, column in enumerate(columns):
+                s.write(0, colnum, column)
+        for s in (assemblysheet, combinedsheet):
+            for colnum, column in enumerate(assemblycolumns):
+                s.write(0, colnum + len(columns), column[0])
+        for colnum, column in enumerate(confindrcolumns):
+            confindrsheet.write(0, colnum + len(columns), column)
+            combinedsheet.write(0, colnum + len(columns) + len(assemblycolumns), column)
+        combinedsheet.write(0, len(columns) + len(assemblycolumns) + len(confindrcolumns), "comments")
+        rowcount = 0
+        for sample in sample_list:
+            rowcount += 1
+            sample_object = Sample.objects.get(id=sample)
+            towrite = ["NA"] * len(assemblycolumns)
+            style = [plain] * (len(assemblycolumns) + len(confindrcolumns))
+            comment = []
+            # fields common to all 3 tables
+            # grab run_id and project_id once
+            try:
+                run_id = Run.objects.get(id=sample_object.run_id_id).run_id
+            except:
+                run_id = "NA"
+            try:
+                project_id = Project.objects.get(id=sample_object.project_id_id).project_id
+            except:
+                project_id = "NA"
+            for s in (assemblysheet, confindrsheet, combinedsheet):
+                for i in range(0, 2):
+                    s.write(rowcount, i, getattr(sample_object, columns[i]))
+                s.write(rowcount, 2, project_id)
+                s.write(rowcount, 3, run_id)
+            # fields in assembly sheet
+            # first, try to get all the necessary objects
+            try:
+                samplesheet_object = SampleSheetSampleData.objects.get(sample_id_id=sample_object.id)
+            except:
+                samplesheet_object = None
+            try:
+                assembly_object = SampleAssemblyData.objects.get(sample_id=sample_object.id)
+            except:
+                assembly_object = None
+            try:
+                samplelogdata = SampleLogData.objects.get(sample_id=sample_object.id)
+            except ObjectDoesNotExist:
+                samplelogdata = None
+            try:
+                mashresult = sample_object.mashresult.top_hit
+            except:
+                # Get top Sendsketch hit if it exists
+                try:
+                    mashresult = sample_object.sendsketchresult.top_taxName
+                except:
+                    mashresult = "NA"
+            # once you have all the necessary objects, iterate through the fields
+            for colnum, column in enumerate(assemblycolumns):
+                if column[1] == "sample":
+                    towrite[colnum] = getattr(sample_object, column[0])
+                elif column[1] == "samplesheet" and samplesheet_object != None:
+                    towrite[colnum] = getattr(samplesheet_object, column[0])
+                elif column[1] == "assembly" and assembly_object != None:
+                    towrite[colnum] = getattr(assembly_object, column[0])
+                    # Kelly wants to get rid of the X at the end of the mean_coverage
+                    if towrite[colnum]:
+                        if column[0] == "mean_coverage":
+                            towrite[colnum] = float(towrite[colnum][:-1].replace(",", ""))
+                            if towrite[colnum] < 30:
+                                comment.append("caution: <30x coverage")
+                                style[colnum] = orangecell
+                            else:
+                                comment.append("min 30x coverage")
+                        elif column[0] == "num_contigs":
+                            if towrite[colnum] > 500:
+                                comment.append("caution: >500 contigs")
+                                style[colnum] = redcell
+                            elif towrite[colnum] >= 200:
+                                comment.append("caution: 200-500 contigs")
+                                style[colnum] = orangecell
+                            else:
+                                comment.append("<200 contigs")
+
+                elif column[1] == "log" and samplelogdata != None:
+                    towrite[colnum] = getattr(samplelogdata, column[0])
+                elif column[1] == "mash":
+                    towrite[colnum] = mashresult
+                    if towrite[assemblycolumns.index(["description", "samplesheet", "str"])].startswith("WGS_"):
+                        if mashresult == "NA" or not mashresult:
+                            comment.append("genus ND")
+                            style[colnum] = orangecell
+                        else:
+                            sampledesclist = towrite[assemblycolumns.index(["description", "samplesheet", "str"])].lower().split("_")
+                            mashlist = mashresult.lower().split(" ")
+                            if mashlist[0] != sampledesclist[1]:
+                                comment.append("genus conflict")
+                                style[colnum] = redcell
+                            else:
+                                comment.append("genus match")
+                                if len(sampledesclist) >= 3:
+                                    if len(mashlist) < 2:
+                                        comment.append("species ND")
+                                        style[colnum] = orangecell
+                                    elif mashlist[1] != sampledesclist[2]:
+                                        if mashlist[1] == "sp.":
+                                            comment.append("species ND")
+                                            style[colnum] = orangecell
+                                        else:
+                                            comment.append("species conflict")
+                                            style[colnum] = redcell
+                                    else:
+                                        comment.append("species match")
+                                        if len(sampledesclist) >= 4:
+                                            if len(mashlist) < 3:
+                                                comment.append("subtype/serovar ND")
+                                                style[colnum] = orangecell
+                                            elif sampledesclist[3] in mashlist[2:]:
+                                                comment.append("subtype/serovar match")
+                                            else:
+                                                comment.append("subtype/serovar conflict")
+                                                style[colnum] = redcell
+
+
+
+                else:
+                    towrite[colnum] = "Something went wrong"
+                if towrite[colnum] != "NA":
+                    if column[2] == "path":
+                        try:
+                            towrite[colnum] = towrite[colnum].path
+                        except:
+                            towrite[colnum] = "NA"
+                    elif column[2] == "date":
+                        try:
+                            towrite[colnum] = towrite[colnum].strftime('%Y-%m-%d')
+                        except:
+                            towrite[colnum] = "NA"
+                assemblysheet.write(rowcount, colnum + len(columns), towrite[colnum])
+                combinedsheet.write(rowcount, colnum + len(columns), towrite[colnum], style[colnum])
+            # markup according to Kelly's guidelines that depends on more than one column
+
+            # confindr fields
+            towrite = ["NA"] * len(confindrcolumns)
+            try:
+                confindr_object = sample_object.confindrresultassembly
+                for colnum in range(0, len(confindrcolumns)):
+                    towrite[colnum] = getattr(confindr_object, confindrcolumns[colnum])
+                    if towrite[colnum] != towrite[colnum]:  # this is a check for NaN
+                        towrite[colnum] = "ND"
+            except:
+                pass
+            # check for highlight colour
+            if ":" in towrite[confindrcolumns.index('genus')]:
+                comment.append("gross contamination: multiple organisms")
+                style[confindrcolumns.index('genus') + len(assemblycolumns)] = redcell
+            elif isinstance(towrite[confindrcolumns.index('num_contam_snvs')], int) and not isinstance(towrite[confindrcolumns.index('percent_contam')], str):
+                if towrite[confindrcolumns.index('percent_contam')] == 0 and towrite[confindrcolumns.index('num_contam_snvs')] < 20:
+                    comment.append("no contamination detected")
+                elif towrite[confindrcolumns.index('percent_contam')] >= 15:
+                    comment.append("contamination suspected: >=15%")
+                    style[confindrcolumns.index('num_contam_snvs') + len(assemblycolumns)] = redcell
+                    style[confindrcolumns.index('percent_contam') + len(assemblycolumns)] = redcell
+                elif towrite[confindrcolumns.index('num_contam_snvs')] < 20:
+                    comment.append("possible low level contamination or unresolved repeats")
+                else:
+                    comment.append("possible contamination: >= 20 SNVs")
+                    style[confindrcolumns.index('num_contam_snvs') + len(assemblycolumns)] = orangecell
+            for colnum in range(0, len(confindrcolumns)):
+                confindrsheet.write(rowcount, colnum + len(columns), towrite[colnum])
+                combinedsheet.write(rowcount, colnum + len(columns) + len(assemblycolumns), towrite[colnum], style[colnum + len(assemblycolumns)])
+
+            if redcell in style:
+                commentcolour = redcell
+            elif orangecell in style:
+                commentcolour = orangecell
+            else:
+                commentcolour = plain
+            combinedsheet.write(rowcount, 0, getattr(sample_object, "sample_id"), commentcolour) # for now I'll just overwrite it in the combined sheet
+            combinedsheet.write(rowcount, len(confindrcolumns) + len(assemblycolumns) + len(columns), "; ".join(comment), commentcolour)
+
+
+        # Close the workbook before sending the data.
+        workbook.close()
+
+        # Rewind the buffer.
+        output.seek(0)
+
+        # Set up the Http response.
+        response = HttpResponse(
+            output,
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = "attachment; filename=qaqc_report.xlsx"
+        return response
+    else:
+        return None
+
+
 class SampleDetailView(LoginRequiredMixin, DetailView):
     model = Sample
     context_object_name = 'sample'
@@ -160,6 +390,12 @@ class SampleDetailView(LoginRequiredMixin, DetailView):
                     sample_id=context['sample']).sample_id.sendsketchresult.top_taxName
             except:
                 context['top_refseq_hit'] = None
+
+        # Get confindr results
+        try:
+            context['confindr_result'] = sample_object.confindrresultassembly
+        except:
+            context['confindr_result'] = None
 
         # Set to None if the FileField for the assembly is empty
         try:

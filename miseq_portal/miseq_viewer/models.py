@@ -164,9 +164,13 @@ class Project(TimeStampedModel):
     # TODO: Consider adding flags for viral, prokaryotic, eukaryotic, metagenomic, mixed sample types
 
     def last_updated(self) -> str:
-        """ Finds the most recently created Sample object belonging to this project """
-        samples = Sample.objects.filter(project_id=self.id).order_by('-created')
-        return samples[0].modified
+        try:
+            """ Finds the most recently created Sample object belonging to this project """
+            samples = Sample.objects.filter(project_id=self.id).order_by('-created')
+            toreturn = samples[0].modified
+        except IndexError:
+            toreturn = self.modified # test
+        return toreturn
 
     @property
     def num_samples(self):
@@ -433,6 +437,9 @@ class SampleSheetSampleData(TimeStampedModel):
         # Fill in missing projects
         df['Sample_Project'] = df['Sample_Project'].replace(r"\s+", "MISSING_PROJECT", regex=True)
         df['Sample_Project'] = df['Sample_Project'].fillna(value="MISSING_PROJECT")
+
+        # rename the Index_Plate columns so they match the old SampleSheet version
+        df.rename(columns={"Index_Plate": "Sample_Plate", "Index_Plate_Well": "Sample_Well"}, inplace=True)
 
         return df
 
