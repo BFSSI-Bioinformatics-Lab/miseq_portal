@@ -427,9 +427,11 @@ def submit_stx_job(analysis_group: AnalysisGroup) -> StxGroupResult:
     stx_group_result.save()
 
     persample_results = nf_info.get('persample_results', {})
+    persample_result_vals = nf_info.get('persample_result_vals', {})
     perstx_results = nf_info.get('perstx_results', {})
     for analysis_sample in analysis_samples:
         sample_id = str(analysis_sample.sample_id)
+        sample_vals = persample_result_vals.get(sample_id, {})
         # Create sample instance
         stx_sample_result = StxSampleResult.objects.create(analysis_sample=analysis_sample)
         samplefiles = {}
@@ -440,6 +442,19 @@ def submit_stx_job(analysis_group: AnalysisGroup) -> StxGroupResult:
         stx_sample_result.stxtyper_report = samplefiles.get('stxtyper', None)
         stx_sample_result.blast_processed_stx1 = samplefiles.get('stx1blast', None)
         stx_sample_result.blast_processed_stx2 = samplefiles.get('stx2blast', None)
+        stx_sample_result.hc_protein_allele = sample_vals.get('HC-Protein Allele', "")
+        stx_sample_result.hc_distance = sample_vals.get('HC-Distance', "")
+        stx_sample_result.hc_motif = sample_vals.get('HC-Motif', "")
+        stx_sample_result.hc_contig = sample_vals.get('HC-Contig', "")
+        stx_sample_result.hc_location = sample_vals.get('HC-Location', "")
+        stx_sample_result.ncbi_stx_type = sample_vals.get('NCBI-Stx Type', "")
+        stx_sample_result.ncbi_identity = sample_vals.get('NCBI-Identity', "")
+        stx_sample_result.ncbi_operon = sample_vals.get('NCBI-Operon', "")
+        stx_sample_result.ncbi_contig = sample_vals.get('NCBI-Contig', "")
+        stx_sample_result.ncbi_location = sample_vals.get('NCBI-Location', "")
+        stx_sample_result.kma_nucleotide_allele = sample_vals.get('KMA-Nucleotide Allele', "")
+        stx_sample_result.kma_identity = sample_vals.get('KMA-Identity', "")
+        stx_sample_result.kma_depth = sample_vals.get('KMA-Depth', "")
         stx_sample_result.save()
 
         # Create gene instances

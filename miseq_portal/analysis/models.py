@@ -541,6 +541,19 @@ class StxSampleResult(TimeStampedModel):
     stxtyper_report = models.FileField(upload_to=upload_analysis_file, blank=True)
     blast_processed_stx1 = models.FileField(upload_to=upload_analysis_file, blank=True)
     blast_processed_stx2 = models.FileField(upload_to=upload_analysis_file, blank=True)
+    hc_protein_allele = models.CharField(max_length=128, blank=True)
+    hc_distance = models.CharField(max_length=128, blank=True)
+    hc_motif = models.CharField(max_length=128, blank=True)
+    hc_contig = models.CharField(max_length=128, blank=True)
+    hc_location = models.CharField(max_length=128, blank=True)
+    ncbi_stx_type = models.CharField(max_length=128, blank=True)
+    ncbi_identity = models.CharField(max_length=128, blank=True)
+    ncbi_operon = models.CharField(max_length=128, blank=True)
+    ncbi_contig = models.CharField(max_length=128, blank=True)
+    ncbi_location = models.CharField(max_length=128, blank=True)
+    kma_nucleotide_allele = models.CharField(max_length=128, blank=True)
+    kma_identity = models.CharField(max_length=128, blank=True)
+    kma_depth = models.CharField(max_length=128, blank=True)
 
     def sample_id(self):
         return self.analysis_sample.sample_id
