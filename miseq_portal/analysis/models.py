@@ -65,6 +65,7 @@ class AnalysisGroup(models.Model):
         ('RGI', 'RGI'),
         ('Confindr', 'Confindr'),
         ('rMLST', 'rMLST'),
+        ('Stx', 'Stx')
         # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
@@ -229,6 +230,7 @@ class ConfindrResult(TimeStampedModel):
     class Meta:
         verbose_name = 'Confindr Result'
         verbose_name_plural = 'Confindr Results'
+
 
 class ConfindrResultAssembly(TimeStampedModel):
     """
@@ -515,3 +517,72 @@ class rMLSTResult(TimeStampedModel):
         verbose_name_plural = 'rMLST Results'
 
 
+class StxGroupResult(TimeStampedModel):
+    """
+    Model for storing overall stx analysis of entire AnalysisGroup e.g. the stx heatmap
+    """
+    analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
+    stx_report = models.FileField(upload_to=upload_group_analysis_file, blank=True)
+
+    def __str__(self):
+        return str(f"Stx Group {self.analysis_group}")
+
+    class Meta:
+        verbose_name = 'Stx Group Result'
+        verbose_name_plural = 'Stx Group Results'
+
+
+class StxSampleResult(TimeStampedModel):
+    """
+    Model for storing output from stx analysis of a single sample
+    """
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    kma_report = models.FileField(upload_to=upload_analysis_file, blank=True)
+    stxtyper_report = models.FileField(upload_to=upload_analysis_file, blank=True)
+    blast_processed_stx1 = models.FileField(upload_to=upload_analysis_file, blank=True)
+    blast_processed_stx2 = models.FileField(upload_to=upload_analysis_file, blank=True)
+    hc_protein_allele = models.CharField(max_length=128, blank=True)
+    hc_distance = models.CharField(max_length=128, blank=True)
+    hc_motif = models.CharField(max_length=128, blank=True)
+    hc_contig = models.CharField(max_length=128, blank=True)
+    hc_location = models.CharField(max_length=128, blank=True)
+    ncbi_stx_type = models.CharField(max_length=128, blank=True)
+    ncbi_identity = models.CharField(max_length=128, blank=True)
+    ncbi_operon = models.CharField(max_length=128, blank=True)
+    ncbi_contig = models.CharField(max_length=128, blank=True)
+    ncbi_location = models.CharField(max_length=128, blank=True)
+    kma_nucleotide_allele = models.CharField(max_length=128, blank=True)
+    kma_identity = models.CharField(max_length=128, blank=True)
+    kma_depth = models.CharField(max_length=128, blank=True)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'Stx Sample Result'
+        verbose_name_plural = 'Stx Sample Results'
+
+class StxGeneResult(TimeStampedModel):
+    """
+    Model for storing output from stx analysis of a single hit
+    """
+    analysis_sample = models.ForeignKey(AnalysisSample, on_delete=models.CASCADE)
+    gene = models.CharField(max_length=10, blank=True)
+    contig = models.CharField(max_length=128, blank=True)
+    loc = models.CharField(max_length=128, blank=True)
+    motif = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=200)
+    tree = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=200)
+    alignment = models.FileField(upload_to=upload_analysis_file, blank=True, max_length=200)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'Stx Gene Result'
+        verbose_name_plural = 'Stx Gene Results'
