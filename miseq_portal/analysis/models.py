@@ -17,6 +17,7 @@ MASH_REFSEQ_DATABASE = settings.MASH_REFSEQ_DATABASE
 CONFINDR_DB = settings.CONFINDR_DB
 CONFINDR_EXE = settings.CONFINDR_EXE
 PROKKA_EXE = settings.PROKKA_EXE
+JAVA_MAX_HEAP = settings.JAVA_MAX_HEAP
 
 logger = logging.getLogger('django')
 
@@ -180,7 +181,7 @@ class ConfindrGroupResult(TimeStampedModel):
         :return: Path to output file
         """
         cmd = f"{CONFINDR_EXE.parent / 'python'} {CONFINDR_EXE} -i {reads_dir} -o {outdir} -d {CONFINDR_DB} " \
-              f"-fid {forward_id} -rid {reverse_id} -Xmx 20g -t 16 --verbosity debug"
+              f"-fid {forward_id} -rid {reverse_id} -Xmx {JAVA_MAX_HEAP} -t 16 --verbosity debug"
         run_subprocess(cmd, get_stdout=False)
         logger.info(f"Calling confindr with following command:\n{cmd}")
 
