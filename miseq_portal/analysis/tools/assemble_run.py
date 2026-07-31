@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from config.settings.base import MEDIA_ROOT
+from config.settings.base import MEDIA_ROOT, JAVA_MAX_HEAP
 from miseq_portal.analysis.tools.helpers import run_subprocess, remove_fastq_and_bam_files
 from miseq_portal.miseq_viewer.models import SampleAssemblyData, upload_assembly
 
@@ -53,7 +53,7 @@ def call_qualimap(bamfile: Path, outdir: Path) -> Path:
     :return: path to Qualimap genome_results.txt file
     """
     qualimap_dir = outdir / 'qualimap'
-    cmd = f"qualimap bamqc -bam {bamfile} -outdir {qualimap_dir} --java-mem-size=32G"
+    cmd = f"qualimap bamqc -bam {bamfile} -outdir {qualimap_dir} --java-mem-size={JAVA_MAX_HEAP}"
     run_subprocess(cmd)
     qualimap_result_file = qualimap_dir / 'genome_results.txt'
     if not qualimap_result_file.is_file():
@@ -275,7 +275,7 @@ def get_pilon_version() -> str:
     return version
 
 
-def call_pilon(bamfile: Path, outdir: Path, assembly: Path, prefix: str, memory: str = '128g') -> Path:
+def call_pilon(bamfile: Path, outdir: Path, assembly: Path, prefix: str, memory: str = JAVA_MAX_HEAP) -> Path:
     """
     Polishes an assembly with a system call to Pilon
     :param bamfile: Path .bam file for sample (--bam in pilon)

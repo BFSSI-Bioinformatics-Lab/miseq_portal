@@ -344,6 +344,9 @@ REST_FRAMEWORK = {
 # Might help with huge uploads
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880 * 2  # 10 MB
 
+# to pass to tools with an Xmx option
+JAVA_MAX_HEAP = "13g"
+
 # ASSEMBLY PIPELINE SETTINGS
 MOB_SUITE_PATH = Path("home/forest/miniconda3/envs/mob_suite/bin/")
 CONFINDR_EXE = Path("/home/forest/miniconda3/envs/confindr_v2/bin/confindr")
