@@ -150,8 +150,23 @@ class MinIONRunChunkedUploadCompleteView(ChunkedUploadCompleteView):
             return
 
         for i, row in df.iterrows():
-            long_reads = outdir / 'qcat_demultiplexing' / f'{row["Barcode"]}.fastq.gz'
-            assert long_reads.exists()
+            barcode_reads = outdir / 'qcat_demultiplexing' / f'{row["Barcode"]}.fastq.gz'
+            sample_reads = outdir / 'qcat_demultiplexing' / f'{row["Sample_ID"]}.fastq.gz'
+
+            if barcode_reads.exists():
+                if sample_reads.exists():
+                    logger.warning(
+                        f'Sample reads file already exists: {sample_reads} - leaving existing file in place.')
+                else:
+                    barcode_reads.rename(sample_reads)
+                    logger.info(f'Renamed {barcode_reads} to {sample_reads}')
+
+            if not sample_reads.exists():
+                logger.error(
+                    f'Missing FastQ file for row {i}: neither {barcode_reads} nor {sample_reads} exists.')
+                continue
+
+            long_reads = sample_reads
 
             project_object, created = Project.objects.get_or_create(project_id=row['Project_ID'], defaults={
                 # Default to admin ownership
