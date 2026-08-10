@@ -23,7 +23,7 @@ django-widget-tweaks==1.4.5
 
 # Custom stuff
 nbconvert==5.3.1
-tornado==4.2
+tornado==6.3.2
 celery==4.3.0
 pandas==0.23.3
 xlrd==1.2.0
