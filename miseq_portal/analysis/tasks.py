@@ -14,7 +14,7 @@ from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
     ConfindrGroupResult, ConfindrResult, ConfindrResultAssembly, upload_analysis_file, upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file, \
-    rMLSTResult, StxGroupResult, StxSampleResult, StxGeneResult
+    rMLSTResult, StxGroupResult, StxSampleResult, StxGeneResult, SalmonellaGroupResult, SalmonellaResult
 from miseq_portal.analysis.tools.assemble_run import assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data, \
     prodigal_pipeline
@@ -23,6 +23,7 @@ from miseq_portal.analysis.tools.rgi import call_rgi_main, call_rgi_heatmap
 from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
 from miseq_portal.analysis.tools.rmlst import query_rmlst
 from miseq_portal.analysis.tools.stx import query_stx
+from miseq_portal.analysis.tools.salmonella import query_salmonella
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
 
 MEDIA_ROOT = Path(MEDIA_ROOT)
@@ -68,6 +69,9 @@ def submit_analysis_job(analysis_group: AnalysisGroup):
     elif job_type == 'Stx':
         # STX now runs at the AnalysisGroup level (generates one summary report)
         submit_stx_job(analysis_group=analysis_group)
+    elif job_type == 'Salmonella':
+        # Salmonella now runs at the AnalysisGroup level (generates one summary report)
+        submit_salmonella_job(analysis_group=analysis_group)
 
     logger.info(f'Analysis for Group {analysis_group} completed')
     analysis_group.job_status = 'Complete'
@@ -475,6 +479,53 @@ def submit_stx_job(analysis_group: AnalysisGroup) -> StxGroupResult:
             stx_gene_result.alignment = genefiles.get('alignment', None)
             stx_gene_result.save()
         
+
+def submit_salmonella_job(analysis_group: AnalysisGroup) -> SalmonellaGroupResult:
+    analysis_dir = Path(upload_group_analysis_file(analysis_group=analysis_group, filename='x')).parent
+    outdir = MEDIA_ROOT / analysis_dir
+    outdir.mkdir(parents=True, exist_ok=False)
+
+    assemblydir = outdir / 'assemblies'
+    assemblydir.mkdir(parents=True, exist_ok=True)
+
+    logger.info(f"Submitting {analysis_group} for Salmonella typing analysis")
+    analysis_samples = AnalysisSample.objects.filter(group_id=analysis_group)
+    samples = [analysis_sample.sample_id for analysis_sample in analysis_samples]
+
+    # Create symlinks and metadata lists. Note that reads are being renamed to stricly the sample ID + direction
+    for sample in samples:
+        assembly_instance = SampleAssemblyData.objects.get(sample_id=sample)
+        if not assembly_instance.assembly_exists():
+            logger.warning(f"Could not find assembly for {assembly_instance}")
+        else:
+            assembly_dst = assemblydir / f"{sample}.fasta"
+            assembly_dst.symlink_to(MEDIA_ROOT / str(assembly_instance.get_assembly_path()))
+
+
+    # Create group instance
+    nf_info = query_salmonella(assembly_dir=assemblydir, outdir=outdir)
+    if nf_info is None:
+        logger.warning(f"Salmonella typing analysis failed for group {analysis_group}")
+        return
+
+    salmonella_group_result = SalmonellaGroupResult.objects.create(analysis_group=analysis_group, salmonella_report=str(analysis_dir / nf_info['report_xlsx']))
+    salmonella_group_result.save()
+    persample_result_vals = nf_info.get('persample_result_vals', {})
+
+    for analysis_sample in analysis_samples:
+        sample_id = str(analysis_sample.sample_id)
+        sample_vals = persample_result_vals.get(sample_id, {})
+        # Create sample instance
+        salmonella_sample_result = SalmonellaResult.objects.create(analysis_sample=analysis_sample)
+        mlst = sample_vals.get('mlst', None)
+        if mlst is not None:
+            if mlst != "-":
+                salmonella_sample_result.mlst = int(mlst)
+        else:
+            salmonella_sample_result.mlst = None
+        salmonella_sample_result.serovar = sample_vals.get('serovar', None)
+        salmonella_sample_result.save()
+
 
 
 @shared_task()

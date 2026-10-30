@@ -49,6 +49,10 @@
     <div id="stx-results">
       {% include "analysis/results/stx_results.html" %}
     </div>
+  {% elif analysis_group.job_type == "Salmonella" %}
+    <div id="stx-results">
+      {% include "analysis/results/salmonella_results.html" %}
+    </div>
   {% endif %}
 
   <hr>

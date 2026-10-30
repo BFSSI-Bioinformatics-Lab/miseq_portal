@@ -66,7 +66,8 @@ class AnalysisGroup(models.Model):
         ('RGI', 'RGI'),
         ('Confindr', 'Confindr'),
         ('rMLST', 'rMLST'),
-        ('Stx', 'Stx')
+        ('Stx', 'Stx'),
+        ('Salmonella', 'Salmonella')
         # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
@@ -587,3 +588,36 @@ class StxGeneResult(TimeStampedModel):
     class Meta:
         verbose_name = 'Stx Gene Result'
         verbose_name_plural = 'Stx Gene Results'
+
+class SalmonellaGroupResult(TimeStampedModel):
+    """
+    Model for storing overall Salmonella analysis of entire AnalysisGroup
+    """
+    analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
+    salmonella_report = models.FileField(upload_to=upload_group_analysis_file, blank=True)
+
+    def __str__(self):
+        return str(f"Salmonella Group {self.analysis_group}")
+
+    class Meta:
+        verbose_name = 'Salmonella Group Result'
+        verbose_name_plural = 'Salmonella Group Results'
+
+
+class SalmonellaResult(TimeStampedModel):
+    """
+    Model for storing output from Salmonella analysis of a single sample
+    """
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    serovar = models.CharField(max_length=128, blank=True, null=True)
+    mlst = models.PositiveIntegerField(blank=True, null=True)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'Salmonella Result'
+        verbose_name_plural = 'Salmonella Results'
