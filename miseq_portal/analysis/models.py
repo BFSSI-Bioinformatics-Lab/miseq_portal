@@ -67,7 +67,7 @@ class AnalysisGroup(models.Model):
         ('Confindr', 'Confindr'),
         ('rMLST', 'rMLST'),
         ('Stx', 'Stx'),
-        ('Salmonella', 'Salmonella')
+        ('SalTy', 'SalTy')
         # ('TotalAMR', 'TotalAMR')
     )
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
@@ -589,24 +589,24 @@ class StxGeneResult(TimeStampedModel):
         verbose_name = 'Stx Gene Result'
         verbose_name_plural = 'Stx Gene Results'
 
-class SalmonellaGroupResult(TimeStampedModel):
+class SalTyGroupResult(TimeStampedModel):
     """
-    Model for storing overall Salmonella analysis of entire AnalysisGroup
+    Model for storing overall Salmonella typing analysis of entire AnalysisGroup
     """
     analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
-    salmonella_report = models.FileField(upload_to=upload_group_analysis_file, blank=True)
+    salty_report = models.FileField(upload_to=upload_group_analysis_file, blank=True)
 
     def __str__(self):
-        return str(f"Salmonella Group {self.analysis_group}")
+        return str(f"SalTy Group {self.analysis_group}")
 
     class Meta:
-        verbose_name = 'Salmonella Group Result'
-        verbose_name_plural = 'Salmonella Group Results'
+        verbose_name = 'Salmonella Typing Group Result'
+        verbose_name_plural = 'Salmonella Typing Group Results'
 
 
-class SalmonellaResult(TimeStampedModel):
+class SalTyResult(TimeStampedModel):
     """
-    Model for storing output from Salmonella analysis of a single sample
+    Model for storing output from Salmonella typing analysis of a single sample
     """
     analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
     serovar = models.CharField(max_length=128, blank=True, null=True)
@@ -619,5 +619,5 @@ class SalmonellaResult(TimeStampedModel):
         return str(f"{self.pk} - {self.sample_id()}")
 
     class Meta:
-        verbose_name = 'Salmonella Result'
-        verbose_name_plural = 'Salmonella Results'
+        verbose_name = 'Salmonella Typing Result'
+        verbose_name_plural = 'Salmonella Typing Results'

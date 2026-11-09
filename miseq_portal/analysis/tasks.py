@@ -14,7 +14,7 @@ from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisGroup, AnalysisSample, \
     SendsketchResult, MobSuiteAnalysisGroup, MobSuiteAnalysisPlasmid, RGIResult, RGIGroupResult, MashResult, \
     ConfindrGroupResult, ConfindrResult, ConfindrResultAssembly, upload_analysis_file, upload_analysis_file, upload_mobsuite_file, upload_group_analysis_file, \
-    rMLSTResult, StxGroupResult, StxSampleResult, StxGeneResult, SalmonellaGroupResult, SalmonellaResult
+    rMLSTResult, StxGroupResult, StxSampleResult, StxGeneResult, SalTyGroupResult, SalTyResult
 from miseq_portal.analysis.tools.assemble_run import assembly_pipeline, call_qualimap, \
     extract_coverage_from_qualimap_results, assembly_cleanup, run_quast, get_quast_df, upload_sampleassembly_data, \
     prodigal_pipeline
@@ -23,7 +23,7 @@ from miseq_portal.analysis.tools.rgi import call_rgi_main, call_rgi_heatmap
 from miseq_portal.analysis.tools.sendsketch import run_sendsketch, get_top_sendsketch_hit
 from miseq_portal.analysis.tools.rmlst import query_rmlst
 from miseq_portal.analysis.tools.stx import query_stx
-from miseq_portal.analysis.tools.salmonella import query_salmonella
+from miseq_portal.analysis.tools.salty import query_salmonella
 from miseq_portal.miseq_viewer.models import Sample, SampleAssemblyData
 
 MEDIA_ROOT = Path(MEDIA_ROOT)
@@ -69,9 +69,9 @@ def submit_analysis_job(analysis_group: AnalysisGroup):
     elif job_type == 'Stx':
         # STX now runs at the AnalysisGroup level (generates one summary report)
         submit_stx_job(analysis_group=analysis_group)
-    elif job_type == 'Salmonella':
-        # Salmonella now runs at the AnalysisGroup level (generates one summary report)
-        submit_salmonella_job(analysis_group=analysis_group)
+    elif job_type == 'SalTy':
+        # SalTy runs at the AnalysisGroup level (generates one summary report)
+        submit_salty_job(analysis_group=analysis_group)
 
     logger.info(f'Analysis for Group {analysis_group} completed')
     analysis_group.job_status = 'Complete'
@@ -480,7 +480,7 @@ def submit_stx_job(analysis_group: AnalysisGroup) -> StxGroupResult:
             stx_gene_result.save()
         
 
-def submit_salmonella_job(analysis_group: AnalysisGroup) -> SalmonellaGroupResult:
+def submit_salty_job(analysis_group: AnalysisGroup) -> SalTyGroupResult:
     analysis_dir = Path(upload_group_analysis_file(analysis_group=analysis_group, filename='x')).parent
     outdir = MEDIA_ROOT / analysis_dir
     outdir.mkdir(parents=True, exist_ok=False)
@@ -508,23 +508,23 @@ def submit_salmonella_job(analysis_group: AnalysisGroup) -> SalmonellaGroupResul
         logger.warning(f"Salmonella typing analysis failed for group {analysis_group}")
         return
 
-    salmonella_group_result = SalmonellaGroupResult.objects.create(analysis_group=analysis_group, salmonella_report=str(analysis_dir / nf_info['report_xlsx']))
-    salmonella_group_result.save()
+    salty_group_result = SalTyGroupResult.objects.create(analysis_group=analysis_group, salty_report=str(analysis_dir / nf_info['report_xlsx']))
+    salty_group_result.save()
     persample_result_vals = nf_info.get('persample_result_vals', {})
 
     for analysis_sample in analysis_samples:
         sample_id = str(analysis_sample.sample_id)
         sample_vals = persample_result_vals.get(sample_id, {})
         # Create sample instance
-        salmonella_sample_result = SalmonellaResult.objects.create(analysis_sample=analysis_sample)
+        salty_sample_result = SalTyResult.objects.create(analysis_sample=analysis_sample)
         mlst = sample_vals.get('mlst', None)
         if mlst is not None:
             if mlst != "-":
-                salmonella_sample_result.mlst = int(mlst)
+                salty_sample_result.mlst = int(mlst)
         else:
-            salmonella_sample_result.mlst = None
-        salmonella_sample_result.serovar = sample_vals.get('serovar', None)
-        salmonella_sample_result.save()
+            salty_sample_result.mlst = None
+        salty_sample_result.serovar = sample_vals.get('serovar', None)
+        salty_sample_result.save()
 
 
 

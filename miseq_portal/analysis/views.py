@@ -9,7 +9,7 @@ from django.views.generic import View, TemplateView, DetailView, DeleteView
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
     MobSuiteAnalysisGroup, RGIResult, RGIGroupResult, ConfindrGroupResult, ConfindrResult, rMLSTResult, \
-    StxGroupResult, StxSampleResult, StxGeneResult, SalmonellaGroupResult, SalmonellaResult
+    StxGroupResult, StxSampleResult, StxGeneResult, SalTyGroupResult, SalTyResult
 from miseq_portal.analysis.tasks import submit_analysis_job
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
@@ -167,10 +167,10 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
             context['stx_gene_results'] = StxGeneResult.objects.filter(
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
         # Salmonella typing
-        elif context['analysis_group'].job_type == 'Salmonella':
-            context['salmonella_group_result'] = SalmonellaGroupResult.objects.get(
+        elif context['analysis_group'].job_type == 'SalTy':
+            context['salty_group_result'] = SalTyGroupResult.objects.get(
                 analysis_group=context['analysis_group'])
-            context['salmonella_results'] = SalmonellaResult.objects.filter(
+            context['salty_results'] = SalTyResult.objects.filter(
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
         else:
             return context

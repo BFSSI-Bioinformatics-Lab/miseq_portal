@@ -14,7 +14,7 @@
   </ul>
 </div>
 <h3>Retrieve Excel Report</h3>
-<a class="btn btn-primary btn-sm" href="{{ salmonella_group_result.salmonella_report.url }}" download
+<a class="btn btn-primary btn-sm" href="{{ salty_group_result.salty_report.url }}" download
    role="button"><i
   class="fas fa-download"></i> Report (.xlsx)
 </a><br><br>
@@ -30,17 +30,17 @@
   </tr>
   </thead>
   <tbody>
-  {% for salmonella_sample_result in salmonella_results %}
+  {% for salty_sample_result in salty_results %}
     <tr>
       <td>
-        <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=salmonella_sample_result.sample_id.pk %}">
-          {{ salmonella_sample_result.sample_id }}
+        <a href="{% url 'miseq_viewer:miseq_viewer_sample_detail' pk=salty_sample_result.sample_id.pk %}">
+          {{ salty_sample_result.sample_id }}
         </a>
       </td>
-      <td>{{ salmonella_sample_result.sample_id.sample_name }}</td>
-      <td>{{ salmonella_sample_result.mlst }}</td>
-      <td>{{ salmonella_sample_result.serovar }}</td>
-      <td>{{ salmonella_sample_result.modified }}</td>
+      <td>{{ salty_sample_result.sample_id.sample_name }}</td>
+      <td>{{ salty_sample_result.mlst }}</td>
+      <td>{{ salty_sample_result.serovar }}</td>
+      <td>{{ salty_sample_result.modified }}</td>
     </tr>
   {% endfor %}
   </tbody>
