@@ -8,6 +8,7 @@ from django.utils.dateparse import parse_date
 
 from django.conf import settings
 from miseq_portal.analysis.tools.helpers import run_subprocess
+from miseq_portal.analysis.tools.tool_list import TOOL_LIST
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
@@ -60,16 +61,7 @@ class AnalysisGroup(models.Model):
     Generic model for associating an analysis job
     """
     # This determines what options appear on the Analysis tool selection form
-    job_choices = (
-        ('SendSketch', 'SendSketch'),
-        ('MobRecon', 'MobRecon'),
-        ('RGI', 'RGI'),
-        ('Confindr', 'Confindr'),
-        ('rMLST', 'rMLST'),
-        ('Stx', 'Stx'),
-        ('SalTy', 'SalTy')
-        # ('TotalAMR', 'TotalAMR')
-    )
+    job_choices = tuple((key, value["title"]) for key, value in TOOL_LIST.items())
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
 
     status_choices = (
