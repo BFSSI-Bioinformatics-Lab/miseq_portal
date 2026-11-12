@@ -8,6 +8,7 @@ from django.utils.dateparse import parse_date
 
 from django.conf import settings
 from miseq_portal.analysis.tools.helpers import run_subprocess
+from miseq_portal.analysis.tools.tool_list import TOOL_LIST
 from miseq_portal.core.models import TimeStampedModel
 from miseq_portal.miseq_viewer.models import Sample
 from miseq_portal.users.models import User
@@ -60,15 +61,7 @@ class AnalysisGroup(models.Model):
     Generic model for associating an analysis job
     """
     # This determines what options appear on the Analysis tool selection form
-    job_choices = (
-        ('SendSketch', 'SendSketch'),
-        ('MobRecon', 'MobRecon'),
-        ('RGI', 'RGI'),
-        ('Confindr', 'Confindr'),
-        ('rMLST', 'rMLST'),
-        ('Stx', 'Stx')
-        # ('TotalAMR', 'TotalAMR')
-    )
+    job_choices = tuple((key, value["title"]) for key, value in TOOL_LIST.items())
     job_type = models.CharField(choices=job_choices, max_length=50, blank=False, default="SendSketch")
 
     status_choices = (
@@ -587,3 +580,36 @@ class StxGeneResult(TimeStampedModel):
     class Meta:
         verbose_name = 'Stx Gene Result'
         verbose_name_plural = 'Stx Gene Results'
+
+class SalTyGroupResult(TimeStampedModel):
+    """
+    Model for storing overall Salmonella typing analysis of entire AnalysisGroup
+    """
+    analysis_group = models.ForeignKey(AnalysisGroup, on_delete=models.CASCADE)
+    salty_report = models.FileField(upload_to=upload_group_analysis_file, blank=True)
+
+    def __str__(self):
+        return str(f"SalTy Group {self.analysis_group}")
+
+    class Meta:
+        verbose_name = 'Salmonella Typing Group Result'
+        verbose_name_plural = 'Salmonella Typing Group Results'
+
+
+class SalTyResult(TimeStampedModel):
+    """
+    Model for storing output from Salmonella typing analysis of a single sample
+    """
+    analysis_sample = models.OneToOneField(AnalysisSample, on_delete=models.CASCADE)
+    serovar = models.CharField(max_length=128, blank=True, null=True)
+    mlst = models.PositiveIntegerField(blank=True, null=True)
+
+    def sample_id(self):
+        return self.analysis_sample.sample_id
+
+    def __str__(self):
+        return str(f"{self.pk} - {self.sample_id()}")
+
+    class Meta:
+        verbose_name = 'Salmonella Typing Result'
+        verbose_name_plural = 'Salmonella Typing Results'

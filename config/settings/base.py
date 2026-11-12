@@ -353,9 +353,15 @@ CONFINDR_EXE = Path("/home/forest/miniconda3/envs/confindr_v2/bin/confindr")
 RGI_EXE = Path("/home/forest/miniconda3/envs/rgi/bin/rgi")
 PROKKA_EXE = Path("/home/forest/miniconda3/envs/prokka/bin/prokka")
 MOB_RECON_EXE = Path("/home/forest/miniconda3/envs/mob_suite/bin/mob_recon")
+
 STXNF_PATH = Path("/home/forest/miseq_portal/nf-stxsubtyper")
 STXNF_DB = Path(MEDIA_ROOT) / 'resources' / 'stx_references'
 STXNF_WORKING = Path(MEDIA_ROOT) / 'nf-stxtypes_work'
+
+SALMNF_PATH = Path("/home/forest/miseq_portal/nf-salmonella")
+SALMNF_RESOURCES = Path(MEDIA_ROOT) / 'resources' / 'nf-salmonella'
+SALMNF_WORKING = Path(MEDIA_ROOT) / 'nf-salmonella-work'
+
 # Databases
 MASH_REFSEQ_DATABASE = Path(MEDIA_ROOT) / 'resources' / 'refseq.genomes.k21s1000.msh'
 assert MASH_REFSEQ_DATABASE.exists()

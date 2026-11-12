@@ -25,6 +25,21 @@
 
   <hr>
 
+<div class="alert alert-info" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  <h4>Tool Description</h4>
+  {{ tool_info.description }}
+  <hr>
+  <ul>
+    <li>
+      <strong>Tool URL:</strong> <a href="{{ tool_info.link }}">{{ tool_info.link_text }}</a>
+    </li>
+
+  </ul>
+</div>
+
   {% if analysis_group.job_type == "SendSketch" %}
     <div id="sendsketch-results">
       {% include "analysis/results/sendsketch_results.html" %}
@@ -48,6 +63,10 @@
   {% elif analysis_group.job_type == "Stx" %}
     <div id="stx-results">
       {% include "analysis/results/stx_results.html" %}
+    </div>
+  {% elif analysis_group.job_type == "SalTy" %}
+    <div id="salty-results">
+      {% include "analysis/results/salty_results.html" %}
     </div>
   {% endif %}
 

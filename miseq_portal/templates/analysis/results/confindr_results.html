@@ -1,26 +1,4 @@
 {% load analysis_extras %}
-<div class="alert alert-info" role="alert">
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
-  <h4>Tool Description</h4>
-ConFindr works by looking at conserved core genes - either using rMLST genes (53 genes are known to be single copy and
-  conserved across all bacteria with some known exceptions, which ConFindr handles), or custom sets of genes derived
-  from core-genome schemes. As the genes ConFindr looks at are single copy, any sample that has multiple alleles of one
-  or more gene is likely to be contaminated.
-  <hr>
-  <ul>
-    <li>
-      <strong>Tool URL:</strong> <a href="https://olc-bioinformatics.github.io/ConFindr/">ConFindr</a>
-    </li>
-    <li>
-      <strong>Version:</strong> ConFindr Version 0.7.0 {# TODO: Automatically pull version and pass context here #}
-    </li>
-    <li>
-      <strong>Script:</strong> confindr.py
-    </li>
-  </ul>
-</div>
 
 <h3>Results</h3>
 <table class="table table-sm">

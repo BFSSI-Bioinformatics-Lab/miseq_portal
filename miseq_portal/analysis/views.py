@@ -8,8 +8,10 @@ from django.views.generic import View, TemplateView, DetailView, DeleteView
 
 from miseq_portal.analysis.forms import AnalysisToolForm
 from miseq_portal.analysis.models import AnalysisSample, AnalysisGroup, SendsketchResult, MobSuiteAnalysisPlasmid, \
-    MobSuiteAnalysisGroup, RGIResult, RGIGroupResult, ConfindrGroupResult, ConfindrResult, rMLSTResult, StxGroupResult, StxSampleResult, StxGeneResult
+    MobSuiteAnalysisGroup, RGIResult, RGIGroupResult, ConfindrGroupResult, ConfindrResult, rMLSTResult, \
+    StxGroupResult, StxSampleResult, StxGeneResult, SalTyGroupResult, SalTyResult
 from miseq_portal.analysis.tasks import submit_analysis_job
+from miseq_portal.analysis.tools.tool_list import TOOL_LIST
 from miseq_portal.miseq_viewer.models import Sample, UserProjectRelationship
 
 logger = logging.getLogger('django')
@@ -21,6 +23,7 @@ class SampleSelectView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['tool_list'] = TOOL_LIST
         context['approved_users'] = UserProjectRelationship.objects.filter(user_id=self.request.user)
         return context
 
@@ -66,7 +69,8 @@ class ToolSelectionView(LoginRequiredMixin, View):
         context = {
             'analysis_group': analysis_group,
             'analysis_samples': analysis_samples,
-            'form': self.form_class
+            'form': self.form_class,
+            'tool_list': TOOL_LIST
         }
         return render(request, self.template_name, context)
 
@@ -117,7 +121,7 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['analysis_samples'] = AnalysisSample.objects.filter(group_id=context['analysis_group'])
-
+        context["tool_info"] = TOOL_LIST.get(context['analysis_group'].job_type, {})
         # Sendketch
         if context['analysis_group'].job_type == 'SendSketch':
             context['sendsketch_results'] = SendsketchResult.objects.filter(
@@ -165,7 +169,12 @@ class AnalysisGroupDetailView(LoginRequiredMixin, DetailView):
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
             context['stx_gene_results'] = StxGeneResult.objects.filter(
                 analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
-
+        # Salmonella typing
+        elif context['analysis_group'].job_type == 'SalTy':
+            context['salty_group_result'] = SalTyGroupResult.objects.get(
+                analysis_group=context['analysis_group'])
+            context['salty_results'] = SalTyResult.objects.filter(
+                analysis_sample__group_id=context['analysis_group']).order_by('-analysis_sample__sample_id')
         else:
             return context
         return context
