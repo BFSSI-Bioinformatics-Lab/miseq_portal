@@ -7,6 +7,7 @@ from miseq_portal.miseq_viewer.views import (
     run_list_view,
     run_detail_view,
     sample_detail_view,
+    download_sample_read,
     qaqc_excel,
     SampleViewSet, RunViewSet, ProjectViewSet
     # samples_api_view
@@ -24,6 +25,8 @@ urlpatterns = [
     path("projects/", view=project_list_view, name="miseq_viewer_projects"),
     path("runs/", view=run_list_view, name="miseq_viewer_runs"),
     path('qaqcexcel/', view=qaqc_excel, name='miseq_viewer_qaqc_excel'),
+    path("sample/<int:pk>/download/<str:read_type>/", view=download_sample_read,
+         name="miseq_viewer_sample_read_download"),
     # path("samples_api/", view=samples_api_view, name="miseq_viewer_samples_api"),
     re_path("^api/", include(router.urls), name="miseq_viewer_api"),
     re_path("^project/(?P<pk>\d+)$", view=project_detail_view, name="miseq_viewer_project_detail"),
