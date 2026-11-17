@@ -8,9 +8,10 @@ import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView
 from rest_framework import viewsets
-from django.http import HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 
 from config.settings.base import MEDIA_ROOT
 from miseq_portal.analysis.models import AnalysisSample
@@ -130,6 +131,33 @@ class RunDetailView(LoginRequiredMixin, DetailView):
 
 
 run_detail_view = RunDetailView.as_view()
+
+
+def download_sample_read(request, pk, read_type):
+    """Serve read files as downloads so Firefox does not transparently gunzip them.
+
+    Serving a .fastq.gz file through the generic media endpoint can trigger an HTTP
+    Content-Encoding (gzip) response at the proxy/network layer. Firefox may then
+    transparently decompress that response before saving it, leaving a truncated,
+    uncompressed file with the original .gz name. Forcing attachment semantics and
+    disabling content-encoding prevents that behavior.
+    """
+    sample = get_object_or_404(Sample, pk=pk)
+
+    read_field = {'r1': sample.fwd_reads, 'r2': sample.rev_reads}.get(read_type.lower())
+    if read_field is None or not read_field.name:
+        raise Http404("Read file not found.")
+
+    file_path = Path(MEDIA_ROOT) / read_field.name
+    if not file_path.exists():
+        raise Http404("Read file not found.")
+
+    response = FileResponse(open(file_path, 'rb'), as_attachment=True, filename=file_path.name)
+    response["Content-Type"] = "application/octet-stream"
+    response["Content-Encoding"] = "identity"
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Content-Disposition"] = f'attachment; filename="{file_path.name}"'
+    return response
 
 
 def qaqc_excel(request):

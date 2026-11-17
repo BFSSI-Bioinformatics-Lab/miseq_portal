@@ -101,9 +101,10 @@
           {{ sample.sample_name | default:"N/A" }}
         </td>
         <td>
-          {% if browser_flag == True and sample.fwd_reads.url != None and sample.rev_reads.url != None %}
-            <a class="btn btn-outline-primary btn-block" href="{{ sample.fwd_reads.url }}" download role="button"><i
-              class="fas fa-download"></i> Download R1
+          {% if sample.fwd_reads and sample.fwd_reads.name %}
+            <a class="btn btn-outline-primary btn-block"
+               href="{% url 'miseq_viewer:miseq_viewer_sample_read_download' pk=sample.pk read_type='r1' %}"
+               download role="button"><i class="fas fa-download"></i> Download R1
             </a>
           {% else %}
             <a class="btn btn-outline-primary btn-block disabled" href="#" download
@@ -113,9 +114,10 @@
           {% endif %}
         </td>
         <td>
-          {% if browser_flag == True and sample.fwd_reads.url != None and sample.rev_reads.url != None %}
-            <a class="btn btn-outline-primary btn-block" href="{{ sample.rev_reads.url }}" download role="button"><i
-              class="fas fa-download"></i> Download R2
+          {% if sample.rev_reads and sample.rev_reads.name %}
+            <a class="btn btn-outline-primary btn-block"
+               href="{% url 'miseq_viewer:miseq_viewer_sample_read_download' pk=sample.pk read_type='r2' %}"
+               download role="button"><i class="fas fa-download"></i> Download R2
             </a>
           {% else %}
             <a class="btn btn-outline-primary btn-block disabled" href="#" download
